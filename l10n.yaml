@@ -1,0 +1,20 @@
+# Flutter localization config (gen-l10n). Generates AppLocalizations from the
+# ARB files. Run: flutter gen-l10n  (or it runs on build when generate: true).
+#
+# pubspec `generate: true` under `flutter:` is set. ✓
+# Still required to finish l10n setup (not yaml — do these manually):
+#   1. Create lib/l10n/app_en.arb (template) and lib/l10n/app_tr.arb
+#   2. Wire delegates + supportedLocales in app.dart (later, in the Dart phase)
+
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n/generated
+# Generate real files (not a synthetic package) so they're importable and the
+# generated dir matches the analysis_options exclude.
+synthetic-package: false
+# Fail the build if a non-template locale is missing a key — keeps TR and EN in
+# lockstep instead of silently falling back.
+untranslated-messages-file: lib/l10n/untranslated.txt
+nullable-getter: false
