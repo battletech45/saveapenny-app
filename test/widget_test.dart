@@ -1,30 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:saveapenny/main.dart';
+import 'package:saveapenny/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('phase 0 app boots to the placeholder home shell', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Foundation ready'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('phase 0 shell localizes and previews shared async states', (
+    WidgetTester tester,
+  ) async {
+    tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
+    tester.binding.platformDispatcher.localesTestValue = const <Locale>[
+      Locale('tr'),
+    ];
+    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
+    addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+
+    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ana Sayfa'), findsOneWidget);
+    expect(find.text('Eszamansiz durum onizlemesi'), findsOneWidget);
+
+    await tester.tap(find.text('Yukleniyor'));
     await tester.pump();
+    expect(find.text('Yukleniyor...'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Hata'));
+    await tester.pump();
+    expect(find.text('Baglanti sorunu'), findsOneWidget);
   });
 }

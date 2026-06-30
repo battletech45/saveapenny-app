@@ -11,9 +11,6 @@ template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 output-dir: lib/l10n/generated
-# Generate real files (not a synthetic package) so they're importable and the
-# generated dir matches the analysis_options exclude.
-synthetic-package: false
 # Fail the build if a non-template locale is missing a key — keeps TR and EN in
 # lockstep instead of silently falling back.
 untranslated-messages-file: lib/l10n/untranslated.txt
