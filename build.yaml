@@ -1,0 +1,29 @@
+# Code-generation config. Keeps freezed/json/riverpod output uniform
+# regardless of who (or which AI session) triggers the build.
+
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Backend already emits camelCase keys -> no renaming.
+          field_rename: none
+          # Always emit explicit toJson for nested objects (predictable wire output).
+          explicit_to_json: true
+          # Catch typos: fail if JSON has keys the model doesn't declare? Keep false
+          # for forward-compat with backend additions, but include nulls explicitly.
+          include_if_null: false
+          create_to_json: true
+          create_factory: true
+
+      freezed:
+        options:
+          # Generate copyWith + equality + toString; keep union/sealed support on.
+          copy_with: true
+          equal: true
+          to_string: true
+
+      riverpod_generator:
+        options:
+          # Consistent provider naming.
+          provider_name_suffix: "Provider"

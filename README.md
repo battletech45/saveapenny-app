@@ -1,17 +1,101 @@
-# saveapenny
+# SaveAPenny Mobile
 
-A new Flutter project.
+Production Flutter client for the [SaveAPenny](https://github.com/battletech45/saveapenny-backend)
+personal-finance API. Client only — business rules (simulation, validation,
+feasibility) live on the backend; this app calls the API and presents results.
 
-## Getting Started
+## Prerequisites
 
-This project is a starting point for a Flutter application.
+- Flutter SDK `^3.12.2` (Dart bundled)
+- A running SaveAPenny backend (see its README — `docker compose up --build`)
+- iOS: Xcode + CocoaPods · Android: Android Studio / SDK
 
-A few resources to get you started if this is your first Flutter project:
+## Setup
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs   # once code/annotations exist
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Running
+
+The base URL is injected at build time via `--dart-define` (never hardcoded).
+
+```bash
+# Local backend — Android emulator reaches the host at 10.0.2.2
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080 --dart-define=APP_FLAVOR=dev
+
+# Local backend — iOS simulator
+flutter run --dart-define=API_BASE_URL=http://localhost:8080 --dart-define=APP_FLAVOR=dev
+
+# Staging / Prod
+flutter run --dart-define=API_BASE_URL=https://api.saveapenny.app --dart-define=APP_FLAVOR=prod
+```
+
+Tip: keep these in VS Code `launch.json` configs or a `Makefile` so you don't
+retype them.
+
+## Common commands
+
+```bash
+dart run build_runner watch --delete-conflicting-outputs   # during active dev
+flutter analyze                                            # must pass clean
+flutter test                                               # unit + widget + golden
+flutter gen-l10n                                           # regenerate localizations
+dart format .
+```
+
+## Project structure
+
+```
+.
+├── CLAUDE.md / AGENTS.md      # AI operating rules (read first)
+├── analysis_options.yaml      # strict lints (enforced)
+├── build.yaml                 # codegen config (freezed/json/riverpod)
+├── l10n.yaml                  # localization config
+├── docs/
+│   ├── ARCHITECTURE.md        # structure, layering, conventions
+│   ├── API_CONTRACT.md        # backend envelope, auth, errors, pagination
+│   ├── DESIGN_SYSTEM.md       # color/type/spacing tokens, components
+│   └── ROADMAP.md             # feature build order
+└── lib/
+    ├── core/                  # network, error, config, theme, storage, router, l10n
+    ├── features/<feature>/    # data / domain / application / presentation
+    ├── app.dart               # MaterialApp.router, theme, l10n wiring
+    └── main.dart              # ProviderScope + bootstrap
+```
+
+## Documentation
+
+| Doc | Read it when |
+|-----|--------------|
+| [CLAUDE.md](CLAUDE.md) | Before writing or generating any code |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Deciding where code goes |
+| [docs/API_CONTRACT.md](docs/API_CONTRACT.md) | Building any API call or DTO |
+| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Building any UI |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Picking what to build next |
+
+## Developing with AI
+
+This repo is set up for AI-assisted development. `CLAUDE.md` (symlinked/copied to
+`AGENTS.md`) is the operating contract — point the agent at it, and ask it to
+follow the pattern in the relevant `features/` slice. The strict
+`analysis_options.yaml` is the safety net: if generated code drifts, it fails
+analysis.
+
+## Localization
+
+Bilingual Turkish + English. Strings live in `lib/l10n/app_en.arb` (template) and
+`lib/l10n/app_tr.arb`; `flutter gen-l10n` generates `AppLocalizations`. No
+hardcoded user-facing strings — see `CLAUDE.md` §9. `generate: true` is set under
+`flutter:` in `pubspec.yaml`.
+
+## Generated code
+
+`*.g.dart` and `*.freezed.dart` are **[decide: committed / gitignored]**. Pick one
+and set `.gitignore` accordingly before the first feature lands, to avoid noisy
+diffs. (Common choice: gitignore them and run `build_runner` in CI.)
+
+## License
+
+Private — not published (`publish_to: 'none'`).
