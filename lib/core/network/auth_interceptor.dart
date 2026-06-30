@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
+import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 
 typedef SessionExpiredCallback = Future<void> Function();
@@ -24,6 +25,11 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    if (options.extra[_skipAuthInterceptorKey] == true) {
+      handler.next(options);
+      return;
+    }
+
     try {
       final accessToken = await _tokenStore.readAccessToken();
       if (accessToken == null || accessToken.isEmpty) {
@@ -63,10 +69,13 @@ class AuthInterceptor extends Interceptor {
         }
 
         final retriedOptions = err.requestOptions.copyWith(
+          extra: <String, Object?>{
+            ...err.requestOptions.extra,
+            _retriedAfterRefreshKey: true,
+          },
           headers: <String, Object?>{
             ...err.requestOptions.headers,
             'Authorization': 'Bearer $latestAccessToken',
-            '_retriedAfterRefresh': true,
           },
         );
 
@@ -93,7 +102,7 @@ class AuthInterceptor extends Interceptor {
 
   bool _shouldRetryUnauthorized(DioException error) {
     return error.response?.statusCode == 401 &&
-        error.requestOptions.extra['_retriedAfterRefresh'] != true &&
+        error.requestOptions.extra[_retriedAfterRefreshKey] != true &&
         !error.requestOptions.path.endsWith('/auth/refresh');
   }
 
@@ -120,12 +129,12 @@ class AuthInterceptor extends Interceptor {
       '/auth/refresh',
       data: <String, String>{'refreshToken': refreshToken},
       options: Options(
-        extra: const <String, Object?>{'_skipAuthInterceptor': true},
+        extra: const <String, Object?>{_skipAuthInterceptorKey: true},
       ),
     );
 
-    final data = response.data?['data'];
-    if (data is! Map<Object?, Object?>) {
+    final rawJson = response.data;
+    if (rawJson is! Map<Object?, Object?>) {
       await _expireSession();
       throw DioException(
         requestOptions: response.requestOptions,
@@ -133,7 +142,26 @@ class AuthInterceptor extends Interceptor {
       );
     }
 
-    final tokenJson = data.map((key, value) => MapEntry(key.toString(), value));
+    final responseJson = rawJson as Map<Object?, Object?>;
+    final envelope = ApiEnvelope<Map<String, dynamic>>.fromJson(
+      responseJson.map((key, value) => MapEntry(key.toString(), value)),
+      (data) {
+        if (data is Map<Object?, Object?>) {
+          return data.map((key, value) => MapEntry(key.toString(), value));
+        }
+
+        return <String, dynamic>{};
+      },
+    );
+    if (envelope.isError) {
+      await _expireSession();
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+      );
+    }
+
+    final tokenJson = envelope.requireData;
     final accessToken = tokenJson['accessToken'] as String?;
     final nextRefreshToken = tokenJson['refreshToken'] as String?;
     if (accessToken == null || nextRefreshToken == null) {
@@ -182,3 +210,6 @@ class AuthInterceptor extends Interceptor {
     );
   }
 }
+
+const String _skipAuthInterceptorKey = '_skipAuthInterceptor';
+const String _retriedAfterRefreshKey = '_retriedAfterRefresh';

@@ -15,38 +15,45 @@ class EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.inbox_outlined,
-              color: context.colors.textTertiary,
-              size: AppSpacing.giant,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              title ?? l10n.emptyStateTitle,
-              style: context.textTheme.title,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message ?? l10n.emptyStateMessage,
-              style: context.textTheme.body.copyWith(
-                color: context.colors.textSecondary,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.inbox_outlined,
+                    color: context.colors.textTertiary,
+                    size: AppSpacing.giant,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    title ?? l10n.emptyStateTitle,
+                    style: context.textTheme.title,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    message ?? l10n.emptyStateMessage,
+                    style: context.textTheme.body.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (action != null) ...<Widget>[
+                    const SizedBox(height: AppSpacing.lg),
+                    action!,
+                  ],
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            if (action != null) ...<Widget>[
-              const SizedBox(height: AppSpacing.lg),
-              action!,
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

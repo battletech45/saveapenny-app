@@ -17,46 +17,53 @@ class FailureView extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final copy = _localizedCopy(l10n);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.error_outline,
-              color: context.finance.expense,
-              size: AppSpacing.giant,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              copy.title,
-              style: context.textTheme.title,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              copy.message,
-              style: context.textTheme.body.copyWith(
-                color: context.colors.textSecondary,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.error_outline,
+                    color: context.finance.expense,
+                    size: AppSpacing.giant,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    copy.title,
+                    style: context.textTheme.title,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    copy.message,
+                    style: context.textTheme.body.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (onRetry != null) ...<Widget>[
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await onRetry!();
+                        },
+                        child: Text(l10n.commonRetry),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            if (onRetry != null) ...<Widget>[
-              const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await onRetry!();
-                  },
-                  child: Text(l10n.commonRetry),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
