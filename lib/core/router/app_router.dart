@@ -19,9 +19,20 @@ enum AuthStatus { authenticated, unauthenticated }
 enum PhaseZeroPreviewState { loading, empty, error, data }
 
 @Riverpod(keepAlive: true)
-AuthStatus authStatus(Ref ref) {
-  // Phase 0 keeps routing deterministic until the real auth slice lands.
-  return AuthStatus.authenticated;
+class AuthSessionController extends _$AuthSessionController {
+  @override
+  AuthStatus build() {
+    // Phase 0 still boots into the placeholder shell until the auth slice lands.
+    return AuthStatus.authenticated;
+  }
+
+  void setAuthenticated() {
+    state = AuthStatus.authenticated;
+  }
+
+  void setUnauthenticated() {
+    state = AuthStatus.unauthenticated;
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -38,7 +49,7 @@ class PhaseZeroPreviewController extends _$PhaseZeroPreviewController {
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
-  final authStatus = ref.watch(authStatusProvider);
+  final authStatus = ref.watch(authSessionControllerProvider);
 
   return GoRouter(
     initialLocation: '/home',

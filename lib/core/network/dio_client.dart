@@ -5,6 +5,7 @@ import 'package:saveapenny/core/config/app_environment.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/auth_interceptor.dart';
+import 'package:saveapenny/core/router/app_router.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 
 part 'dio_client.g.dart';
@@ -64,7 +65,13 @@ Dio dio(Ref ref) {
   final refreshDio = Dio(options);
 
   dio.interceptors.add(
-    AuthInterceptor(tokenStore: tokenStore, refreshDio: refreshDio),
+    AuthInterceptor(
+      tokenStore: tokenStore,
+      refreshDio: refreshDio,
+      onSessionExpired: () async {
+        ref.read(authSessionControllerProvider.notifier).setUnauthenticated();
+      },
+    ),
   );
 
   return dio;
