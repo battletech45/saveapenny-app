@@ -16,10 +16,7 @@ import 'package:saveapenny/features/auth/domain/auth_session.dart';
 class _MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({
-    this.onLogin,
-    this.onRegister,
-  });
+  _FakeAuthRepository({this.onLogin, this.onRegister});
 
   final Future<AuthSession> Function(String email, String password)? onLogin;
   final Future<AuthSession> Function(
@@ -140,41 +137,42 @@ void main() {
     expect(_passwordEditableText(tester).obscureText, isTrue);
   });
 
-  testWidgets('register password visibility toggle shows and hides the password', (
-    WidgetTester tester,
-  ) async {
-    final storage = _MockFlutterSecureStorage();
-    when(
-      () => storage.read(key: any(named: 'key')),
-    ).thenAnswer((_) async => null);
+  testWidgets(
+    'register password visibility toggle shows and hides the password',
+    (WidgetTester tester) async {
+      final storage = _MockFlutterSecureStorage();
+      when(
+        () => storage.read(key: any(named: 'key')),
+      ).thenAnswer((_) async => null);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          secureTokenStoreProvider.overrideWith(
-            (ref) => SecureTokenStore(storage: storage),
-          ),
-        ],
-        child: const App(),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            secureTokenStoreProvider.overrideWith(
+              (ref) => SecureTokenStore(storage: storage),
+            ),
+          ],
+          child: const App(),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Create account'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Create account'));
+      await tester.pumpAndSettle();
 
-    expect(_passwordEditableText(tester).obscureText, isTrue);
+      expect(_passwordEditableText(tester).obscureText, isTrue);
 
-    await tester.tap(find.byIcon(Icons.visibility_outlined));
-    await tester.pump();
+      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.pump();
 
-    expect(_passwordEditableText(tester).obscureText, isFalse);
+      expect(_passwordEditableText(tester).obscureText, isFalse);
 
-    await tester.tap(find.byIcon(Icons.visibility_off_outlined));
-    await tester.pump();
+      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+      await tester.pump();
 
-    expect(_passwordEditableText(tester).obscureText, isTrue);
-  });
+      expect(_passwordEditableText(tester).obscureText, isTrue);
+    },
+  );
 
   testWidgets('login completes the guarded home and logout cycle', (
     WidgetTester tester,
@@ -204,14 +202,14 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'altay@example.com');
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'altay@example.com',
+    );
     await tester.enterText(find.byType(TextFormField).at(1), 'secret');
     await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
@@ -254,10 +252,7 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
     await tester.pumpAndSettle();
 
@@ -265,7 +260,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Altay Yilmaz');
-    await tester.enterText(find.byType(TextFormField).at(1), 'altay@example.com');
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      'altay@example.com',
+    );
     await tester.enterText(find.byType(TextFormField).at(2), 'secret');
     await tester.tap(find.text('Create account').last);
     await tester.pumpAndSettle();
@@ -301,10 +299,7 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
     await tester.pumpAndSettle();
 
@@ -312,12 +307,18 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Altay Yilmaz');
-    await tester.enterText(find.byType(TextFormField).at(1), 'altay@example.com');
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      'altay@example.com',
+    );
     await tester.enterText(find.byType(TextFormField).at(2), '123');
     await tester.tap(find.text('Create account').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('The password does not meet the server requirements.'), findsOneWidget);
+    expect(
+      find.text('The password does not meet the server requirements.'),
+      findsOneWidget,
+    );
     expect(find.text('Set up your account'), findsOneWidget);
   });
 
@@ -339,10 +340,7 @@ void main() {
     addTearDown(container.dispose);
 
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
     await tester.pumpAndSettle();
 
@@ -379,48 +377,52 @@ void main() {
     expect(find.text('Foundation ready'), findsOneWidget);
   });
 
-  testWidgets('authenticated shell localizes and previews shared async states', (
-    WidgetTester tester,
-  ) async {
-    final storage = _MockFlutterSecureStorage();
-    when(
-      () => storage.read(key: any(named: 'key')),
-    ).thenAnswer((_) async => 'access-token');
+  testWidgets(
+    'authenticated shell localizes and previews shared async states',
+    (WidgetTester tester) async {
+      final storage = _MockFlutterSecureStorage();
+      when(
+        () => storage.read(key: any(named: 'key')),
+      ).thenAnswer((_) async => 'access-token');
 
-    tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
-    tester.binding.platformDispatcher.localesTestValue = const <Locale>[
-      Locale('tr'),
-    ];
-    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-    addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+      tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
+      tester.binding.platformDispatcher.localesTestValue = const <Locale>[
+        Locale('tr'),
+      ];
+      addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
+      addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          secureTokenStoreProvider.overrideWith(
-            (ref) => SecureTokenStore(storage: storage),
-          ),
-        ],
-        child: const App(),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            secureTokenStoreProvider.overrideWith(
+              (ref) => SecureTokenStore(storage: storage),
+            ),
+          ],
+          child: const App(),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Ana Sayfa'), findsOneWidget);
-    expect(find.text('Eszamansiz durum onizlemesi'), findsOneWidget);
+      expect(find.text('Ana Sayfa'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Eszamansiz durum onizlemesi'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Eszamansiz durum onizlemesi'), findsOneWidget);
 
-    await tester.tap(find.text('Yukleniyor'));
-    await tester.pump();
-    expect(find.text('Yukleniyor...'), findsOneWidget);
+      await tester.tap(find.text('Yukleniyor'));
+      await tester.pump();
+      expect(find.text('Yukleniyor...'), findsOneWidget);
 
-    await tester.tap(find.text('Hata'));
-    await tester.pump();
-    expect(find.text('Baglanti sorunu'), findsOneWidget);
-  });
+      await tester.tap(find.text('Hata'));
+      await tester.pump();
+      expect(find.text('Baglanti sorunu'), findsOneWidget);
+    },
+  );
 }
 
 EditableText _passwordEditableText(WidgetTester tester) {
-  return tester.widget<EditableText>(
-    find.byType(EditableText).last,
-  );
+  return tester.widget<EditableText>(find.byType(EditableText).last);
 }
