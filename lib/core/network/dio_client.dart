@@ -31,7 +31,11 @@ class ApiClient {
         fromData,
       );
       if (envelope.isError) {
-        throw FailureMapper.fromApiError(envelope.error!);
+        final apiError = envelope.error;
+        if (apiError != null) {
+          throw FailureMapper.fromApiError(apiError);
+        }
+        throw const Failure.unknown();
       }
       return envelope.requireData;
     } on DioException catch (error) {

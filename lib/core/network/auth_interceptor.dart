@@ -7,6 +7,15 @@ import 'package:saveapenny/core/storage/secure_token_store.dart';
 
 typedef SessionExpiredCallback = Future<void> Function();
 
+Options skipAuthInterceptor([Options? options]) {
+  return (options ?? Options()).copyWith(
+    extra: <String, Object?>{
+      ...?options?.extra,
+      _skipAuthInterceptorKey: true,
+    },
+  );
+}
+
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
     required this._tokenStore,

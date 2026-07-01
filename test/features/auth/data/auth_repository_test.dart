@@ -1,0 +1,124 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/network/dio_client.dart';
+import 'package:saveapenny/core/storage/secure_token_store.dart';
+import 'package:saveapenny/features/auth/data/auth_api.dart';
+import 'package:saveapenny/features/auth/data/auth_repository.dart';
+import 'package:saveapenny/features/auth/domain/auth_session.dart';
+
+import '../../../support/test_http_client_adapter.dart';
+
+class _MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
+
+void main() {
+  late _MockFlutterSecureStorage storage;
+  late SecureTokenStore tokenStore;
+  late Map<String, String> values;
+  late TestHttpClientAdapter adapter;
+  late AuthRepositoryImpl repository;
+
+  setUp(() {
+    storage = _MockFlutterSecureStorage();
+    tokenStore = SecureTokenStore(storage: storage);
+    values = <String, String>{};
+    adapter = TestHttpClientAdapter();
+
+    when(() => storage.read(key: any(named: 'key'))).thenAnswer((invocation) async {
+      final key = invocation.namedArguments[#key]! as String;
+      return values[key];
+    });
+    when(
+      () => storage.write(key: any(named: 'key'), value: any(named: 'value')),
+    ).thenAnswer((invocation) async {
+      final key = invocation.namedArguments[#key]! as String;
+      final value = invocation.namedArguments[#value]! as String;
+      values[key] = value;
+    });
+    when(() => storage.delete(key: any(named: 'key'))).thenAnswer((invocation) async {
+      final key = invocation.namedArguments[#key]! as String;
+      values.remove(key);
+    });
+
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.saveapenny.app/api/v1'))
+      ..httpClientAdapter = adapter;
+    repository = AuthRepositoryImpl(AuthApi(ApiClient(dio)), tokenStore);
+  });
+
+  test('login stores the issued token pair', () async {
+    adapter.enqueueJson(
+      path: '/auth/login',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': <String, dynamic>{
+          'accessToken': 'access-1',
+          'refreshToken': 'refresh-1',
+          'tokenType': 'Bearer',
+          'expiresIn': 900,
+        },
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    final session = await repository.login(
+      email: 'altay@example.com',
+      password: 'secret',
+    );
+
+    expect(session, isA<AuthSession>());
+    expect(values['access_token'], 'access-1');
+    expect(values['refresh_token'], 'refresh-1');
+  });
+
+  test('register surfaces invalid password failures without storing tokens', () async {
+    adapter.enqueueJson(
+      path: '/auth/register',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': false,
+        'data': null,
+        'error': <String, dynamic>{
+          'code': 'INVALID_PASSWORD',
+          'message': 'Password too weak',
+          'details': <String>[],
+        },
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    await expectLater(
+      () => repository.register(
+        email: 'altay@example.com',
+        password: '123',
+        fullName: 'Altay Yilmaz',
+      ),
+      throwsA(isA<ApiFailure>()),
+    );
+
+    expect(values, isEmpty);
+  });
+
+  test('logout revokes the refresh token and clears stored tokens', () async {
+    values['access_token'] = 'access-1';
+    values['refresh_token'] = 'refresh-1';
+    adapter.enqueueJson(
+      path: '/auth/logout',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': null,
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    await repository.logout();
+
+    expect(values, isEmpty);
+  });
+}

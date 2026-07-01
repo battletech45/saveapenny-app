@@ -36,6 +36,8 @@ dependencies:
   path_provider: ^2.1.5
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -53,7 +55,7 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.4
   golden_toolkit: ^0.15.0
-  patrol: ^3.16.3
+  patrol: ^4.6.1
 
 flutter:
   generate: true

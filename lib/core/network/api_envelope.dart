@@ -12,9 +12,11 @@ class ApiEnvelope<T> {
     Map<String, dynamic> json,
     T Function(Object? data) fromData,
   ) {
+    final success = json['success'] as bool? ?? false;
+
     return ApiEnvelope<T>(
-      success: json['success'] as bool? ?? false,
-      data: fromData(json['data']),
+      success: success,
+      data: success ? fromData(json['data']) : null,
       error: _readNullableMap(json['error']) == null
           ? null
           : ApiError.fromJson(_readNullableMap(json['error'])!),
@@ -23,7 +25,7 @@ class ApiEnvelope<T> {
   }
 
   final bool success;
-  final T data;
+  final T? data;
   final ApiError? error;
   final DateTime? timestamp;
 
@@ -33,7 +35,7 @@ class ApiEnvelope<T> {
     if (isError) {
       throw StateError('Cannot read envelope data from an error response.');
     }
-    return data;
+    return data as T;
   }
 }
 

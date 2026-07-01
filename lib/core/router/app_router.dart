@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,16 +7,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/formatting/money_formatter.dart';
+import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/features/auth/application/auth_controller.dart';
+import 'package:saveapenny/features/auth/presentation/login_screen.dart';
+import 'package:saveapenny/features/auth/presentation/register_screen.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 part 'app_router.g.dart';
 
-enum AuthStatus { authenticated, unauthenticated }
+enum AuthStatus { checking, authenticated, unauthenticated }
 
 enum PhaseZeroPreviewState { loading, empty, error, data }
 
@@ -22,8 +28,8 @@ enum PhaseZeroPreviewState { loading, empty, error, data }
 class AuthSessionController extends _$AuthSessionController {
   @override
   AuthStatus build() {
-    // Phase 0 still boots into the placeholder shell until the auth slice lands.
-    return AuthStatus.authenticated;
+    unawaited(_initialize());
+    return AuthStatus.checking;
   }
 
   void setAuthenticated() {
@@ -32,6 +38,15 @@ class AuthSessionController extends _$AuthSessionController {
 
   void setUnauthenticated() {
     state = AuthStatus.unauthenticated;
+  }
+
+  Future<void> _initialize() async {
+    final tokenStore = ref.read(secureTokenStoreProvider);
+    final accessToken = await tokenStore.readAccessToken();
+
+    state = accessToken != null && accessToken.isNotEmpty
+        ? AuthStatus.authenticated
+        : AuthStatus.unauthenticated;
   }
 }
 
@@ -52,25 +67,55 @@ GoRouter appRouter(Ref ref) {
   final authStatus = ref.watch(authSessionControllerProvider);
 
   return GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/boot',
     routes: <RouteBase>[
       GoRoute(
+        path: '/boot',
+        builder: (context, state) => const _BootScreen(),
+      ),
+      GoRoute(
         path: '/login',
-        builder: (context, state) => const _LoginScreen(),
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const _HomeScreen()),
     ],
     redirect: (context, state) {
+      final isBooting = state.matchedLocation == '/boot';
       final isLoggingIn = state.matchedLocation == '/login';
-      if (authStatus == AuthStatus.unauthenticated && !isLoggingIn) {
+      final isRegistering = state.matchedLocation == '/register';
+
+      if (authStatus == AuthStatus.checking) {
+        return isBooting ? null : '/boot';
+      }
+
+      if (authStatus == AuthStatus.unauthenticated && !isLoggingIn && !isRegistering) {
         return '/login';
       }
-      if (authStatus == AuthStatus.authenticated && isLoggingIn) {
+
+      if (authStatus == AuthStatus.authenticated && (isLoggingIn || isRegistering || isBooting)) {
         return '/home';
       }
+
+      if (authStatus == AuthStatus.unauthenticated && isBooting) {
+        return '/login';
+      }
+
       return null;
     },
   );
+}
+
+class _BootScreen extends StatelessWidget {
+  const _BootScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: SafeArea(child: LoadingView()));
+  }
 }
 
 class _HomeScreen extends ConsumerWidget {
@@ -80,6 +125,7 @@ class _HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final previewState = ref.watch(phaseZeroPreviewControllerProvider);
+    final authState = ref.watch(authControllerProvider);
     final previewBalance = MoneyFormatter.format(
       context: context,
       amount: 2450.75,
@@ -87,7 +133,20 @@ class _HomeScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.homeTitle)),
+      appBar: AppBar(
+        title: Text(l10n.homeTitle),
+        actions: <Widget>[
+          IconButton(
+            onPressed: authState.isLoading
+                ? null
+                : () async {
+                    await ref.read(authControllerProvider.notifier).logout();
+                  },
+            tooltip: l10n.homeSignOutCta,
+            icon: const Icon(Icons.logout_rounded),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -219,24 +278,5 @@ class _PreviewStateBody extends ConsumerWidget {
         ],
       ),
     };
-  }
-}
-
-class _LoginScreen extends StatelessWidget {
-  const _LoginScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.loginTitle)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text(l10n.commonNotAvailable, style: context.textTheme.body),
-        ),
-      ),
-    );
   }
 }
