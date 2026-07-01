@@ -17,10 +17,7 @@ import 'package:saveapenny/features/auth/domain/auth_session.dart';
 class _MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({
-    this.onLogin,
-    this.onRegister,
-  });
+  _FakeAuthRepository({this.onLogin, this.onRegister});
 
   final Future<AuthSession> Function(String email, String password)? onLogin;
   final Future<AuthSession> Function(
@@ -56,9 +53,13 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 void main() {
-  patrolTest('login, guarded home, logout, and forced session expiry flow', ($) async {
+  patrolTest('login, guarded home, logout, and forced session expiry flow', (
+    $,
+  ) async {
     final storage = _MockFlutterSecureStorage();
-    when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => null);
 
     final container = ProviderContainer(
       overrides: [
@@ -109,9 +110,13 @@ void main() {
     expect($('Welcome back'), findsOneWidget);
   });
 
-  patrolTest('register surfaces invalid password from backend mapping', ($) async {
+  patrolTest('register surfaces invalid password from backend mapping', (
+    $,
+  ) async {
     final storage = _MockFlutterSecureStorage();
-    when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => null);
 
     final container = ProviderContainer(
       overrides: [
@@ -145,7 +150,10 @@ void main() {
     await $('Create account').tap();
     await $.pumpAndSettle();
 
-    expect($('The password does not meet the server requirements.'), findsOneWidget);
+    expect(
+      $('The password does not meet the server requirements.'),
+      findsOneWidget,
+    );
     expect($('Set up your account'), findsOneWidget);
   });
 }

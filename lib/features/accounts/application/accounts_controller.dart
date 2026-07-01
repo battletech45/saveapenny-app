@@ -30,12 +30,14 @@ class AccountsController extends _$AccountsController {
         : const <Account>[];
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final created = await ref.read(accountsRepositoryProvider).create(
-        name: name,
-        type: type,
-        currency: currency,
-        initialBalance: initialBalance,
-      );
+      final created = await ref
+          .read(accountsRepositoryProvider)
+          .create(
+            name: name,
+            type: type,
+            currency: currency,
+            initialBalance: initialBalance,
+          );
       return <Account>[...current, created];
     });
   }
@@ -51,12 +53,14 @@ class AccountsController extends _$AccountsController {
         : const <Account>[];
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final updated = await ref.read(accountsRepositoryProvider).update(
-        accountId: accountId,
-        name: name,
-        type: type,
-        currency: currency,
-      );
+      final updated = await ref
+          .read(accountsRepositoryProvider)
+          .update(
+            accountId: accountId,
+            name: name,
+            type: type,
+            currency: currency,
+          );
       return current
           .map((Account account) => account.id == accountId ? updated : account)
           .toList(growable: false);

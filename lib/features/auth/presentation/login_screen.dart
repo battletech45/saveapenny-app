@@ -86,9 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: AppSpacing.xxl),
             ElevatedButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(
-                isSubmitting ? l10n.commonLoading : l10n.loginSubmit,
-              ),
+              child: Text(isSubmitting ? l10n.commonLoading : l10n.loginSubmit),
             ),
           ],
         ),

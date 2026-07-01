@@ -35,10 +35,8 @@ class AccountsApi {
     required UpdateAccountRequest request,
   }) {
     return _apiClient.send<AccountResponse>(
-      call: (dio) => dio.put<dynamic>(
-        '/accounts/$accountId',
-        data: request.toJson(),
-      ),
+      call: (dio) =>
+          dio.put<dynamic>('/accounts/$accountId', data: request.toJson()),
       fromData: (data) => AccountResponse.fromJson(_readJsonMap(data)),
     );
   }

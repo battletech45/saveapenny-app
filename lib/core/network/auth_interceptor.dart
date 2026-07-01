@@ -9,10 +9,7 @@ typedef SessionExpiredCallback = Future<void> Function();
 
 Options skipAuthInterceptor([Options? options]) {
   return (options ?? Options()).copyWith(
-    extra: <String, Object?>{
-      ...?options?.extra,
-      _skipAuthInterceptorKey: true,
-    },
+    extra: <String, Object?>{...?options?.extra, _skipAuthInterceptorKey: true},
   );
 }
 
