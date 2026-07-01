@@ -21,9 +21,9 @@ class CategoriesController extends _$CategoriesController {
 
   Future<void> create({
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) async {
     final current = state is AsyncData<List<Category>>
         ? (state as AsyncData<List<Category>>).value
@@ -32,7 +32,7 @@ class CategoriesController extends _$CategoriesController {
     state = await AsyncValue.guard(() async {
       final created = await ref
           .read(categoriesRepositoryProvider)
-          .create(name: name, icon: icon, color: color, parentId: parentId);
+          .create(name: name, type: type, icon: icon, color: color);
       return <Category>[...current, created];
     });
   }
@@ -40,9 +40,9 @@ class CategoriesController extends _$CategoriesController {
   Future<void> updateCategory({
     required String categoryId,
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) async {
     final current = state is AsyncData<List<Category>>
         ? (state as AsyncData<List<Category>>).value
@@ -54,9 +54,9 @@ class CategoriesController extends _$CategoriesController {
           .update(
             categoryId: categoryId,
             name: name,
+            type: type,
             icon: icon,
             color: color,
-            parentId: parentId,
           );
       return current
           .map((Category cat) => cat.id == categoryId ? updated : cat)

@@ -20,6 +20,7 @@ class CategoryFormSheet extends ConsumerStatefulWidget {
 class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
+  late CategoryType _type;
 
   bool get _isEditing => widget.existing != null;
 
@@ -27,6 +28,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.existing?.name ?? '');
+    _type = widget.existing?.type ?? CategoryType.expense;
   }
 
   @override
@@ -86,8 +88,33 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                   labelText: l10n.categoriesNameLabel,
                 ),
                 validator: (value) => _validateRequired(l10n, value),
-                onFieldSubmitted: (_) => _submit(),
               ),
+              if (!_isEditing) ...<Widget>[
+                const SizedBox(height: AppSpacing.lg),
+                DropdownButtonFormField<CategoryType>(
+                  initialValue: _type,
+                  decoration: InputDecoration(
+                    labelText: l10n.categoriesTypeLabel,
+                  ),
+                  items: CategoryType.values
+                      .map(
+                        (type) => DropdownMenuItem<CategoryType>(
+                          value: type,
+                          child: Text(_typeLabel(l10n, type)),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: isSubmitting
+                      ? null
+                      : (value) {
+                          if (value != null) {
+                            setState(() {
+                              _type = value;
+                            });
+                          }
+                        },
+                ),
+              ],
               const SizedBox(height: AppSpacing.xxl),
               ElevatedButton(
                 onPressed: isSubmitting ? null : _submit,
@@ -124,9 +151,10 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
       await controller.updateCategory(
         categoryId: widget.existing!.id,
         name: _nameController.text.trim(),
+        type: widget.existing!.type,
       );
     } else {
-      await controller.create(name: _nameController.text.trim());
+      await controller.create(name: _nameController.text.trim(), type: _type);
     }
 
     final state = ref.read(categoriesControllerProvider);
@@ -171,4 +199,11 @@ class _SheetFailureNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+String _typeLabel(AppLocalizations l10n, CategoryType type) {
+  return switch (type) {
+    CategoryType.income => l10n.categoriesTypeIncome,
+    CategoryType.expense => l10n.categoriesTypeExpense,
+  };
 }

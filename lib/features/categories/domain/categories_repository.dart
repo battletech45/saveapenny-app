@@ -5,17 +5,17 @@ abstract interface class CategoriesRepository {
 
   Future<Category> create({
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   });
 
   Future<Category> update({
     required String categoryId,
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   });
 
   Future<void> delete(String categoryId);
