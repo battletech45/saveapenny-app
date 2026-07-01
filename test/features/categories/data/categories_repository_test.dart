@@ -21,33 +21,44 @@ void main() {
     repository = CategoriesRepositoryImpl(CategoriesApi(ApiClient(dio)));
   });
 
-  test('lists categories from the paginated payload', () async {
+  test('lists categories by merging INCOME and EXPENSE responses', () async {
     adapter.enqueueJson(
       path: '/categories',
       statusCode: 200,
       body: <String, dynamic>{
         'success': true,
-        'data': <String, dynamic>{
-          'items': <Map<String, dynamic>>[
-            <String, dynamic>{
-              'id': 'c-1',
-              'name': 'Groceries',
-              'type': 'SYSTEM',
-              'icon': 'shopping',
-              'color': '#FF0000',
-              'parentId': null,
-              'active': true,
-              'createdAt': '2026-06-09T12:00:00Z',
-              'updatedAt': '2026-06-09T12:00:00Z',
-            },
-          ],
-          'page': 0,
-          'size': 20,
-          'totalItems': 1,
-          'totalPages': 1,
-          'hasNext': false,
-          'hasPrevious': false,
-        },
+        'data': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'c-1',
+            'name': 'Salary',
+            'type': 'INCOME',
+            'icon': 'salary',
+            'color': '#00FF00',
+            'createdAt': '2026-06-09T12:00:00Z',
+            'updatedAt': '2026-06-09T12:00:00Z',
+          },
+        ],
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    adapter.enqueueJson(
+      path: '/categories',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'c-2',
+            'name': 'Groceries',
+            'type': 'EXPENSE',
+            'icon': 'shopping',
+            'color': '#FF0000',
+            'createdAt': '2026-06-09T12:00:00Z',
+            'updatedAt': '2026-06-09T12:00:00Z',
+          },
+        ],
         'error': null,
         'timestamp': '2026-06-09T12:00:00Z',
       },
@@ -55,8 +66,13 @@ void main() {
 
     final categories = await repository.list();
 
-    expect(categories, hasLength(1));
-    expect(categories.first.type, CategoryType.system);
+    expect(categories, hasLength(2));
+    final income = categories.firstWhere((c) => c.type == CategoryType.income);
+    final expense = categories.firstWhere(
+      (c) => c.type == CategoryType.expense,
+    );
+    expect(income.name, 'Salary');
+    expect(expense.name, 'Groceries');
   });
 
   test('create surfaces validation failures', () async {
@@ -76,7 +92,7 @@ void main() {
     );
 
     await expectLater(
-      () => repository.create(name: ''),
+      () => repository.create(name: '', type: CategoryType.expense),
       throwsA(
         isA<ApiFailure>().having(
           (failure) => failure.code,
@@ -84,6 +100,44 @@ void main() {
           ApiErrorCode.validationFailed,
         ),
       ),
+    );
+  });
+
+  test('sends type query parameter on list calls', () async {
+    adapter.enqueueJson(
+      path: '/categories',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    adapter.enqueueJson(
+      path: '/categories',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': <Map<String, dynamic>>[],
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    await repository.list();
+
+    expect(adapter.requests, hasLength(2));
+    final queries = adapter.requests
+        .map((r) => r.queryParameters)
+        .toList(growable: false);
+    expect(
+      queries,
+      containsAll(<Map<String, dynamic>>[
+        <String, String>{'type': 'INCOME'},
+        <String, String>{'type': 'EXPENSE'},
+      ]),
     );
   });
 }

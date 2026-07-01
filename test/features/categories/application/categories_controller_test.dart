@@ -14,20 +14,20 @@ class _FakeCategoriesRepository implements CategoriesRepository {
   final Future<List<Category>> Function()? onList;
   final Future<Category> Function(
     String name,
+    CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   )?
   onCreate;
 
   @override
   Future<Category> create({
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) {
-    return onCreate!(name, icon, color, parentId);
+    return onCreate!(name, type, icon, color);
   }
 
   @override
@@ -44,9 +44,9 @@ class _FakeCategoriesRepository implements CategoriesRepository {
   Future<Category> update({
     required String categoryId,
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) {
     throw UnimplementedError();
   }
@@ -57,23 +57,18 @@ void main() {
     final existing = Category(
       id: 'c-1',
       name: 'Groceries',
-      type: CategoryType.system,
-      active: true,
+      type: CategoryType.expense,
       createdAt: DateTime.parse('2026-06-09T12:00:00Z'),
       updatedAt: DateTime.parse('2026-06-09T12:00:00Z'),
     );
-    final created = existing.copyWith(
-      id: 'c-2',
-      name: 'Hobbies',
-      type: CategoryType.user,
-    );
+    final created = existing.copyWith(id: 'c-2', name: 'Hobbies');
 
     final container = ProviderContainer(
       overrides: [
         categoriesRepositoryProvider.overrideWith(
           (ref) => _FakeCategoriesRepository(
             onList: () async => <Category>[existing],
-            onCreate: (name, icon, color, parentId) async => created,
+            onCreate: (name, type, icon, color) async => created,
           ),
         ),
       ],
@@ -83,7 +78,7 @@ void main() {
     await container.read(categoriesControllerProvider.future);
     await container
         .read(categoriesControllerProvider.notifier)
-        .create(name: 'Hobbies');
+        .create(name: 'Hobbies', type: CategoryType.expense);
 
     expect(container.read(categoriesControllerProvider).value, <Category>[
       existing,
@@ -97,7 +92,7 @@ void main() {
         categoriesRepositoryProvider.overrideWith(
           (ref) => _FakeCategoriesRepository(
             onList: () async => const <Category>[],
-            onCreate: (name, icon, color, parentId) async {
+            onCreate: (name, type, icon, color) async {
               throw const Failure.api(
                 code: ApiErrorCode.validationFailed,
                 message: 'Invalid category',
@@ -112,7 +107,7 @@ void main() {
     await container.read(categoriesControllerProvider.future);
     await container
         .read(categoriesControllerProvider.notifier)
-        .create(name: '');
+        .create(name: '', type: CategoryType.expense);
 
     expect(container.read(categoriesControllerProvider).hasError, isTrue);
   });
