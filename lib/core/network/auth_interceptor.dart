@@ -57,6 +57,8 @@ class AuthInterceptor extends Interceptor {
       handler.reject(error);
     } on FormatException catch (error) {
       handler.reject(DioException(requestOptions: options, error: error));
+    } on Object catch (error) {
+      handler.reject(DioException(requestOptions: options, error: error));
     }
   }
 
