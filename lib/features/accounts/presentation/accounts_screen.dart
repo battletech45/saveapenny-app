@@ -44,7 +44,7 @@ class AccountsScreen extends ConsumerWidget {
             return RefreshIndicator(
               onRefresh: () =>
                   ref.read(accountsControllerProvider.notifier).refresh(),
-                child: ListView.separated(
+              child: ListView.separated(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 itemCount: accounts.length,
                 separatorBuilder: (BuildContext context, int index) =>
@@ -53,11 +53,8 @@ class AccountsScreen extends ConsumerWidget {
                   final account = accounts[index];
                   return _AccountCard(
                     account: account,
-                    onEdit: () => _showAccountSheet(
-                      context,
-                      ref,
-                      existing: account,
-                    ),
+                    onEdit: () =>
+                        _showAccountSheet(context, ref, existing: account),
                     onDelete: () => _confirmDelete(context, ref, account),
                   );
                 },
@@ -67,7 +64,8 @@ class AccountsScreen extends ConsumerWidget {
           loading: () => const LoadingView(),
           error: (error, _) => FailureView(
             failure: error as Failure,
-            onRetry: () => ref.read(accountsControllerProvider.notifier).refresh(),
+            onRetry: () =>
+                ref.read(accountsControllerProvider.notifier).refresh(),
           ),
         ),
       ),
@@ -117,7 +115,9 @@ class AccountsScreen extends ConsumerWidget {
       return;
     }
 
-    await ref.read(accountsControllerProvider.notifier).deleteAccount(account.id);
+    await ref
+        .read(accountsControllerProvider.notifier)
+        .deleteAccount(account.id);
   }
 }
 
@@ -309,7 +309,9 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
     final l10n = AppLocalizations.of(context);
     final accountsState = ref.watch(accountsControllerProvider);
     final isSubmitting = accountsState.isLoading;
-    final failure = accountsState.hasError ? accountsState.error as Failure : null;
+    final failure = accountsState.hasError
+        ? accountsState.error as Failure
+        : null;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -376,7 +378,9 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
                 controller: _currencyController,
                 enabled: !isSubmitting,
                 textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(labelText: l10n.accountsCurrencyLabel),
+                decoration: InputDecoration(
+                  labelText: l10n.accountsCurrencyLabel,
+                ),
                 validator: (value) => _validateCurrency(l10n, value),
               ),
               if (!_isEditing) ...<Widget>[
@@ -384,7 +388,9 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
                 TextFormField(
                   controller: _initialBalanceController,
                   enabled: !isSubmitting,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     labelText: l10n.accountsInitialBalanceLabel,
                   ),

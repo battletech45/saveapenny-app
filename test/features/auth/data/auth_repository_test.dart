@@ -27,18 +27,25 @@ void main() {
     values = <String, String>{};
     adapter = TestHttpClientAdapter();
 
-    when(() => storage.read(key: any(named: 'key'))).thenAnswer((invocation) async {
+    when(() => storage.read(key: any(named: 'key'))).thenAnswer((
+      invocation,
+    ) async {
       final key = invocation.namedArguments[#key]! as String;
       return values[key];
     });
     when(
-      () => storage.write(key: any(named: 'key'), value: any(named: 'value')),
+      () => storage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+      ),
     ).thenAnswer((invocation) async {
       final key = invocation.namedArguments[#key]! as String;
       final value = invocation.namedArguments[#value]! as String;
       values[key] = value;
     });
-    when(() => storage.delete(key: any(named: 'key'))).thenAnswer((invocation) async {
+    when(() => storage.delete(key: any(named: 'key'))).thenAnswer((
+      invocation,
+    ) async {
       final key = invocation.namedArguments[#key]! as String;
       values.remove(key);
     });
@@ -75,33 +82,36 @@ void main() {
     expect(values['refresh_token'], 'refresh-1');
   });
 
-  test('register surfaces invalid password failures without storing tokens', () async {
-    adapter.enqueueJson(
-      path: '/auth/register',
-      statusCode: 200,
-      body: <String, dynamic>{
-        'success': false,
-        'data': null,
-        'error': <String, dynamic>{
-          'code': 'INVALID_PASSWORD',
-          'message': 'Password too weak',
-          'details': <String>[],
+  test(
+    'register surfaces invalid password failures without storing tokens',
+    () async {
+      adapter.enqueueJson(
+        path: '/auth/register',
+        statusCode: 200,
+        body: <String, dynamic>{
+          'success': false,
+          'data': null,
+          'error': <String, dynamic>{
+            'code': 'INVALID_PASSWORD',
+            'message': 'Password too weak',
+            'details': <String>[],
+          },
+          'timestamp': '2026-06-09T12:00:00Z',
         },
-        'timestamp': '2026-06-09T12:00:00Z',
-      },
-    );
+      );
 
-    await expectLater(
-      () => repository.register(
-        email: 'altay@example.com',
-        password: '123',
-        fullName: 'Altay Yilmaz',
-      ),
-      throwsA(isA<ApiFailure>()),
-    );
+      await expectLater(
+        () => repository.register(
+          email: 'altay@example.com',
+          password: '123',
+          fullName: 'Altay Yilmaz',
+        ),
+        throwsA(isA<ApiFailure>()),
+      );
 
-    expect(values, isEmpty);
-  });
+      expect(values, isEmpty);
+    },
+  );
 
   test('logout revokes the refresh token and clears stored tokens', () async {
     values['access_token'] = 'access-1';

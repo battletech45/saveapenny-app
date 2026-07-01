@@ -9,10 +9,7 @@ import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/domain/accounts_repository.dart';
 
 class _FakeAccountsRepository implements AccountsRepository {
-  _FakeAccountsRepository({
-    this.onList,
-    this.onCreate,
-  });
+  _FakeAccountsRepository({this.onList, this.onCreate});
 
   final Future<List<Account>> Function()? onList;
   final Future<Account> Function(
@@ -82,14 +79,19 @@ void main() {
     addTearDown(container.dispose);
 
     await container.read(accountsControllerProvider.future);
-    await container.read(accountsControllerProvider.notifier).create(
-      name: 'Cash wallet',
-      type: AccountType.cash,
-      currency: 'TRY',
-      initialBalance: 50,
-    );
+    await container
+        .read(accountsControllerProvider.notifier)
+        .create(
+          name: 'Cash wallet',
+          type: AccountType.cash,
+          currency: 'TRY',
+          initialBalance: 50,
+        );
 
-    expect(container.read(accountsControllerProvider).value, <Account>[existing, created]);
+    expect(container.read(accountsControllerProvider).value, <Account>[
+      existing,
+      created,
+    ]);
   });
 
   test('create exposes the primary validation failure path', () async {
@@ -111,12 +113,14 @@ void main() {
     addTearDown(container.dispose);
 
     await container.read(accountsControllerProvider.future);
-    await container.read(accountsControllerProvider.notifier).create(
-      name: '',
-      type: AccountType.bank,
-      currency: 'TRY',
-      initialBalance: 0,
-    );
+    await container
+        .read(accountsControllerProvider.notifier)
+        .create(
+          name: '',
+          type: AccountType.bank,
+          currency: 'TRY',
+          initialBalance: 0,
+        );
 
     expect(container.read(accountsControllerProvider).hasError, isTrue);
   });

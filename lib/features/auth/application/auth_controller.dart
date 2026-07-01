@@ -33,13 +33,12 @@ class AuthController extends _$AuthController {
     }
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref.read(authRepositoryProvider).login(email: email, password: password);
+      await ref
+          .read(authRepositoryProvider)
+          .login(email: email, password: password);
       ref.read(authSessionControllerProvider.notifier).setAuthenticated();
     });
     if (state.hasError) {

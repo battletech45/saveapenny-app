@@ -40,6 +40,10 @@ class ApiClient {
       return envelope.requireData;
     } on DioException catch (error) {
       throw FailureMapper.fromDio(error);
+    } on Failure {
+      rethrow;
+    } catch (error) {
+      throw Failure.unknown(message: error.toString());
     }
   }
 }

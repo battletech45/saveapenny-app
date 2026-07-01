@@ -49,7 +49,9 @@ void main() {
 
   setUp(() {
     storage = _MockFlutterSecureStorage();
-    when(() => storage.read(key: any(named: 'key'))).thenAnswer((_) async => null);
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => null);
   });
 
   test('login marks the session authenticated', () async {
@@ -78,35 +80,44 @@ void main() {
     await controller.login(email: 'altay@example.com', password: 'secret');
 
     expect(container.read(authControllerProvider), const AsyncData<void>(null));
-    expect(container.read(authSessionControllerProvider), AuthStatus.authenticated);
-  });
-
-  test('login preserves unauthenticated state when the repository fails', () async {
-    final container = ProviderContainer(
-      overrides: [
-        secureTokenStoreProvider.overrideWith(
-          (ref) => SecureTokenStore(storage: storage),
-        ),
-        authRepositoryProvider.overrideWith(
-          (ref) => _FakeAuthRepository(
-            onLogin: (email, password) async {
-              throw const Failure.api(
-                code: ApiErrorCode.invalidCredentials,
-                message: 'Invalid credentials',
-              );
-            },
-          ),
-        ),
-      ],
+    expect(
+      container.read(authSessionControllerProvider),
+      AuthStatus.authenticated,
     );
-    addTearDown(container.dispose);
-
-    final controller = container.read(authControllerProvider.notifier);
-    await Future<void>.delayed(Duration.zero);
-
-    await controller.login(email: 'altay@example.com', password: 'wrong');
-
-    expect(container.read(authControllerProvider).hasError, isTrue);
-    expect(container.read(authSessionControllerProvider), AuthStatus.unauthenticated);
   });
+
+  test(
+    'login preserves unauthenticated state when the repository fails',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          secureTokenStoreProvider.overrideWith(
+            (ref) => SecureTokenStore(storage: storage),
+          ),
+          authRepositoryProvider.overrideWith(
+            (ref) => _FakeAuthRepository(
+              onLogin: (email, password) async {
+                throw const Failure.api(
+                  code: ApiErrorCode.invalidCredentials,
+                  message: 'Invalid credentials',
+                );
+              },
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final controller = container.read(authControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.login(email: 'altay@example.com', password: 'wrong');
+
+      expect(container.read(authControllerProvider).hasError, isTrue);
+      expect(
+        container.read(authSessionControllerProvider),
+        AuthStatus.unauthenticated,
+      );
+    },
+  );
 }
