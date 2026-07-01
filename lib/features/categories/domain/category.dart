@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'category.freezed.dart';
 
-enum CategoryType { system, user }
+enum CategoryType { income, expense }
 
 @freezed
 abstract class Category with _$Category {
@@ -12,8 +12,7 @@ abstract class Category with _$Category {
     required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
-    required bool active,
+    String? userId,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Category;

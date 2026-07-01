@@ -7,9 +7,9 @@ part 'create_category_request.g.dart';
 abstract class CreateCategoryRequest with _$CreateCategoryRequest {
   const factory CreateCategoryRequest({
     required String name,
+    required String type,
     String? icon,
     String? color,
-    String? parentId,
   }) = _CreateCategoryRequest;
 
   factory CreateCategoryRequest.fromJson(Map<String, dynamic> json) =>

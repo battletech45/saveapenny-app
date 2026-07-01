@@ -7,9 +7,9 @@ part 'update_category_request.g.dart';
 abstract class UpdateCategoryRequest with _$UpdateCategoryRequest {
   const factory UpdateCategoryRequest({
     required String name,
+    required String type,
     String? icon,
     String? color,
-    String? parentId,
   }) = _UpdateCategoryRequest;
 
   factory UpdateCategoryRequest.fromJson(Map<String, dynamic> json) =>

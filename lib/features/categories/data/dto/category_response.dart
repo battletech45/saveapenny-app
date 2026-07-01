@@ -13,8 +13,7 @@ abstract class CategoryResponse with _$CategoryResponse {
     required String type,
     String? icon,
     String? color,
-    String? parentId,
-    required bool active,
+    String? userId,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _CategoryResponse;
@@ -31,8 +30,7 @@ extension CategoryResponseX on CategoryResponse {
       type: _categoryTypeFromWire(type),
       icon: icon,
       color: color,
-      parentId: parentId,
-      active: active,
+      userId: userId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -41,7 +39,7 @@ extension CategoryResponseX on CategoryResponse {
 
 CategoryType _categoryTypeFromWire(String value) {
   return switch (value.toUpperCase()) {
-    'SYSTEM' => CategoryType.system,
-    _ => CategoryType.user,
+    'INCOME' => CategoryType.income,
+    _ => CategoryType.expense,
   };
 }
