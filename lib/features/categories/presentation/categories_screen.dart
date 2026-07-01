@@ -31,10 +31,10 @@ class CategoriesScreen extends ConsumerWidget {
         child: categoriesState.when(
           data: (categories) {
             final systemCategories = categories
-                .where((c) => c.type == CategoryType.system)
+                .where((c) => c.userId == null)
                 .toList(growable: false);
             final userCategories = categories
-                .where((c) => c.type == CategoryType.user)
+                .where((c) => c.userId != null)
                 .toList(growable: false);
 
             if (categories.isEmpty) {
@@ -80,7 +80,9 @@ class CategoriesScreen extends ConsumerWidget {
           },
           loading: () => const LoadingView(),
           error: (error, _) => FailureView(
-            failure: error as Failure,
+            failure: error is Failure
+                ? error
+                : Failure.unknown(message: error.toString()),
             onRetry: () =>
                 ref.read(categoriesControllerProvider.notifier).refresh(),
           ),
@@ -165,11 +167,12 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isSystem = category.userId == null;
 
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        onTap: onEdit,
+        onTap: isSystem ? null : onEdit,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
@@ -184,17 +187,23 @@ class _CategoryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(category.name, style: context.textTheme.body),
-                    if (category.type == CategoryType.system)
-                      Text(
-                        l10n.categoriesSystemBadge,
-                        style: context.textTheme.label.copyWith(
-                          color: context.colors.textTertiary,
-                        ),
+                    Text(
+                      _typeLabel(l10n, category.type),
+                      style: context.textTheme.label.copyWith(
+                        color: context.colors.textTertiary,
                       ),
+                    ),
                   ],
                 ),
               ),
-              if (onDelete != null)
+              if (isSystem)
+                Chip(
+                  label: Text(
+                    l10n.categoriesSystemBadge,
+                    style: context.textTheme.label,
+                  ),
+                ),
+              if (!isSystem && onDelete != null)
                 IconButton(
                   onPressed: onDelete,
                   icon: const Icon(Icons.delete_outline_rounded),
@@ -247,7 +256,6 @@ class _CategoryIcon extends StatelessWidget {
       'savings' || 'investment' => Icons.account_balance_outlined,
       'bills' || 'utilities' => Icons.receipt_long_outlined,
       'travel' => Icons.flight_outlined,
-      'shopping_bag' => Icons.shopping_bag_outlined,
       _ => Icons.category_outlined,
     };
   }
@@ -262,4 +270,11 @@ class _CategoryIcon extends StatelessWidget {
     }
     return Color(int.parse(buffer.toString(), radix: 16));
   }
+}
+
+String _typeLabel(AppLocalizations l10n, CategoryType type) {
+  return switch (type) {
+    CategoryType.income => l10n.categoriesTypeIncome,
+    CategoryType.expense => l10n.categoriesTypeExpense,
+  };
 }

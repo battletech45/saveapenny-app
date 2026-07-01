@@ -124,5 +124,8 @@
   },
   "categoriesSystemSection": "Sistem kategorileri",
   "categoriesUserSection": "Kendi kategorilerim",
-  "categoriesSystemBadge": "Sistem"
+  "categoriesSystemBadge": "Sistem",
+  "categoriesTypeLabel": "Kategori turu",
+  "categoriesTypeIncome": "Gelir",
+  "categoriesTypeExpense": "Gider"
 }

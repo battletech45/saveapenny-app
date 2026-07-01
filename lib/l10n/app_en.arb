@@ -124,5 +124,8 @@
   },
   "categoriesSystemSection": "System categories",
   "categoriesUserSection": "My categories",
-  "categoriesSystemBadge": "System"
+  "categoriesSystemBadge": "System",
+  "categoriesTypeLabel": "Category type",
+  "categoriesTypeIncome": "Income",
+  "categoriesTypeExpense": "Expense"
 }
