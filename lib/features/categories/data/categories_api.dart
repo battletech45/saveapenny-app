@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/dio_client.dart';
 import 'package:saveapenny/features/categories/data/dto/category_response.dart';
 import 'package:saveapenny/features/categories/data/dto/create_category_request.dart';
@@ -13,13 +12,18 @@ class CategoriesApi {
 
   final ApiClient _apiClient;
 
-  Future<PaginatedData<CategoryResponse>> list() {
-    return _apiClient.send<PaginatedData<CategoryResponse>>(
-      call: (dio) => dio.get<dynamic>('/categories'),
-      fromData: (data) => PaginatedData<CategoryResponse>.fromJson(
-        _readJsonMap(data),
-        (item) => CategoryResponse.fromJson(_readJsonMap(item)),
+  Future<List<CategoryResponse>> list(String type) {
+    return _apiClient.send<List<CategoryResponse>>(
+      call: (dio) => dio.get<dynamic>(
+        '/categories',
+        queryParameters: <String, String>{'type': type},
       ),
+      fromData: (data) {
+        final items = data as List<Object?>;
+        return items
+            .map((item) => CategoryResponse.fromJson(_readJsonMap(item)))
+            .toList(growable: false);
+      },
     );
   }
 

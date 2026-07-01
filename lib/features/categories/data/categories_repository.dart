@@ -16,8 +16,12 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
 
   @override
   Future<List<Category>> list() async {
-    final page = await _categoriesApi.list();
-    return page.items
+    final results = await Future.wait(<Future<List<CategoryResponse>>>[
+      _categoriesApi.list('INCOME'),
+      _categoriesApi.list('EXPENSE'),
+    ]);
+    return results
+        .expand((List<CategoryResponse> list) => list)
         .map((CategoryResponse item) => item.toDomain())
         .toList(growable: false);
   }
@@ -25,16 +29,16 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   @override
   Future<Category> create({
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) async {
     final response = await _categoriesApi.create(
       CreateCategoryRequest(
         name: name,
+        type: _categoryTypeToWire(type),
         icon: icon,
         color: color,
-        parentId: parentId,
       ),
     );
 
@@ -45,17 +49,17 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   Future<Category> update({
     required String categoryId,
     required String name,
+    required CategoryType type,
     String? icon,
     String? color,
-    String? parentId,
   }) async {
     final response = await _categoriesApi.update(
       categoryId: categoryId,
       request: UpdateCategoryRequest(
         name: name,
+        type: _categoryTypeToWire(type),
         icon: icon,
         color: color,
-        parentId: parentId,
       ),
     );
 
@@ -66,6 +70,13 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   Future<void> delete(String categoryId) {
     return _categoriesApi.delete(categoryId);
   }
+}
+
+String _categoryTypeToWire(CategoryType type) {
+  return switch (type) {
+    CategoryType.income => 'INCOME',
+    CategoryType.expense => 'EXPENSE',
+  };
 }
 
 @Riverpod(keepAlive: true)
