@@ -97,5 +97,32 @@
   "failureInvalidCredentialsMessage": "E-posta veya sifre hatali.",
   "failureResourceNotFoundTitle": "Bulunamadi",
   "failureResourceNotFoundMessage": "Istenen kaynak bulunamadi.",
-  "homeSignOutCta": "Cikis yap"
+  "homeSignOutCta": "Cikis yap",
+  "categoriesTitle": "Kategoriler",
+  "categoriesHomeCardTitle": "Kategorileri yonetin",
+  "categoriesHomeCardSubtitle": "Islemlerinizi sistem ve ozel kategorilerle duzenleyin.",
+  "categoriesOpenCta": "Kategorileri ac",
+  "categoriesAddCta": "Kategori ekle",
+  "categoriesAddFirstCta": "Ilk kategorinizi olusturun",
+  "categoriesEmptyTitle": "Henuz kategori yok",
+  "categoriesEmptyMessage": "Kategoriler, gelir ve giderlerinizi duzenlemenize yardimci olur. Ilk kategorinizi olusturun.",
+  "categoriesCreateTitle": "Kategori olustur",
+  "categoriesCreateSubtitle": "Islemleriniz icin yeni bir kategori ekleyin.",
+  "categoriesEditTitle": "Kategoriyi duzenle",
+  "categoriesEditSubtitle": "Kategori adini veya detaylarini guncelleyin.",
+  "categoriesNameLabel": "Kategori adi",
+  "categoriesCreateCta": "Kategori olustur",
+  "categoriesSaveCta": "Degisiklikleri kaydet",
+  "categoriesEditCta": "Duzenle",
+  "categoriesDeleteCta": "Sil",
+  "categoriesDeleteTitle": "Kategoriyi sil",
+  "categoriesDeleteMessage": "{categoryName} silinsin mi?",
+  "@categoriesDeleteMessage": {
+    "placeholders": {
+      "categoryName": {}
+    }
+  },
+  "categoriesSystemSection": "Sistem kategorileri",
+  "categoriesUserSection": "Kendi kategorilerim",
+  "categoriesSystemBadge": "Sistem"
 }

@@ -17,6 +17,7 @@ import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
 import 'package:saveapenny/features/auth/application/auth_controller.dart';
 import 'package:saveapenny/features/auth/presentation/login_screen.dart';
 import 'package:saveapenny/features/auth/presentation/register_screen.dart';
+import 'package:saveapenny/features/categories/presentation/categories_screen.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 part 'app_router.g.dart';
@@ -70,14 +71,8 @@ GoRouter appRouter(Ref ref) {
   return GoRouter(
     initialLocation: '/boot',
     routes: <RouteBase>[
-      GoRoute(
-        path: '/boot',
-        builder: (context, state) => const _BootScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/boot', builder: (context, state) => const _BootScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -85,6 +80,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/accounts',
         builder: (context, state) => const AccountsScreen(),
+      ),
+      GoRoute(
+        path: '/categories',
+        builder: (context, state) => const CategoriesScreen(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const _HomeScreen()),
     ],
@@ -97,11 +96,14 @@ GoRouter appRouter(Ref ref) {
         return isBooting ? null : '/boot';
       }
 
-      if (authStatus == AuthStatus.unauthenticated && !isLoggingIn && !isRegistering) {
+      if (authStatus == AuthStatus.unauthenticated &&
+          !isLoggingIn &&
+          !isRegistering) {
         return '/login';
       }
 
-      if (authStatus == AuthStatus.authenticated && (isLoggingIn || isRegistering || isBooting)) {
+      if (authStatus == AuthStatus.authenticated &&
+          (isLoggingIn || isRegistering || isBooting)) {
         return '/home';
       }
 
@@ -153,133 +155,168 @@ class _HomeScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Card(
+          children: <Widget>[
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      l10n.phaseZeroPlaceholderTitle,
+                      style: context.textTheme.title,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      l10n.phaseZeroPlaceholderBody,
+                      style: context.textTheme.body.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      l10n.phaseZeroBalanceLabel,
+                      style: context.textTheme.label.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        previewBalance.text,
+                        style: context.textTheme.displayMoney.copyWith(
+                          color: previewBalance.color,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: () => GoRouter.of(context).go('/accounts'),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: <Widget>[
-                      Text(
-                        l10n.phaseZeroPlaceholderTitle,
-                        style: context.textTheme.title,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        l10n.phaseZeroPlaceholderBody,
-                        style: context.textTheme.body.copyWith(
-                          color: context.colors.textSecondary,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.accountsHomeCardTitle,
+                              style: context.textTheme.title,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.accountsHomeCardSubtitle,
+                              style: context.textTheme.body.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xl),
-                      Text(
-                        l10n.phaseZeroBalanceLabel,
-                        style: context.textTheme.label.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          previewBalance.text,
-                          style: context.textTheme.displayMoney.copyWith(
-                            color: previewBalance.color,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: context.colors.textSecondary,
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Card(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  onTap: () => GoRouter.of(context).go('/accounts'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                l10n.accountsHomeCardTitle,
-                                style: context.textTheme.title,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: () => GoRouter.of(context).go('/categories'),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.categoriesHomeCardTitle,
+                              style: context.textTheme.title,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.categoriesHomeCardSubtitle,
+                              style: context.textTheme.body.copyWith(
+                                color: context.colors.textSecondary,
                               ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                l10n.accountsHomeCardSubtitle,
-                                style: context.textTheme.body.copyWith(
-                                  color: context.colors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: context.colors.textSecondary,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: context.colors.textSecondary,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                l10n.phaseZeroPreviewStatesTitle,
-                style: context.textTheme.title,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SegmentedButton<PhaseZeroPreviewState>(
-                  segments: <ButtonSegment<PhaseZeroPreviewState>>[
-                    ButtonSegment<PhaseZeroPreviewState>(
-                      value: PhaseZeroPreviewState.loading,
-                      label: Text(l10n.phaseZeroStateLoading),
-                    ),
-                    ButtonSegment<PhaseZeroPreviewState>(
-                      value: PhaseZeroPreviewState.empty,
-                      label: Text(l10n.phaseZeroStateEmpty),
-                    ),
-                    ButtonSegment<PhaseZeroPreviewState>(
-                      value: PhaseZeroPreviewState.error,
-                      label: Text(l10n.phaseZeroStateError),
-                    ),
-                    ButtonSegment<PhaseZeroPreviewState>(
-                      value: PhaseZeroPreviewState.data,
-                      label: Text(l10n.phaseZeroStateData),
-                    ),
-                  ],
-                  selected: <PhaseZeroPreviewState>{previewState},
-                  onSelectionChanged: (selection) {
-                    ref
-                        .read(phaseZeroPreviewControllerProvider.notifier)
-                        .setState(selection.first);
-                  },
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: _PreviewStateBody(state: previewState),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              l10n.phaseZeroPreviewStatesTitle,
+              style: context.textTheme.title,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SegmentedButton<PhaseZeroPreviewState>(
+                segments: <ButtonSegment<PhaseZeroPreviewState>>[
+                  ButtonSegment<PhaseZeroPreviewState>(
+                    value: PhaseZeroPreviewState.loading,
+                    label: Text(l10n.phaseZeroStateLoading),
                   ),
+                  ButtonSegment<PhaseZeroPreviewState>(
+                    value: PhaseZeroPreviewState.empty,
+                    label: Text(l10n.phaseZeroStateEmpty),
+                  ),
+                  ButtonSegment<PhaseZeroPreviewState>(
+                    value: PhaseZeroPreviewState.error,
+                    label: Text(l10n.phaseZeroStateError),
+                  ),
+                  ButtonSegment<PhaseZeroPreviewState>(
+                    value: PhaseZeroPreviewState.data,
+                    label: Text(l10n.phaseZeroStateData),
+                  ),
+                ],
+                selected: <PhaseZeroPreviewState>{previewState},
+                onSelectionChanged: (selection) {
+                  ref
+                      .read(phaseZeroPreviewControllerProvider.notifier)
+                      .setState(selection.first);
+                },
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            SizedBox(
+              height: 200,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: _PreviewStateBody(state: previewState),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -97,5 +97,32 @@
   "failureInvalidCredentialsMessage": "The email or password is incorrect.",
   "failureResourceNotFoundTitle": "Not found",
   "failureResourceNotFoundMessage": "The requested resource could not be found.",
-  "homeSignOutCta": "Sign out"
+  "homeSignOutCta": "Sign out",
+  "categoriesTitle": "Categories",
+  "categoriesHomeCardTitle": "Manage categories",
+  "categoriesHomeCardSubtitle": "Organise your transactions with system and custom categories.",
+  "categoriesOpenCta": "Open categories",
+  "categoriesAddCta": "Add category",
+  "categoriesAddFirstCta": "Create your first category",
+  "categoriesEmptyTitle": "No categories yet",
+  "categoriesEmptyMessage": "Categories help you organise your income and expenses. Create your first one.",
+  "categoriesCreateTitle": "Create category",
+  "categoriesCreateSubtitle": "Add a new category for your transactions.",
+  "categoriesEditTitle": "Edit category",
+  "categoriesEditSubtitle": "Update the category name or details.",
+  "categoriesNameLabel": "Category name",
+  "categoriesCreateCta": "Create category",
+  "categoriesSaveCta": "Save changes",
+  "categoriesEditCta": "Edit",
+  "categoriesDeleteCta": "Delete",
+  "categoriesDeleteTitle": "Delete category",
+  "categoriesDeleteMessage": "Delete {categoryName}?",
+  "@categoriesDeleteMessage": {
+    "placeholders": {
+      "categoryName": {}
+    }
+  },
+  "categoriesSystemSection": "System categories",
+  "categoriesUserSection": "My categories",
+  "categoriesSystemBadge": "System"
 }
