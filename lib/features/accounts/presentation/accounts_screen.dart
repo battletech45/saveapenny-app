@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/formatting/money_formatter.dart';
@@ -21,7 +22,13 @@ class AccountsScreen extends ConsumerWidget {
     final accountsState = ref.watch(accountsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.accountsTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => GoRouter.of(context).go('/home'),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+        title: Text(l10n.accountsTitle),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAccountSheet(context, ref),
         icon: const Icon(Icons.add_rounded),

@@ -19,6 +19,23 @@ class AccountsController extends _$AccountsController {
     );
   }
 
+  Future<void> sync() async {
+    final current = state is AsyncData<List<Account>>
+        ? (state as AsyncData<List<Account>>).value
+        : null;
+
+    try {
+      state = AsyncData(await ref.read(accountsRepositoryProvider).list());
+    } on Object catch (error, stackTrace) {
+      if (current != null) {
+        state = AsyncData(current);
+        return;
+      }
+
+      state = AsyncError(error, stackTrace);
+    }
+  }
+
   Future<void> create({
     required String name,
     required AccountType type,
