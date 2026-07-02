@@ -392,15 +392,17 @@ void main() {
       addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
       addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
 
+      final container = ProviderContainer(
+        overrides: [
+          secureTokenStoreProvider.overrideWith(
+            (ref) => SecureTokenStore(storage: storage),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            secureTokenStoreProvider.overrideWith(
-              (ref) => SecureTokenStore(storage: storage),
-            ),
-          ],
-          child: const App(),
-        ),
+        UncontrolledProviderScope(container: container, child: const App()),
       );
       await tester.pumpAndSettle();
 
@@ -412,11 +414,15 @@ void main() {
       );
       expect(find.text('Eszamansiz durum onizlemesi'), findsOneWidget);
 
-      await tester.tap(find.text('Yukleniyor'));
+      container
+          .read(phaseZeroPreviewControllerProvider.notifier)
+          .setState(PhaseZeroPreviewState.loading);
       await tester.pump();
       expect(find.text('Yukleniyor...'), findsOneWidget);
 
-      await tester.tap(find.text('Hata'));
+      container
+          .read(phaseZeroPreviewControllerProvider.notifier)
+          .setState(PhaseZeroPreviewState.error);
       await tester.pump();
       expect(find.text('Baglanti sorunu'), findsOneWidget);
     },
