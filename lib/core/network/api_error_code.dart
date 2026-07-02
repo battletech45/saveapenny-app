@@ -14,6 +14,17 @@ enum ApiErrorCode {
   budgetNotFound('BUDGET_NOT_FOUND'),
   budgetAlreadyExists('BUDGET_ALREADY_EXISTS'),
   invalidBudgetDateRange('INVALID_BUDGET_DATE_RANGE'),
+  recurringTransactionNotFound('RECURRING_TRANSACTION_NOT_FOUND'),
+  recurringTransactionDependencyNotFound(
+    'RECURRING_TRANSACTION_DEPENDENCY_NOT_FOUND',
+  ),
+  invalidRecurringTransactionNextRunDate(
+    'INVALID_RECURRING_TRANSACTION_NEXT_RUN_DATE',
+  ),
+  invalidRecurringTransactionType('INVALID_RECURRING_TRANSACTION_TYPE'),
+  invalidRecurringTransactionStatusTransition(
+    'INVALID_RECURRING_TRANSACTION_STATUS_TRANSITION',
+  ),
   transactionNotFound('TRANSACTION_NOT_FOUND'),
   invalidTransactionCurrency('INVALID_TRANSACTION_CURRENCY'),
   invalidTransfer('INVALID_TRANSFER'),
