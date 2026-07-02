@@ -12,8 +12,14 @@ enum ApiErrorCode {
   accountNotFound('ACCOUNT_NOT_FOUND'),
   categoryNotFound('CATEGORY_NOT_FOUND'),
   transactionNotFound('TRANSACTION_NOT_FOUND'),
+  invalidTransactionCurrency('INVALID_TRANSACTION_CURRENCY'),
+  invalidTransfer('INVALID_TRANSFER'),
+  insufficientBalance('INSUFFICIENT_BALANCE'),
+  accountMutationNotAllowed('ACCOUNT_MUTATION_NOT_ALLOWED'),
+  accountInactive('ACCOUNT_INACTIVE'),
   conflict('CONFLICT'),
   emailAlreadyExists('EMAIL_ALREADY_EXISTS'),
+  accessDenied('ACCESS_DENIED'),
   rateLimited('RATE_LIMITED'),
   stockRateLimitExceeded('STOCK_RATE_LIMIT_EXCEEDED'),
   assistantDisabled('ASSISTANT_DISABLED'),
@@ -45,7 +51,8 @@ enum ApiErrorCode {
   bool get isAuthExpiry {
     return this == ApiErrorCode.accessTokenExpired ||
         this == ApiErrorCode.invalidRefreshToken ||
-        this == ApiErrorCode.unauthorized;
+        this == ApiErrorCode.unauthorized ||
+        this == ApiErrorCode.accessDenied;
   }
 
   bool get isFeatureDisabled {
