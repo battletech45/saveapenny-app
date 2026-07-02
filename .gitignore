@@ -31,6 +31,7 @@ app.*.map.json
 *.config.dart
 *.gr.dart
 *.mocks.dart
+devtools_options.yaml
 
 # Generated localizations (l10n.yaml -> output-dir: lib/l10n/generated)
 lib/l10n/generated/
