@@ -92,6 +92,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
               if (!_isEditing) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
                 DropdownButtonFormField<CategoryType>(
+                  key: ValueKey<CategoryType>(_type),
                   initialValue: _type,
                   decoration: InputDecoration(
                     labelText: l10n.categoriesTypeLabel,
