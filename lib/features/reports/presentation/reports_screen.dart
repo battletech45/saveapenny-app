@@ -7,7 +7,6 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/formatting/money_formatter.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
-import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
@@ -99,7 +98,7 @@ class ReportsScreen extends ConsumerWidget {
                     ),
                   if (!hasActivity) ...<Widget>[
                     const SizedBox(height: AppSpacing.xxl),
-                    EmptyView(
+                    _InlineEmptyState(
                       title: l10n.reportsEmptyTitle,
                       message: l10n.reportsEmptyMessage,
                     ),

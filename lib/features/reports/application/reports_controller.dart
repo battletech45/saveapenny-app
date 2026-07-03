@@ -45,6 +45,10 @@ class ReportsController extends _$ReportsController {
   Future<void> nextMonth() async {
     final current = _readAsyncData(state)?.month ?? _currentMonth();
     final next = DateTime.utc(current.year, current.month + 1);
+    final currentMonth = _currentMonth();
+    if (next.isAfter(currentMonth)) {
+      return;
+    }
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetch(next));
   }
@@ -105,12 +109,24 @@ class ReportsController extends _$ReportsController {
 }
 
 List<DateTime> _trendSnapshotDates(DateTime month, {required int count}) {
+  final today = _today();
+
   return List<DateTime>.generate(count, (index) {
     final snapshotMonth = DateTime.utc(
       month.year,
       month.month - (count - index - 1),
     );
 
-    return DateTime.utc(snapshotMonth.year, snapshotMonth.month + 1, 0);
+    final monthEnd = DateTime.utc(
+      snapshotMonth.year,
+      snapshotMonth.month + 1,
+      0,
+    );
+    return monthEnd.isAfter(today) ? today : monthEnd;
   }, growable: false);
+}
+
+DateTime _today() {
+  final now = DateTime.now().toUtc();
+  return DateTime.utc(now.year, now.month, now.day);
 }

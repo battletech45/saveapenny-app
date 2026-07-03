@@ -59,6 +59,9 @@ class _FakeReportsRepository implements ReportsRepository {
 
 void main() {
   test('build loads the current dashboard state', () async {
+    final today = DateTime.now().toUtc();
+    final expectedToday = DateTime.utc(today.year, today.month, today.day);
+
     final container = ProviderContainer(
       overrides: [
         reportsRepositoryProvider.overrideWith(
@@ -105,6 +108,7 @@ void main() {
     expect(state.cashFlow.single.netAmount, 1400);
     expect(state.netWorthTrend, hasLength(6));
     expect(state.currentNetWorth.netWorth, 3800);
+    expect(state.currentNetWorth.snapshotDate, expectedToday);
   });
 
   test(
