@@ -293,5 +293,30 @@
   "reportsNetSavingsLabel": "Net savings",
   "reportsAssetsLabel": "Assets",
   "reportsLiabilitiesLabel": "Liabilities",
-  "reportsNetWorthLabel": "Net worth"
+  "reportsNetWorthLabel": "Net worth",
+  "notificationsTitle": "Notifications",
+  "notificationsHomeCardTitle": "Notifications",
+  "notificationsHomeCardSubtitle": "View alerts, warnings, and system updates about your money.",
+  "notificationsMarkAllRead": "Mark all as read",
+  "notificationsEmptyTitle": "No notifications yet",
+  "notificationsEmptyMessage": "When you receive alerts, warnings, or system updates, they will appear here.",
+  "notificationsDeleteMessage": "Remove \"{notificationTitle}\"?",
+  "@notificationsDeleteMessage": {
+    "placeholders": {
+      "notificationTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsDeleteDialogCancelCta": "Cancel",
+  "notificationsDeleteDialogRemoveCta": "Remove",
+  "notificationsUndoMessage": "Removed \"{notificationTitle}\"",
+  "@notificationsUndoMessage": {
+    "placeholders": {
+      "notificationTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsUndoAction": "Undo"
 }
