@@ -293,5 +293,30 @@
   "reportsNetSavingsLabel": "Net birikim",
   "reportsAssetsLabel": "Varliklar",
   "reportsLiabilitiesLabel": "Yukumlulukler",
-  "reportsNetWorthLabel": "Net deger"
+  "reportsNetWorthLabel": "Net deger",
+  "notificationsTitle": "Bildirimler",
+  "notificationsHomeCardTitle": "Bildirimler",
+  "notificationsHomeCardSubtitle": "Paranizla ilgili uyarilari, ikazlari ve sistem guncellemelerini goruntuleyin.",
+  "notificationsMarkAllRead": "Tumunu okundu isaretle",
+  "notificationsEmptyTitle": "Henuz bildirim yok",
+  "notificationsEmptyMessage": "Uyari, ikaz veya sistem guncellemesi aldiginizda burada gorunecek.",
+  "notificationsDeleteMessage": "\"{notificationTitle}\" bildirimi kaldirilsin mi?",
+  "@notificationsDeleteMessage": {
+    "placeholders": {
+      "notificationTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsDeleteDialogCancelCta": "Iptal",
+  "notificationsDeleteDialogRemoveCta": "Kaldir",
+  "notificationsUndoMessage": "\"{notificationTitle}\" kaldirildi",
+  "@notificationsUndoMessage": {
+    "placeholders": {
+      "notificationTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsUndoAction": "Geri al"
 }
