@@ -1,234 +1,259 @@
 # Roadmap — SaveAPenny Mobile
 
-Build order for the client, derived from the backend's feature set. Each phase
-depends on the ones before it. Build **one step at a time**, following the layered
-pattern in `ARCHITECTURE.md` and the canonical error/UI/design patterns in
-`CLAUDE.md` + `DESIGN_SYSTEM.md`. A slice isn't done until it meets the Definition
-of Done at the bottom.
+Build order for the client, derived from the backend's feature set. This file now
+reflects the **actual repository state** instead of the original greenfield plan.
+Use it to understand what is already implemented, what still needs hardening, and
+what feature families remain unbuilt.
 
-Backend feature flags to respect (these return `503` when off — handle
-gracefully, never crash): `ASSISTANT_DISABLED`, `STOCK_DISABLED`, insights, and
-goal-progress checks.
+Follow the layered pattern in `ARCHITECTURE.md`, the operating rules in
+`CLAUDE.md`, the backend contract in `API_CONTRACT.md`, and the visual rules in
+`DESIGN_SYSTEM.md`. A slice is not done until it meets the Definition of Done at
+the bottom.
 
-> **Current state:** `lib/` contains only `main.dart`. Phase 0 below builds the
-> entire foundation from zero. Do it top to bottom — each step compiles on its own.
-
----
-
-## Phase 0 — Build `lib/` from zero (foundation / app shell)
-
-No user-facing features yet; this is the plumbing every later slice imports. The
-order matters: lower layers have no dependencies, so build them first. After each
-step, run `flutter analyze` (and `build_runner` once annotations appear) and make
-sure it's clean before moving on.
-
-### Target structure at the end of Phase 0
-
-```
-lib/
-├── main.dart                         # ProviderScope + bootstrap
-├── app.dart                          # MaterialApp.router: theme, router, l10n
-├── core/
-│   ├── config/
-│   │   └── app_environment.dart      # flavor + base URL (--dart-define)
-│   ├── theme/
-│   │   ├── tokens.dart               # COLOR PALETTES + spacing/radius/duration/type primitives
-│   │   └── app_theme.dart            # FinanceColors extension + AppTheme.light()/dark() + context getters
-│   ├── network/
-│   │   ├── api_envelope.dart         # ApiEnvelope<T>, ApiError, PaginatedData<T>
-│   │   ├── api_error_code.dart       # ApiErrorCode enum (mirrors backend)
-│   │   ├── dio_client.dart           # configured Dio instance + interceptors
-│   │   └── auth_interceptor.dart     # proactive + reactive token refresh
-│   ├── error/
-│   │   └── failure.dart              # sealed Failure + Dio/ApiError mapping
-│   ├── storage/
-│   │   └── secure_token_store.dart   # flutter_secure_storage wrapper (tokens only)
-│   ├── router/
-│   │   └── app_router.dart           # GoRouter + auth redirect guard
-│   ├── formatting/
-│   │   └── money_formatter.dart      # intl currency, signed, tabular
-│   └── ui/
-│       ├── loading_view.dart         # shared skeleton/spinner
-│       ├── empty_view.dart           # shared empty state
-│       └── failure_view.dart         # maps Failure -> localized copy
-├── l10n/
-│   ├── app_en.arb                    # template (keys + English)
-│   ├── app_tr.arb                    # Turkish
-│   └── generated/                    # gen-l10n output (do not edit)
-└── features/                         # added from Phase 1 onward
-```
-
-### Step 0.1 — Design tokens (no dependencies, build first)
-
-- `core/theme/tokens.dart` — the raw values. Contains the **color palettes**
-  (`BrandPalette`, `NeutralPalette`, `FinancePalette` — light + dark), plus
-  `AppSpacing`, `AppRadius`, `AppDuration`, `AppFontWeight`, and
-  `kTabularFigures`. Every value from `DESIGN_SYSTEM.md` lives here as a `const`.
-  This is the "colors file" + spacing/radius/type primitives in one.
-
-✅ Checkpoint: file analyzes clean; no widget references raw hexes anywhere else.
-
-### Step 0.2 — Theme assembly
-
-- `core/theme/app_theme.dart` — the `FinanceColors` `ThemeExtension`
-  (income/expense/warning/info, light + dark), `AppTheme.light()/.dark()` building
-  `ThemeData` from the tokens (flat bordered cards, 48px buttons, outlined inputs),
-  and the `context.colors / context.textTheme / context.finance` getters +
-  `TextTheme.money`/`displayMoney` helpers.
-
-✅ Checkpoint: a throwaway widget can read `context.finance.income` and
-`context.textTheme.money` in both brightnesses.
-
-### Step 0.3 — Environment config
-
-- `core/config/app_environment.dart` — `AppFlavor` + `AppEnvironment.current`,
-  base URL via `--dart-define`, `apiRoot` = `{baseUrl}/api/v1`, timeouts, logging
-  flag.
-
-✅ Checkpoint: `AppEnvironment.current.apiRoot` resolves for dev/staging/prod.
-
-### Step 0.4 — Network contract (envelope + error codes)
-
-- `core/network/api_envelope.dart` — `ApiEnvelope<T>`, `ApiError`,
-  `PaginatedData<T>` (hand-written generics, parsing per `API_CONTRACT.md`).
-- `core/network/api_error_code.dart` — the full `ApiErrorCode` enum mirroring the
-  backend catalogue, with `fromWire` fallback and `isAuthExpiry`.
-
-✅ Checkpoint: a sample JSON envelope parses into typed data and a typed error.
-
-### Step 0.5 — Error model
-
-- `core/error/failure.dart` — sealed `Failure` (network / api / unauthenticated /
-  rateLimited / unknown) + `FailureMapper` translating `DioException` and
-  `success:false` envelopes. **freezed** — first file that triggers
-  `build_runner`.
-
-✅ Checkpoint: `dart run build_runner build` generates `failure.freezed.dart`;
-analyze clean.
-
-### Step 0.6 — Secure storage
-
-- `core/storage/secure_token_store.dart` — thin wrapper over
-  `flutter_secure_storage` exposing `read/write/clear` for access + refresh
-  tokens only. No other data, ever.
-
-✅ Checkpoint: unit-testable read/write/clear (mockable in tests).
-
-### Step 0.7 — Dio client + auth interceptor
-
-- `core/network/dio_client.dart` — single configured `Dio` (base URL from env,
-  envelope-aware, attaches the `_send`-style helper from `CLAUDE.md` §7).
-- `core/network/auth_interceptor.dart` — proactive refresh when the JWT is within
-  60s of expiry, reactive single-retry on 401, clear-and-redirect on refresh
-  failure, `Retry-After` handling. Per `API_CONTRACT.md` §Auth.
-
-✅ Checkpoint: an authenticated GET attaches the bearer token; a simulated 401
-triggers exactly one refresh.
-
-### Step 0.8 — Localization wiring
-
-- `pubspec.yaml` already has `generate: true` under `flutter:`. ✓
-- `lib/l10n/app_en.arb` (template) + `lib/l10n/app_tr.arb`; run `flutter gen-l10n`.
-- Seed with the handful of strings the shell needs (app title, common actions,
-  generic error copy mapped from `ApiErrorCode`).
-
-✅ Checkpoint: `AppLocalizations` generates; `untranslated.txt` is empty (TR keys
-match EN).
-
-### Step 0.9 — Shared UI states
-
-- `core/ui/loading_view.dart`, `empty_view.dart`, `failure_view.dart` — the three
-  states every async screen reuses. `FailureView` takes a `Failure` and renders
-  localized copy + an optional retry. All design-token styled.
-- `core/formatting/money_formatter.dart` — `intl` `NumberFormat.currency` by
-  ISO-4217 code, sign prefix, returns value + the `context.finance.forAmount`
-  color pairing rule.
-
-✅ Checkpoint: a demo screen shows loading → (empty | error | data) using only
-these widgets and tokens.
-
-### Step 0.10 — Router + app bootstrap
-
-- `core/router/app_router.dart` — `GoRouter` with a placeholder `/home` and
-  `/login`, redirect guard driven by auth state (stubbed until Phase 1).
-- `app.dart` — `MaterialApp.router` wiring `AppTheme.light()/.dark()`,
-  `themeMode`, the router, and the localization delegates + `supportedLocales`
-  (`en`, `tr`).
-- `main.dart` — `WidgetsFlutterBinding.ensureInitialized()` →
-  `runApp(ProviderScope(child: App()))`.
-
-✅ **Phase 0 exit criteria:** app launches to a placeholder home; light/dark both
-render from tokens; locale switches EN/TR; a manual Dio call round-trips through
-the envelope + `Failure` mapping; `flutter analyze` clean and codegen committed
-per policy.
+Backend feature flags to respect (these return `503` when off and must be handled
+gracefully): `ASSISTANT_DISABLED`, `STOCK_DISABLED`, `INSIGHTS_DISABLED`, and
+`GOAL_PROGRESS_DISABLED`.
 
 ---
 
-## Phase 1 — Auth (the gate, and the reference slice)
+## Current repository snapshot
 
-Everything else is user-scoped, so this comes first and becomes the pattern every
-later feature copies.
+The repository is **well past the foundation stage**. The current `lib/` already
+contains:
 
-- Endpoints: `POST /auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`.
-- DTOs: register/login requests, token-pair response (`accessToken`,
-  `refreshToken`, `expiresIn`, `tokenType`).
-- Flows: register, login, auto-refresh, logout, token-reuse → forced re-login.
-- Routing: unauthenticated → `/login`; authenticated → `/home`.
-- Screens: login, register (minimal, design-system styled).
+- `main.dart` + `app.dart`
+- `core/` foundation for config, network, errors, router, storage, theme, UI, and
+  money formatting
+- `l10n/` ARB localization for English and Turkish
+- implemented feature slices for:
+  - `auth`
+  - `accounts`
+  - `categories`
+  - `budgets`
+  - `transactions`
+  - `recurring_transactions`
+  - `reports`
+  - `notifications`
+- unit/widget tests across those features and `integration_test/auth_flow_test.dart`
 
-**Exit criteria:** full login→token→guarded route→logout cycle; expired refresh
-routes to login; `INVALID_PASSWORD` surfaces from strong-password validation.
+This means the old "Phase 0: build lib/ from zero" plan is obsolete. The roadmap
+below is organized around the **current maturity** of the repo.
 
-## Phase 2 — Core money model
+---
 
-1. **Accounts** — list/create/edit; types, currency (ISO-4217), soft delete.
-2. **Categories** — system (read-only) vs. user categories.
-3. **Transactions & transfers** — income/expense/transfer; the transaction-row
-   spec from `DESIGN_SYSTEM.md`; currency-match + balance rules.
+## Phase A — Foundation and app shell
 
-**Exit criteria:** add accounts, categorize, record/transfer money; amounts render
-signed + colored + tabular; paginated transaction list.
+**Status:** Implemented in repository
 
-## Phase 3 — Planning
+Implemented now:
 
-- **Budgets** — monthly/yearly per category; status drives `warning` color.
-- **Recurring transactions** — schedule, frequency, lifecycle transitions.
+- `core/config/app_environment.dart`
+- `core/network/api_envelope.dart`
+- `core/network/api_error_code.dart`
+- `core/network/dio_client.dart`
+- `core/network/auth_interceptor.dart`
+- `core/error/failure.dart`
+- `core/storage/secure_token_store.dart`
+- `core/router/app_router.dart`
+- `core/theme/tokens.dart`
+- `core/theme/app_theme.dart`
+- `core/ui/loading_view.dart`
+- `core/ui/empty_view.dart`
+- `core/ui/failure_view.dart`
+- `core/formatting/money_formatter.dart`
+- `lib/l10n/app_en.arb` and `lib/l10n/app_tr.arb`
+- `main.dart` and `app.dart`
 
-## Phase 4 — Insight & reporting
+Expected ongoing work in this phase:
 
-- **Reports** — monthly summary, net worth snapshots/trend.
-- **Notifications** — read/unread tracking, list.
+- keep envelope parsing and `Failure` mapping consistent for every new API call
+- keep theme/token usage strict as new UI is added
+- expand shared UI states only when a real reuse case appears
+- keep localization keys synchronized between `en` and `tr`
 
-## Phase 5 — Advanced / optional (mostly flagged)
+---
 
-- **Goals** — CRUD, scenarios, simulation, what-if, progress (flag-gated).
-- **Stocks** — holdings + quotes; flag-gated, own rate limit.
-- **OCR receipt capture** — image upload → async job poll → candidates → confirm.
-- **CSV import** — preview → confirm workflow.
-- **Insights** — automated observations (flag-gated).
-- **Assistant ("Penny Dog")** — AI chat (flag-gated).
-- **Audit logs** — change history.
+## Phase B — Auth and session management
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+- endpoints and DTO flow for register, login, refresh, logout
+- secure token persistence
+- auth-aware router redirects
+- proactive and reactive refresh handling in the interceptor
+- login and register presentation screens
+- auth repository/controller tests plus integration coverage entrypoint
+
+Remaining hardening work as needed:
+
+- verify edge cases against the live backend contract when backend auth behavior changes
+- keep forced sign-out/session expiry UX polished and localized
+
+---
+
+## Phase C — Core money features
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+1. `accounts`
+   - list/create/update/delete flows
+   - typed domain/DTO/repository/application/presentation layers
+2. `categories`
+   - system vs user category handling
+   - create/update/delete flows
+3. `transactions`
+   - paginated list
+   - income, expense, and transfer flows
+   - account-sync behavior after transaction mutations
+
+Expected ongoing work in this phase:
+
+- keep DTOs aligned with `/v3/api-docs`
+- tighten validation and failure-path UX where backend behavior evolves
+- add more test coverage when new transaction/account/category rules are introduced
+
+---
+
+## Phase D — Planning features
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+1. `budgets`
+   - CRUD flows
+   - status-oriented modeling and UI
+2. `recurring_transactions`
+   - recurring entry management
+   - frequency/lifecycle handling
+   - history-oriented presentation and tests
+
+Expected ongoing work in this phase:
+
+- validate lifecycle/status behavior against backend contract changes
+- continue covering primary failure-path behavior in tests
+
+---
+
+## Phase E — Reporting and communication
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+1. `reports`
+   - monthly summary
+   - category spending
+   - cash flow points
+   - net worth snapshots
+2. `notifications`
+   - list/read-state-oriented flows
+   - presentation and repository/controller tests
+
+Expected ongoing work in this phase:
+
+- expand report interactions only if backend endpoints justify it
+- keep empty/error/loading states consistent with shared UI conventions
+
+---
+
+## Phase F — Remaining backend families not yet present
+
+**Status:** Not yet implemented in repository
+
+These backend families are still missing from `lib/features/` and are the main
+source of remaining scope:
+
+1. **Users / profile**
+   - `users/me`
+   - profile update flows
+   - password change UX
+2. **Goals**
+   - CRUD
+   - scenarios
+   - simulation
+   - what-if
+   - progress checks
+3. **Stocks**
+   - holdings
+   - quotes
+   - rate-limit-aware UX
+4. **Assistant**
+   - AI chat UI and API integration
+   - disabled-state handling when the feature flag is off
+5. **Insights**
+   - automated observations
+   - disabled-state handling
+6. **Imports**
+   - CSV preview and confirm workflow
+7. **OCR**
+   - receipt upload
+   - async job polling
+   - candidate confirmation flow
+8. **Audit logs**
+   - history screens and pagination
+
+Recommended build order for the remaining families:
+
+1. `users`
+2. `goals`
+3. `stocks`
+4. `imports`
+5. `ocr`
+6. `insights`
+7. `assistant`
+8. `audit_logs`
+
+Reasoning:
+
+- `users` is foundational and likely needed for production readiness
+- `goals` appears central to the product scope and has multiple dependent backend concepts
+- `stocks`, `imports`, and `ocr` are substantial but more bounded vertical slices
+- `insights` and `assistant` depend heavily on feature-flag-aware UX and backend readiness
+- `audit_logs` is useful but less critical than core user-facing finance flows
+
+---
+
+## Phase G — Hardening, parity, and release readiness
+
+**Status:** Ongoing
+
+Even where slices already exist, the repo still needs continuous completion work:
+
+- verify every implemented DTO against `/v3/api-docs`
+- keep `Failure` mapping exhaustive as backend error codes expand
+- fill any missing happy-path and primary failure-path tests
+- expand widget/golden coverage for key screens
+- expand end-to-end coverage beyond auth into core money flows
+- verify feature-disabled (`503`) behavior for flagged backend families
+- verify dark mode and 1.3x text scaling on all key screens
+- confirm no raw user-facing strings slip into new UI
 
 ---
 
 ## Definition of Done (per slice)
 
 - [ ] Follows the `features/<name>/` layered layout
-- [ ] DTOs are freezed + verified against `/v3/api-docs`
+- [ ] DTOs are `freezed` and verified against `/v3/api-docs`
 - [ ] All calls go through the envelope; errors map to `Failure`
-- [ ] Loading / empty / error states implemented (no blank screens)
+- [ ] Loading / empty / error states implemented; no blank screens
 - [ ] UI uses only design tokens; amounts signed + tabular + colored
-- [ ] All strings localized (TR + EN)
+- [ ] All strings localized in TR + EN
 - [ ] Server feature-flag (`503`) handled if applicable
-- [ ] Tests: happy path + primary failure path
-- [ ] `flutter analyze` clean; codegen committed/regenerated per policy
+- [ ] Tests cover the happy path and the primary failure path
+- [ ] `flutter analyze` clean; codegen regenerated per policy
 
-## Suggested cadence for AI-assisted builds
+---
 
-1. Point the agent at `CLAUDE.md` + the target step here.
-2. For Phase 0: "Create `<file>` per step `0.x`, following `DESIGN_SYSTEM.md` /
-   `API_CONTRACT.md`." One step at a time.
-3. From Phase 1: "Build `features/<x>/` following the pattern in `features/auth/`."
-4. Generate DTOs from `/v3/api-docs`; review against `API_CONTRACT.md`.
-5. Run codegen + analyze; fix until clean. Add the two required tests.
-6. Only then move to the next step/slice.
+## Suggested cadence for future work
+
+1. Pick one missing backend family from Phase F.
+2. Pull field-level DTO details from `/v3/api-docs`.
+3. Build the slice in `features/<name>/` using the existing implemented slices as the reference pattern.
+4. Keep repository errors throwing typed `Failure`s only.
+5. Add TR/EN strings before considering the UI complete.
+6. Run codegen, analyze, and tests before moving to the next slice.
