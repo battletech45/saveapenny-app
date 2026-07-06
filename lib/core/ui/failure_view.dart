@@ -99,6 +99,10 @@ class FailureView extends StatelessWidget {
         title: l10n.failureInvalidPasswordTitle,
         message: l10n.failureInvalidPasswordMessage,
       ),
+      ApiErrorCode.passwordReuseNotAllowed => _FailureCopy(
+        title: l10n.failurePasswordReuseNotAllowedTitle,
+        message: l10n.failurePasswordReuseNotAllowedMessage,
+      ),
       ApiErrorCode.invalidCredentials => _FailureCopy(
         title: l10n.failureInvalidCredentialsTitle,
         message: l10n.failureInvalidCredentialsMessage,

@@ -3,7 +3,9 @@ enum ApiErrorCode {
   validationFailed('VALIDATION_FAILED'),
   invalidCredentials('INVALID_CREDENTIALS'),
   invalidPassword('INVALID_PASSWORD'),
+  passwordReuseNotAllowed('PASSWORD_REUSE_NOT_ALLOWED'),
   invalidRefreshToken('INVALID_REFRESH_TOKEN'),
+  refreshTokenExpired('REFRESH_TOKEN_EXPIRED'),
   accessTokenExpired('ACCESS_TOKEN_EXPIRED'),
   unauthorized('UNAUTHORIZED'),
   forbidden('FORBIDDEN'),
@@ -65,6 +67,7 @@ enum ApiErrorCode {
   bool get isAuthExpiry {
     return this == ApiErrorCode.accessTokenExpired ||
         this == ApiErrorCode.invalidRefreshToken ||
+        this == ApiErrorCode.refreshTokenExpired ||
         this == ApiErrorCode.unauthorized ||
         this == ApiErrorCode.accessDenied;
   }
