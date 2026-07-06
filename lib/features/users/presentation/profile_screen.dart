@@ -286,6 +286,8 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
   final _formKey = GlobalKey<FormState>();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
+  bool _obscureCurrentPassword = true;
+  bool _obscureNewPassword = true;
 
   @override
   void dispose() {
@@ -336,9 +338,29 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
               TextFormField(
                 controller: _currentPasswordController,
                 enabled: !isSubmitting,
-                obscureText: true,
+                obscureText: _obscureCurrentPassword,
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.next,
+                autofillHints: const <String>[AutofillHints.password],
+                autocorrect: false,
+                enableSuggestions: false,
                 decoration: InputDecoration(
                   labelText: l10n.profileCurrentPasswordLabel,
+                  suffixIcon: IconButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            setState(() {
+                              _obscureCurrentPassword =
+                                  !_obscureCurrentPassword;
+                            });
+                          },
+                    icon: Icon(
+                      _obscureCurrentPassword
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                    ),
+                  ),
                 ),
                 validator: (value) => _validateRequired(l10n, value),
               ),
@@ -346,9 +368,28 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
               TextFormField(
                 controller: _newPasswordController,
                 enabled: !isSubmitting,
-                obscureText: true,
+                obscureText: _obscureNewPassword,
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
+                autofillHints: const <String>[AutofillHints.newPassword],
+                autocorrect: false,
+                enableSuggestions: false,
                 decoration: InputDecoration(
                   labelText: l10n.profileNewPasswordLabel,
+                  suffixIcon: IconButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            setState(() {
+                              _obscureNewPassword = !_obscureNewPassword;
+                            });
+                          },
+                    icon: Icon(
+                      _obscureNewPassword
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                    ),
+                  ),
                 ),
                 validator: (value) => _validateRequired(l10n, value),
               ),
