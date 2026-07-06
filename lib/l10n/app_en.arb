@@ -93,6 +93,8 @@
   "failureValidationFailedMessage": "Some fields need attention before you can continue.",
   "failureInvalidPasswordTitle": "Invalid password",
   "failureInvalidPasswordMessage": "The password does not meet the server requirements.",
+  "failurePasswordReuseNotAllowedTitle": "Choose a different password",
+  "failurePasswordReuseNotAllowedMessage": "Your new password must be different from a previously used password.",
   "failureInvalidCredentialsTitle": "Incorrect credentials",
   "failureInvalidCredentialsMessage": "The email or password is incorrect.",
   "failureResourceNotFoundTitle": "Not found",

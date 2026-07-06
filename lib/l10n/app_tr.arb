@@ -93,6 +93,8 @@
   "failureValidationFailedMessage": "Devam etmeden once bazi alanlar duzeltilmeli.",
   "failureInvalidPasswordTitle": "Gecersiz sifre",
   "failureInvalidPasswordMessage": "Sifre sunucu gereksinimlerini karsilamiyor.",
+  "failurePasswordReuseNotAllowedTitle": "Farkli bir sifre secin",
+  "failurePasswordReuseNotAllowedMessage": "Yeni sifreniz daha once kullandiginiz bir sifreden farkli olmalidir.",
   "failureInvalidCredentialsTitle": "Hatali kimlik bilgileri",
   "failureInvalidCredentialsMessage": "E-posta veya sifre hatali.",
   "failureResourceNotFoundTitle": "Bulunamadi",

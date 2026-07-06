@@ -86,6 +86,8 @@ class AuthFormShell extends StatelessWidget {
       ApiFailure(code: final code) => switch (code) {
         _ when code.isFeatureDisabled => l10n.failureFeatureDisabledMessage,
         ApiErrorCode.invalidPassword => l10n.failureInvalidPasswordMessage,
+        ApiErrorCode.passwordReuseNotAllowed =>
+          l10n.failurePasswordReuseNotAllowedMessage,
         ApiErrorCode.invalidCredentials =>
           l10n.failureInvalidCredentialsMessage,
         ApiErrorCode.validationFailed => l10n.failureValidationFailedMessage,
