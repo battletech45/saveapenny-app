@@ -27,6 +27,13 @@ enum ApiErrorCode {
   invalidRecurringTransactionStatusTransition(
     'INVALID_RECURRING_TRANSACTION_STATUS_TRANSITION',
   ),
+  goalNotFound('GOAL_NOT_FOUND'),
+  scenarioNotFound('SCENARIO_NOT_FOUND'),
+  linkedAccountNotFound('LINKED_ACCOUNT_NOT_FOUND'),
+  invalidGoalDate('INVALID_GOAL_DATE'),
+  invalidGoalStatusTransition('INVALID_GOAL_STATUS_TRANSITION'),
+  invalidGoalType('INVALID_GOAL_TYPE'),
+  invalidGoalSimulationRequest('INVALID_GOAL_SIMULATION_REQUEST'),
   transactionNotFound('TRANSACTION_NOT_FOUND'),
   invalidTransactionCurrency('INVALID_TRANSACTION_CURRENCY'),
   invalidTransfer('INVALID_TRANSFER'),
@@ -44,6 +51,7 @@ enum ApiErrorCode {
   goalProgressDisabled('GOAL_PROGRESS_DISABLED'),
   featureDisabled('FEATURE_DISABLED'),
   serverError('SERVER_ERROR'),
+  internalServerError('INTERNAL_SERVER_ERROR'),
   serviceUnavailable('SERVICE_UNAVAILABLE');
 
   const ApiErrorCode(this.wireValue);
