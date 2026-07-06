@@ -111,7 +111,10 @@ class FailureView extends StatelessWidget {
       ApiErrorCode.userNotFound ||
       ApiErrorCode.accountNotFound ||
       ApiErrorCode.categoryNotFound ||
-      ApiErrorCode.transactionNotFound => _FailureCopy(
+      ApiErrorCode.transactionNotFound ||
+      ApiErrorCode.goalNotFound ||
+      ApiErrorCode.scenarioNotFound ||
+      ApiErrorCode.linkedAccountNotFound => _FailureCopy(
         title: l10n.failureResourceNotFoundTitle,
         message: l10n.failureResourceNotFoundMessage,
       ),
