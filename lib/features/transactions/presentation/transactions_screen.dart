@@ -8,6 +8,7 @@ import 'package:saveapenny/core/formatting/money_formatter.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
@@ -135,19 +136,15 @@ class TransactionsScreen extends ConsumerWidget {
     BuildContext context, {
     Transaction? existing,
   }) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => TransactionFormSheet(existing: existing),
     );
   }
 
   Future<void> _showTransferSheet(BuildContext context) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => const TransferFormSheet(),
     );
   }

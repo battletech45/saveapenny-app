@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
@@ -208,10 +209,8 @@ class GoalDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _showEditGoalSheet(BuildContext context, GoalDetail goal) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => GoalFormSheet(
         existing: Goal(
           id: goal.id,
@@ -232,10 +231,8 @@ class GoalDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _showScenarioSheet(BuildContext context, GoalType goalType) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) =>
           ScenarioFormSheet(goalId: goalId, goalType: goalType),
     );
@@ -247,12 +244,11 @@ class GoalDetailScreen extends ConsumerWidget {
     GoalStatus currentStatus,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final selectedStatus = await showModalBottomSheet<GoalStatus>(
+    final selectedStatus = await showAppModalBottomSheet<GoalStatus>(
       context: context,
-      showDragHandle: true,
       builder: (context) {
         return SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
