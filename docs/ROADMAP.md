@@ -37,6 +37,7 @@ contains:
   - `users` (profile + password change)
   - `goals` (CRUD, scenarios, simulation, what-if, progress)
   - `stocks` (holdings, quotes, financials, technical indicators)
+  - `imports` (CSV preview/confirm/status flow)
 - unit/widget tests across those features and `integration_test/auth_flow_test.dart`
 
 This means the old "Phase 0: build lib/ from zero" plan is obsolete. The roadmap
@@ -204,7 +205,27 @@ Implementation-quality fixes already applied from the Phase G audit:
   when token refresh succeeds but the retried request fails for an unrelated
   reason (timeout/5xx/offline).
 
-## Phase F2 — Remaining backend families not yet present
+## Phase F2 — Imports
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+1. **Imports**
+   - CSV file selection via `file_picker`
+   - preview (total/valid/invalid row counts, per-row errors)
+   - confirm workflow with polling until the job leaves `RUNNING`
+   - completed/failed status summary UI
+   - repository, controller, and presentation tests covering the happy path
+     and the primary failure paths (invalid file, duplicate/already-running
+     import, unsupported wire status)
+
+Expected ongoing work in this phase:
+
+- verify DTOs against `/v3/api-docs` as the backend's imports contract evolves
+- expand golden/E2E coverage once the feature stabilizes
+
+## Phase F3 — Remaining backend families not yet present
 
 **Status:** Not yet implemented in repository
 
@@ -217,27 +238,24 @@ source of remaining scope:
 2. **Insights**
    - automated observations
    - disabled-state handling
-3. **Imports**
-   - CSV preview and confirm workflow
-4. **OCR**
+3. **OCR**
    - receipt upload
    - async job polling
    - candidate confirmation flow
-5. **Audit logs**
+4. **Audit logs**
    - history screens and pagination
 
 Recommended build order for the remaining families:
 
-1. `imports`
-2. `ocr`
-3. `insights`
-4. `assistant`
-5. `audit_logs`
+1. `ocr`
+2. `insights`
+3. `assistant`
+4. `audit_logs`
 
 Reasoning:
 
-- `imports` and `ocr` are substantial but bounded vertical slices that extend
-  the core transaction-entry flow
+- `ocr` is a substantial but bounded vertical slice that extends the core
+  transaction-entry flow, similar in shape to the now-implemented `imports`
 - `insights` and `assistant` depend heavily on feature-flag-aware UX and backend
   readiness
 - `audit_logs` is useful but less critical than core user-facing finance flows
@@ -290,7 +308,7 @@ Even where slices already exist, the repo still needs continuous completion work
 
 ## Suggested cadence for future work
 
-1. Pick one missing backend family from Phase F2.
+1. Pick one missing backend family from Phase F3.
 2. Pull field-level DTO details from `/v3/api-docs`.
 3. Build the slice in `features/<name>/` using the existing implemented slices as the reference pattern.
 4. Keep repository errors throwing typed `Failure`s only.
