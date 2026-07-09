@@ -34,6 +34,9 @@ contains:
   - `recurring_transactions`
   - `reports`
   - `notifications`
+  - `users` (profile + password change)
+  - `goals` (CRUD, scenarios, simulation, what-if, progress)
+  - `stocks` (holdings, quotes, financials, technical indicators)
 - unit/widget tests across those features and `integration_test/auth_flow_test.dart`
 
 This means the old "Phase 0: build lib/ from zero" plan is obsolete. The roadmap
@@ -161,17 +164,16 @@ Expected ongoing work in this phase:
 
 ---
 
-## Phase F — Remaining backend families not yet present
+## Phase F1 — Users, goals, and stocks
 
-**Status:** Not yet implemented in repository
+**Status:** Implemented in repository
 
-These backend families are still missing from `lib/features/` and are the main
-source of remaining scope:
+Implemented now:
 
 1. **Users / profile**
    - `users/me`
    - profile update flows
-   - password change UX
+   - password change UX (including reused-password error handling)
 2. **Goals**
    - CRUD
    - scenarios
@@ -179,41 +181,65 @@ source of remaining scope:
    - what-if
    - progress checks
 3. **Stocks**
-   - holdings
-   - quotes
-   - rate-limit-aware UX
-4. **Assistant**
+   - holdings CRUD + summary
+   - quotes, daily series, news, overview
+   - financial statements (income statement, balance sheet, cash flow)
+   - technical indicators (SMA, EMA, RSI)
+   - rate-limit- and disabled-state-aware UX
+
+Known gap (see Phase G): `stock_detail_controller`, `stock_financials_controller`,
+and `stock_indicators_controller` still need unit test coverage — only
+`stock_holdings_controller` has a controller test today.
+
+Implementation-quality fixes already applied from the Phase G audit:
+- `StockDetailController`/`GoalDetailController` (both `family` providers)
+  switched from `keepAlive: true` to `autoDispose` — each was leaking a full
+  detail-state tree per symbol/goal ID visited, for the lifetime of the app.
+- All `loadMore()` pagination logic (transactions, notifications, goals,
+  goal detail runs, budgets, recurring transactions + history, stock holdings)
+  now shares `core/riverpod/load_more_guard.dart`'s `LoadMoreGuard` mixin
+  instead of 6+ copy-pasted implementations, and swallowed load-more errors
+  are now logged via `dart:developer` instead of vanishing silently.
+- `auth_interceptor.dart`'s 401 retry path no longer force-logs-out a user
+  when token refresh succeeds but the retried request fails for an unrelated
+  reason (timeout/5xx/offline).
+
+## Phase F2 — Remaining backend families not yet present
+
+**Status:** Not yet implemented in repository
+
+These backend families are still missing from `lib/features/` and are the main
+source of remaining scope:
+
+1. **Assistant**
    - AI chat UI and API integration
    - disabled-state handling when the feature flag is off
-5. **Insights**
+2. **Insights**
    - automated observations
    - disabled-state handling
-6. **Imports**
+3. **Imports**
    - CSV preview and confirm workflow
-7. **OCR**
+4. **OCR**
    - receipt upload
    - async job polling
    - candidate confirmation flow
-8. **Audit logs**
+5. **Audit logs**
    - history screens and pagination
 
 Recommended build order for the remaining families:
 
-1. `users`
-2. `goals`
-3. `stocks`
-4. `imports`
-5. `ocr`
-6. `insights`
-7. `assistant`
-8. `audit_logs`
+1. `imports`
+2. `ocr`
+3. `insights`
+4. `assistant`
+5. `audit_logs`
 
 Reasoning:
 
-- `users` is foundational and likely needed for production readiness
-- `goals` appears central to the product scope and has multiple dependent backend concepts
-- `stocks`, `imports`, and `ocr` are substantial but more bounded vertical slices
-- `insights` and `assistant` depend heavily on feature-flag-aware UX and backend readiness
+- `imports` and `ocr` are substantial but bounded vertical slices that extend
+  the core transaction-entry flow
+- `insights` and `assistant` depend heavily on feature-flag-aware UX and backend
+  readiness
 - `audit_logs` is useful but less critical than core user-facing finance flows
 
 ---
@@ -226,12 +252,25 @@ Even where slices already exist, the repo still needs continuous completion work
 
 - verify every implemented DTO against `/v3/api-docs`
 - keep `Failure` mapping exhaustive as backend error codes expand
-- fill any missing happy-path and primary failure-path tests
+- fill any missing happy-path and primary failure-path tests, including known
+  gaps identified by audit:
+  - `transactions`: add a repository-level test (`transactions_repository_test.dart`)
+    covering both success and thrown-`Failure` paths — currently only DTO
+    mapping is tested
+  - `reports`: `reports_repository_test.dart` only covers happy paths; add a
+    failure-path case (thrown `Failure` on a `success:false` envelope or
+    `DioException`)
+  - `stocks`: add controller tests for `stock_detail_controller`,
+    `stock_financials_controller`, and `stock_indicators_controller` (only
+    `stock_holdings_controller` has coverage today)
 - expand widget/golden coverage for key screens
 - expand end-to-end coverage beyond auth into core money flows
 - verify feature-disabled (`503`) behavior for flagged backend families
 - verify dark mode and 1.3x text scaling on all key screens
 - confirm no raw user-facing strings slip into new UI
+- run `dart run build_runner build --delete-conflicting-outputs` before
+  committing after deleting/renaming an `@riverpod`-annotated source file, so
+  no orphaned `*.g.dart` build artifacts linger locally
 
 ---
 
@@ -251,7 +290,7 @@ Even where slices already exist, the repo still needs continuous completion work
 
 ## Suggested cadence for future work
 
-1. Pick one missing backend family from Phase F.
+1. Pick one missing backend family from Phase F2.
 2. Pull field-level DTO details from `/v3/api-docs`.
 3. Build the slice in `features/<name>/` using the existing implemented slices as the reference pattern.
 4. Keep repository errors throwing typed `Failure`s only.

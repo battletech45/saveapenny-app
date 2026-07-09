@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/transactions/data/transactions_repository.dart';
 import 'package:saveapenny/features/transactions/domain/transaction.dart';
@@ -23,10 +24,9 @@ abstract class TransactionsState with _$TransactionsState {
 }
 
 @Riverpod(keepAlive: true)
-class TransactionsController extends _$TransactionsController {
+class TransactionsController extends _$TransactionsController
+    with LoadMoreGuard<TransactionsState> {
   static const int _pageSize = 20;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<TransactionsState> build() {
@@ -38,27 +38,13 @@ class TransactionsController extends _$TransactionsController {
     state = await AsyncValue.guard(() => _fetchPage(page: 0));
   }
 
-  Future<void> loadMore() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetchPage(page: current.page + 1);
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <Transaction>[...current.items, ...nextPage.items],
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetchPage(page: current.page + 1),
+      merge: (current, next) =>
+          next.copyWith(items: <Transaction>[...current.items, ...next.items]),
+    );
   }
 
   Future<void> create({

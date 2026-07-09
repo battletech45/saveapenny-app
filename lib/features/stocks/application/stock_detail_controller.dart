@@ -22,7 +22,7 @@ abstract class StockDetailState with _$StockDetailState {
   }) = _StockDetailState;
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class StockDetailController extends _$StockDetailController {
   @override
   Future<StockDetailState> build(String symbol) {

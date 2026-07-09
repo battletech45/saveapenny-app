@@ -68,30 +68,43 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (_shouldRetryUnauthorized(err)) {
+      String? latestAccessToken;
       try {
         await _refreshTokens();
-        final latestAccessToken = await _tokenStore.readAccessToken();
-        if (latestAccessToken == null || latestAccessToken.isEmpty) {
-          handler.next(err);
-          return;
-        }
+        latestAccessToken = await _tokenStore.readAccessToken();
+      } on DioException {
+        // Refresh itself failed (expired/invalid/reused refresh token) — the
+        // session is genuinely over.
+        await _expireSession();
+        handler.next(err);
+        return;
+      }
 
-        final retriedOptions = err.requestOptions.copyWith(
-          extra: <String, Object?>{
-            ...err.requestOptions.extra,
-            _retriedAfterRefreshKey: true,
-          },
-          headers: <String, Object?>{
-            ...err.requestOptions.headers,
-            'Authorization': 'Bearer $latestAccessToken',
-          },
-        );
+      if (latestAccessToken == null || latestAccessToken.isEmpty) {
+        handler.next(err);
+        return;
+      }
 
+      final retriedOptions = err.requestOptions.copyWith(
+        extra: <String, Object?>{
+          ...err.requestOptions.extra,
+          _retriedAfterRefreshKey: true,
+        },
+        headers: <String, Object?>{
+          ...err.requestOptions.headers,
+          'Authorization': 'Bearer $latestAccessToken',
+        },
+      );
+
+      try {
         final response = await _refreshDio.fetch<dynamic>(retriedOptions);
         handler.resolve(response);
         return;
       } on DioException {
-        await _expireSession();
+        // Refresh succeeded but the retried request itself failed for an
+        // unrelated reason (timeout, 5xx, offline) — don't force a logout.
+        handler.next(err);
+        return;
       }
     }
 
