@@ -1,0 +1,50 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'stock_overview.freezed.dart';
+
+@freezed
+abstract class StockOverview with _$StockOverview {
+  const factory StockOverview({
+    required String symbol,
+    String? name,
+    String? description,
+    String? exchange,
+    String? currency,
+    String? country,
+    String? sector,
+    String? industry,
+    num? marketCapitalization,
+    num? ebitda,
+    num? peRatio,
+    num? pegRatio,
+    num? bookValue,
+    num? dividendPerShare,
+    num? dividendYield,
+    num? eps,
+    num? revenuePerShareTTM,
+    num? profitMargin,
+    num? operatingMarginTTM,
+    num? returnOnAssetsTTM,
+    num? returnOnEquityTTM,
+    num? revenueTTM,
+    num? grossProfitTTM,
+    num? dilutedEpsTTM,
+    num? quarterlyEarningsGrowthYOY,
+    num? quarterlyRevenueGrowthYOY,
+    num? analystTargetPrice,
+    num? trailingPE,
+    num? forwardPE,
+    num? priceToSalesRatioTTM,
+    num? priceToBookRatio,
+    num? evToRevenue,
+    num? evToEBITDA,
+    num? beta,
+    num? weekHigh52,
+    num? weekLow52,
+    num? movingAverage50Day,
+    num? movingAverage200Day,
+    int? sharesOutstanding,
+    String? dividendDate,
+    String? exDividendDate,
+  }) = _StockOverview;
+}
