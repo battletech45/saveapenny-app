@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/goals/application/goals_controller.dart';
 import 'package:saveapenny/features/goals/data/goals_repository.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
@@ -27,11 +28,10 @@ abstract class GoalDetailState with _$GoalDetailState {
   }) = _GoalDetailState;
 }
 
-@Riverpod(keepAlive: true)
-class GoalDetailController extends _$GoalDetailController {
+@riverpod
+class GoalDetailController extends _$GoalDetailController
+    with LoadMoreGuard<GoalDetailState> {
   static const int _pageSize = 20;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<GoalDetailState> build(String goalId) {
@@ -43,25 +43,13 @@ class GoalDetailController extends _$GoalDetailController {
     state = await AsyncValue.guard(() => _fetch(goalId: goalId, page: 0));
   }
 
-  Future<void> loadMoreRuns() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetch(goalId: goalId, page: current.page + 1);
-      state = AsyncData(
-        nextPage.copyWith(runs: <GoalRun>[...current.runs, ...nextPage.runs]),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMoreRuns() {
+    return guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetch(goalId: goalId, page: current.page + 1),
+      merge: (current, next) =>
+          next.copyWith(runs: <GoalRun>[...current.runs, ...next.runs]),
+    );
   }
 
   Future<void> updateGoal({

@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/budgets/data/budgets_repository.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/domain/budget_status.dart';
@@ -31,10 +32,9 @@ abstract class BudgetsState with _$BudgetsState {
 }
 
 @Riverpod(keepAlive: true)
-class BudgetsController extends _$BudgetsController {
+class BudgetsController extends _$BudgetsController
+    with LoadMoreGuard<BudgetsState> {
   static const int _pageSize = 20;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<BudgetsState> build() {
@@ -46,27 +46,14 @@ class BudgetsController extends _$BudgetsController {
     state = await AsyncValue.guard(() => _fetchPage(page: 0));
   }
 
-  Future<void> loadMore() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetchPage(page: current.page + 1);
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <BudgetListItem>[...current.items, ...nextPage.items],
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetchPage(page: current.page + 1),
+      merge: (current, next) => next.copyWith(
+        items: <BudgetListItem>[...current.items, ...next.items],
+      ),
+    );
   }
 
   Future<void> create({

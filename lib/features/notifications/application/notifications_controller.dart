@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/notifications/data/notifications_repository.dart';
 import 'package:saveapenny/features/notifications/domain/notification.dart';
 
@@ -25,11 +26,11 @@ abstract class NotificationsState with _$NotificationsState {
 }
 
 @Riverpod(keepAlive: true)
-class NotificationsController extends _$NotificationsController {
+class NotificationsController extends _$NotificationsController
+    with LoadMoreGuard<NotificationsState> {
   static const int _pageSize = 20;
   static const Duration _undoWindow = Duration(seconds: 5);
 
-  bool _isLoadingMore = false;
   Timer? _undoTimer;
   (Notification, List<Notification>)? _pendingDelete;
 
@@ -51,30 +52,14 @@ class NotificationsController extends _$NotificationsController {
     });
   }
 
-  Future<void> loadMore() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetchPage(
-        page: current.page + 1,
-        unreadCount: current.unreadCount,
-      );
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <Notification>[...current.items, ...nextPage.items],
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) =>
+          _fetchPage(page: current.page + 1, unreadCount: current.unreadCount),
+      merge: (current, next) =>
+          next.copyWith(items: <Notification>[...current.items, ...next.items]),
+    );
   }
 
   Future<void> markRead(String notificationId) async {

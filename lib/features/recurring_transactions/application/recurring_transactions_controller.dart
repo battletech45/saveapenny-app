@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/recurring_transactions/data/recurring_transactions_repository.dart';
 import 'package:saveapenny/features/recurring_transactions/domain/recurring_transaction.dart';
 import 'package:saveapenny/features/recurring_transactions/domain/recurring_transaction_history_entry.dart';
@@ -39,12 +40,10 @@ abstract class RecurringTransactionHistoryState
 }
 
 @Riverpod(keepAlive: true)
-class RecurringTransactionsController
-    extends _$RecurringTransactionsController {
+class RecurringTransactionsController extends _$RecurringTransactionsController
+    with LoadMoreGuard<RecurringTransactionsState> {
   static const int _pageSize = 20;
   static const int _upcomingLimit = 5;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<RecurringTransactionsState> build() {
@@ -56,28 +55,15 @@ class RecurringTransactionsController
     state = await AsyncValue.guard(() => _fetchPage(page: 0));
   }
 
-  Future<void> loadMore() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetchPage(page: current.page + 1);
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <RecurringTransaction>[...current.items, ...nextPage.items],
-          upcoming: current.upcoming,
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetchPage(page: current.page + 1),
+      merge: (current, next) => next.copyWith(
+        items: <RecurringTransaction>[...current.items, ...next.items],
+        upcoming: current.upcoming,
+      ),
+    );
   }
 
   Future<void> create({
@@ -241,10 +227,9 @@ class RecurringTransactionsController
 
 @Riverpod(keepAlive: true)
 class RecurringTransactionHistoryController
-    extends _$RecurringTransactionHistoryController {
+    extends _$RecurringTransactionHistoryController
+    with LoadMoreGuard<RecurringTransactionHistoryState> {
   static const int _pageSize = 20;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<RecurringTransactionHistoryState> build(
@@ -261,33 +246,20 @@ class RecurringTransactionHistoryController
     );
   }
 
-  Future<void> loadMore() async {
-    final current = _readHistoryAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetchPage(
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetchPage(
         recurringTransactionId: recurringTransactionId,
         page: current.page + 1,
-      );
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <RecurringTransactionHistoryEntry>[
-            ...current.items,
-            ...nextPage.items,
-          ],
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+      ),
+      merge: (current, next) => next.copyWith(
+        items: <RecurringTransactionHistoryEntry>[
+          ...current.items,
+          ...next.items,
+        ],
+      ),
+    );
   }
 
   Future<RecurringTransactionHistoryState> _fetchPage({
@@ -307,13 +279,5 @@ class RecurringTransactionHistoryController
       hasNext: response.hasNext,
       hasPrevious: response.hasPrevious,
     );
-  }
-
-  RecurringTransactionHistoryState? _readHistoryAsyncData(
-    AsyncValue<RecurringTransactionHistoryState> value,
-  ) {
-    return value is AsyncData<RecurringTransactionHistoryState>
-        ? value.value
-        : null;
   }
 }

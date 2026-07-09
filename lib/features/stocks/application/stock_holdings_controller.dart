@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
+import 'package:saveapenny/core/riverpod/load_more_guard.dart';
 import 'package:saveapenny/features/stocks/data/stocks_repository.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding_summary.dart';
@@ -27,10 +28,9 @@ abstract class StockHoldingsState with _$StockHoldingsState {
 }
 
 @Riverpod(keepAlive: true)
-class StockHoldingsController extends _$StockHoldingsController {
+class StockHoldingsController extends _$StockHoldingsController
+    with LoadMoreGuard<StockHoldingsState> {
   static const int _pageSize = 20;
-
-  bool _isLoadingMore = false;
 
   @override
   Future<StockHoldingsState> build() {
@@ -42,27 +42,13 @@ class StockHoldingsController extends _$StockHoldingsController {
     state = await AsyncValue.guard(() => _fetch(page: 0));
   }
 
-  Future<void> loadMore() async {
-    final current = _readAsyncData(state);
-    if (current == null || !current.hasNext || _isLoadingMore) {
-      return;
-    }
-
-    _isLoadingMore = true;
-    try {
-      final nextPage = await _fetch(page: current.page + 1);
-      state = AsyncData(
-        nextPage.copyWith(
-          items: <StockHolding>[...current.items, ...nextPage.items],
-        ),
-      );
-    } on Failure {
-      state = AsyncData(current);
-    } on Object {
-      state = AsyncData(current);
-    } finally {
-      _isLoadingMore = false;
-    }
+  Future<void> loadMore() {
+    return super.guardedLoadMore(
+      hasNext: (current) => current.hasNext,
+      fetchNext: (current) => _fetch(page: current.page + 1),
+      merge: (current, next) =>
+          next.copyWith(items: <StockHolding>[...current.items, ...next.items]),
+    );
   }
 
   Future<void> createHolding({
