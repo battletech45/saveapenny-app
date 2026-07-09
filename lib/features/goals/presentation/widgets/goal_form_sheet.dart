@@ -74,9 +74,14 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accountsState = ref.watch(accountsControllerProvider);
-    final accounts = (readAsyncData(accountsState) ?? const <Account>[])
-        .where((account) => account.active)
-        .toList(growable: false);
+    final seenAccountIds = <String>{};
+    final accounts = <Account>[
+      for (final account in readAsyncData(accountsState) ?? const <Account>[])
+        if (account.active && seenAccountIds.add(account.id)) account,
+    ];
+    final hasLinkedAccountInItems =
+        _linkedAccountId == null ||
+        accounts.any((account) => account.id == _linkedAccountId);
     final dateLabel = DateFormat.yMMMd(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_targetDate);
@@ -189,6 +194,11 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
                     value: null,
                     child: Text(l10n.goalsNoLinkedAccount),
                   ),
+                  if (!hasLinkedAccountInItems && _linkedAccountId != null)
+                    DropdownMenuItem<String?>(
+                      value: _linkedAccountId,
+                      child: Text(_linkedAccountId!),
+                    ),
                   ...accounts.map(
                     (account) => DropdownMenuItem<String?>(
                       value: account.id,

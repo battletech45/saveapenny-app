@@ -455,18 +455,21 @@ class _JsonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: SelectableText(
-          _pretty(value),
-          style: context.textTheme.label.copyWith(
-            color: context.colors.textPrimary,
+    return SizedBox(
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: context.colors.surfaceSubtle,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: context.colors.border),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: SelectableText(
+            _pretty(value),
+            style: context.textTheme.label.copyWith(
+              color: context.colors.textPrimary,
+            ),
           ),
         ),
       ),

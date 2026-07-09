@@ -323,7 +323,7 @@ abstract final class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: onPrimary,
-          minimumSize: const Size.fromHeight(AppSpacing.giant),
+          minimumSize: const Size(0, AppSpacing.giant),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
@@ -338,7 +338,7 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           backgroundColor: primaryContainer,
           foregroundColor: onPrimaryContainer,
-          minimumSize: const Size.fromHeight(AppSpacing.giant),
+          minimumSize: const Size(0, AppSpacing.giant),
           side: BorderSide.none,
           textStyle: textTheme.title,
           shape: RoundedRectangleBorder(
@@ -349,7 +349,7 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primary,
-          minimumSize: const Size.fromHeight(AppSpacing.giant),
+          minimumSize: const Size(0, AppSpacing.giant),
           textStyle: textTheme.title,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
