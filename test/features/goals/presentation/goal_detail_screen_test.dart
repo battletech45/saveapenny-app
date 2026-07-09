@@ -16,13 +16,13 @@ import 'package:saveapenny/features/goals/presentation/goal_detail_screen.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class _FakeGoalsRepository implements GoalsRepository {
-  _FakeGoalsRepository({
-    required this.detail,
-    this.onUpdateStatus,
-  });
+  _FakeGoalsRepository({required this.detail, this.onUpdateStatus});
 
   final GoalDetail detail;
-  final Future<Goal> Function({required String goalId, required GoalStatus status})?
+  final Future<Goal> Function({
+    required String goalId,
+    required GoalStatus status,
+  })?
   onUpdateStatus;
 
   @override
@@ -57,7 +57,8 @@ class _FakeGoalsRepository implements GoalsRepository {
   Future<GoalDetail> getById(String goalId) async => detail;
 
   @override
-  Future<List<GoalScenario>> listScenarios(String goalId) async => detail.scenarios;
+  Future<List<GoalScenario>> listScenarios(String goalId) async =>
+      detail.scenarios;
 
   @override
   Future<PaginatedData<Goal>> list({

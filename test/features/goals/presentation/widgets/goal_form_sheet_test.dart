@@ -44,7 +44,11 @@ class _FakeAccountsRepository implements AccountsRepository {
   }
 }
 
-Account _account({required String id, required String name, bool active = true}) {
+Account _account({
+  required String id,
+  required String name,
+  bool active = true,
+}) {
   return Account(
     id: id,
     name: name,
@@ -86,7 +90,9 @@ Future<void> _pumpSheet(
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: GoalFormSheet(existing: goal, goalId: goal.id)),
+        home: Scaffold(
+          body: GoalFormSheet(existing: goal, goalId: goal.id),
+        ),
       ),
     ),
   );
@@ -125,34 +131,35 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('goal form keeps missing linked account selectable in edit mode', (
-    WidgetTester tester,
-  ) async {
-    final container = ProviderContainer(
-      overrides: [
-        accountsRepositoryProvider.overrideWith(
-          (ref) => _FakeAccountsRepository(
-            accounts: <Account>[
-              _account(id: 'account-2', name: 'Travel fund'),
-            ],
+  testWidgets(
+    'goal form keeps missing linked account selectable in edit mode',
+    (WidgetTester tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          accountsRepositoryProvider.overrideWith(
+            (ref) => _FakeAccountsRepository(
+              accounts: <Account>[
+                _account(id: 'account-2', name: 'Travel fund'),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await _pumpSheet(
-      tester,
-      container: container,
-      goal: _goal(linkedAccountId: 'missing-account'),
-    );
+      await _pumpSheet(
+        tester,
+        container: container,
+        goal: _goal(linkedAccountId: 'missing-account'),
+      );
 
-    expect(find.text('missing-account'), findsOneWidget);
+      expect(find.text('missing-account'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_drop_down).last);
-    await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.arrow_drop_down).last);
+      await tester.pumpAndSettle();
 
-    expect(find.text('missing-account'), findsWidgets);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.text('missing-account'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
