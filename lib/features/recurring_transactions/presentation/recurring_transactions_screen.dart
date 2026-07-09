@@ -7,6 +7,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
@@ -164,10 +165,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     BuildContext context, {
     RecurringTransaction? existing,
   }) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => RecurringTransactionFormSheet(existing: existing),
     );
   }
@@ -176,10 +175,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     BuildContext context,
     String recurringTransactionId,
   ) {
-    return showModalBottomSheet<void>(
+    return showAppModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
       builder: (context) => RecurringTransactionHistorySheet(
         recurringTransactionId: recurringTransactionId,
       ),
