@@ -24,6 +24,8 @@ import 'package:saveapenny/features/goals/presentation/goals_screen.dart';
 import 'package:saveapenny/features/notifications/presentation/notifications_screen.dart';
 import 'package:saveapenny/features/recurring_transactions/presentation/recurring_transactions_screen.dart';
 import 'package:saveapenny/features/reports/presentation/reports_screen.dart';
+import 'package:saveapenny/features/stocks/presentation/stock_detail_screen.dart';
+import 'package:saveapenny/features/stocks/presentation/stocks_screen.dart';
 import 'package:saveapenny/features/transactions/presentation/transactions_screen.dart';
 import 'package:saveapenny/features/users/presentation/profile_screen.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -114,6 +116,15 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/reports',
         builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: '/stocks',
+        builder: (context, state) => const StocksScreen(),
+      ),
+      GoRoute(
+        path: '/stocks/:symbol',
+        builder: (context, state) =>
+            StockDetailScreen(symbol: state.pathParameters['symbol']!),
       ),
       GoRoute(
         path: '/notifications',
@@ -514,6 +525,43 @@ class _HomeScreen extends ConsumerWidget {
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               l10n.reportsHomeCardSubtitle,
+                              style: context.textTheme.body.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: context.colors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: () => GoRouter.of(context).go('/stocks'),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.stocksHomeCardTitle,
+                              style: context.textTheme.title,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.stocksHomeCardSubtitle,
                               style: context.textTheme.body.copyWith(
                                 color: context.colors.textSecondary,
                               ),
