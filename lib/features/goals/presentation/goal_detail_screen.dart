@@ -562,7 +562,11 @@ String _goalFailureMessage(BuildContext context, Failure failure) {
       message != null && message.isNotEmpty
           ? message
           : l10n.failureGenericMessage,
-    ApiFailure(code: final code, message: final message, details: final details) =>
+    ApiFailure(
+      code: final code,
+      message: final message,
+      details: final details,
+    ) =>
       switch (code) {
         ApiErrorCode.invalidGoalDate => l10n.goalsInvalidDateError,
         ApiErrorCode.invalidGoalStatusTransition =>
@@ -572,7 +576,9 @@ String _goalFailureMessage(BuildContext context, Failure failure) {
         ApiErrorCode.linkedAccountNotFound ||
         ApiErrorCode.scenarioNotFound => l10n.failureResourceNotFoundMessage,
         ApiErrorCode.validationFailed =>
-          details.isNotEmpty ? details.first : l10n.failureValidationFailedMessage,
+          details.isNotEmpty
+              ? details.first
+              : l10n.failureValidationFailedMessage,
         ApiErrorCode.goalProgressDisabled ||
         ApiErrorCode.featureDisabled => l10n.failureFeatureDisabledMessage,
         ApiErrorCode.serverError ||
