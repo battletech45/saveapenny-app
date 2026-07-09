@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
@@ -254,6 +255,7 @@ class GoalDetailScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: GoalStatus.values
+                  .where((status) => status != currentStatus)
                   .map(
                     (status) => Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -274,9 +276,20 @@ class GoalDetailScreen extends ConsumerWidget {
       return;
     }
 
-    await ref
-        .read(goalDetailControllerProvider(goalId).notifier)
-        .updateStatus(selectedStatus);
+    try {
+      await ref
+          .read(goalDetailControllerProvider(goalId).notifier)
+          .updateStatus(selectedStatus);
+    } on Failure catch (failure) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(_goalFailureMessage(context, failure))),
+        );
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -535,6 +548,38 @@ String goalRunTriggerLabel(AppLocalizations l10n, GoalRunTrigger value) {
     GoalRunTrigger.agent => l10n.goalsRunTriggerAgent,
     GoalRunTrigger.progressJob => l10n.goalsRunTriggerProgressJob,
     GoalRunTrigger.whatIf => l10n.goalsRunTriggerWhatIf,
+  };
+}
+
+String _goalFailureMessage(BuildContext context, Failure failure) {
+  final l10n = AppLocalizations.of(context);
+
+  return switch (failure) {
+    NetworkFailure() => l10n.failureNetworkMessage,
+    UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
+    RateLimitedFailure() => l10n.failureRateLimitedMessage,
+    UnknownFailure(message: final message) =>
+      message != null && message.isNotEmpty
+          ? message
+          : l10n.failureGenericMessage,
+    ApiFailure(code: final code, message: final message, details: final details) =>
+      switch (code) {
+        ApiErrorCode.invalidGoalDate => l10n.goalsInvalidDateError,
+        ApiErrorCode.invalidGoalStatusTransition =>
+          l10n.goalsInvalidStatusTransitionError,
+        ApiErrorCode.invalidGoalType => l10n.goalsInvalidTypeError,
+        ApiErrorCode.goalNotFound ||
+        ApiErrorCode.linkedAccountNotFound ||
+        ApiErrorCode.scenarioNotFound => l10n.failureResourceNotFoundMessage,
+        ApiErrorCode.validationFailed =>
+          details.isNotEmpty ? details.first : l10n.failureValidationFailedMessage,
+        ApiErrorCode.goalProgressDisabled ||
+        ApiErrorCode.featureDisabled => l10n.failureFeatureDisabledMessage,
+        ApiErrorCode.serverError ||
+        ApiErrorCode.internalServerError ||
+        ApiErrorCode.serviceUnavailable => l10n.failureGenericMessage,
+        _ => message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
+      },
   };
 }
 
