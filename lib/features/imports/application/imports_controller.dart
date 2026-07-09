@@ -1,0 +1,148 @@
+import 'dart:async';
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/features/imports/data/imports_repository.dart';
+import 'package:saveapenny/features/imports/domain/import_models.dart';
+
+part 'imports_controller.g.dart';
+
+enum ImportStep {
+  idle,
+  previewing,
+  previewReady,
+  confirming,
+  completed,
+  failed,
+}
+
+class ImportFlowState {
+  const ImportFlowState({
+    required this.step,
+    this.preview,
+    this.status,
+    this.error,
+  });
+
+  final ImportStep step;
+  final ImportPreview? preview;
+  final ImportStatus? status;
+  final Failure? error;
+
+  ImportFlowState copyWith({
+    ImportStep? step,
+    ImportPreview? preview,
+    ImportStatus? status,
+    Failure? error,
+    bool clearError = false,
+  }) {
+    return ImportFlowState(
+      step: step ?? this.step,
+      preview: preview ?? this.preview,
+      status: status ?? this.status,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
+
+  bool get isIdle => step == ImportStep.idle;
+  bool get isPreviewing => step == ImportStep.previewing;
+  bool get isPreviewReady => step == ImportStep.previewReady;
+  bool get isConfirming => step == ImportStep.confirming;
+  bool get isCompleted => step == ImportStep.completed;
+  bool get isFailed => step == ImportStep.failed;
+}
+
+@Riverpod(keepAlive: true)
+class ImportsController extends _$ImportsController {
+  Timer? _pollTimer;
+
+  @override
+  ImportFlowState build() {
+    ref.onDispose(() {
+      _pollTimer?.cancel();
+    });
+    return const ImportFlowState(step: ImportStep.idle);
+  }
+
+  Future<void> previewFile({required String filePath}) async {
+    state = state.copyWith(step: ImportStep.previewing, clearError: true);
+    try {
+      final preview = await ref
+          .read(importsRepositoryProvider)
+          .preview(filePath: filePath);
+      state = ImportFlowState(step: ImportStep.previewReady, preview: preview);
+    } on Failure catch (error) {
+      state = ImportFlowState(step: ImportStep.idle, error: error);
+    } on Object catch (error, stackTrace) {
+      state = ImportFlowState(
+        step: ImportStep.idle,
+        error: Failure.unknown(message: error.toString()),
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  Future<void> confirmImport() async {
+    final preview = state.preview;
+    if (preview == null) return;
+
+    state = state.copyWith(step: ImportStep.confirming, clearError: true);
+    try {
+      final status = await ref
+          .read(importsRepositoryProvider)
+          .confirm(importId: preview.importId);
+      state = ImportFlowState(step: _stepFromStatus(status), status: status);
+
+      if (status.status == ImportJobStatus.running) {
+        _startPolling(preview.importId);
+      }
+    } on Failure catch (error) {
+      state = state.copyWith(step: ImportStep.previewReady, error: error);
+    } on Object catch (error, stackTrace) {
+      state = state.copyWith(
+        step: ImportStep.previewReady,
+        error: Failure.unknown(message: error.toString()),
+      );
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  void _startPolling(String importId) {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _pollStatus(importId),
+    );
+  }
+
+  Future<void> _pollStatus(String importId) async {
+    try {
+      final status = await ref
+          .read(importsRepositoryProvider)
+          .status(importId: importId);
+      state = ImportFlowState(step: _stepFromStatus(status), status: status);
+
+      if (status.status != ImportJobStatus.running) {
+        _pollTimer?.cancel();
+      }
+    } on Failure {
+      _pollTimer?.cancel();
+    } on Object {
+      _pollTimer?.cancel();
+    }
+  }
+
+  void reset() {
+    _pollTimer?.cancel();
+    state = const ImportFlowState(step: ImportStep.idle);
+  }
+}
+
+ImportStep _stepFromStatus(ImportStatus status) {
+  return switch (status.status) {
+    ImportJobStatus.pending || ImportJobStatus.running => ImportStep.confirming,
+    ImportJobStatus.completed => ImportStep.completed,
+    ImportJobStatus.failed => ImportStep.failed,
+  };
+}
