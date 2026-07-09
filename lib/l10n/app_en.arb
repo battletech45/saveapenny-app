@@ -501,5 +501,32 @@
       }
     }
   },
-  "notificationsUndoAction": "Undo"
+  "notificationsUndoAction": "Undo",
+  "importsTitle": "Import transactions",
+  "importsHomeCardTitle": "Import transactions",
+  "importsHomeCardSubtitle": "Bulk-import CSV files of income and expense transactions.",
+  "importsIdleTitle": "No file selected",
+  "importsIdleMessage": "Pick a CSV file to preview and import transactions into your accounts.",
+  "importsPickFileCta": "Choose CSV file",
+  "importsPreviewTitle": "Import preview",
+  "importsPreviewSubtitle": "Previewing {fileName}",
+  "@importsPreviewSubtitle": {
+    "placeholders": {
+      "fileName": {}
+    }
+  },
+  "importsPreviewTotalRowsLabel": "Total rows",
+  "importsPreviewValidRowsLabel": "Valid",
+  "importsPreviewInvalidRowsLabel": "Invalid",
+  "importsPreviewErrorsTitle": "Row errors",
+  "importsConfirmTitle": "Confirm import",
+  "importsConfirmMessage": "Start processing the valid rows from this file? Invalid rows will be skipped.",
+  "importsConfirmCta": "Start import",
+  "importsCompletedTitle": "Import complete",
+  "importsFailedTitle": "Import failed",
+  "importsCompletedTotalLabel": "Total rows",
+  "importsCompletedImportedLabel": "Imported",
+  "importsCompletedFailedLabel": "Failed",
+  "importsInvalidFileError": "The selected file is not a valid CSV or is empty.",
+  "importsAlreadyRunningError": "This import is already being processed."
 }
