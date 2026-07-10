@@ -108,6 +108,14 @@ class ImportsController extends _$ImportsController {
     }
   }
 
+  Future<void> retryStatusCheck() async {
+    final importId = state.status?.importId ?? state.preview?.importId;
+    if (importId == null) return;
+
+    state = state.copyWith(step: ImportStep.confirming, clearError: true);
+    await _pollStatus(importId);
+  }
+
   void _startPolling(String importId) {
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(
@@ -123,13 +131,21 @@ class ImportsController extends _$ImportsController {
           .status(importId: importId);
       state = ImportFlowState(step: _stepFromStatus(status), status: status);
 
-      if (status.status != ImportJobStatus.running) {
+      if (status.status == ImportJobStatus.running) {
+        if (_pollTimer?.isActive != true) {
+          _startPolling(importId);
+        }
+      } else {
         _pollTimer?.cancel();
       }
-    } on Failure {
+    } on Failure catch (error) {
       _pollTimer?.cancel();
-    } on Object {
+      state = state.copyWith(error: error);
+    } on Object catch (error) {
       _pollTimer?.cancel();
+      state = state.copyWith(
+        error: Failure.unknown(message: error.toString()),
+      );
     }
   }
 

@@ -41,6 +41,6 @@ ImportJobStatus _statusFromWire(String value) {
     'RUNNING' => ImportJobStatus.running,
     'COMPLETED' => ImportJobStatus.completed,
     'FAILED' => ImportJobStatus.failed,
-    _ => ImportJobStatus.pending,
+    _ => throw FormatException('Unsupported import status: $value'),
   };
 }
