@@ -36,6 +36,13 @@ class ImportsScreen extends ConsumerWidget {
                 onPickFile: () => _pickAndPreview(context, ref),
                 error: flowState.error,
               )
+            : flowState.isConfirming && flowState.error != null
+            ? FailureView(
+                failure: flowState.error!,
+                onRetry: () => ref
+                    .read(importsControllerProvider.notifier)
+                    .retryStatusCheck(),
+              )
             : flowState.isPreviewing || flowState.isConfirming
             ? const LoadingView()
             : flowState.isPreviewReady && flowState.preview != null

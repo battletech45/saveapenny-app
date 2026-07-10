@@ -519,6 +519,14 @@
   "importsPreviewValidRowsLabel": "Valid",
   "importsPreviewInvalidRowsLabel": "Invalid",
   "importsPreviewErrorsTitle": "Row errors",
+  "importsPreviewErrorRowLabel": "Row {rowNumber}",
+  "@importsPreviewErrorRowLabel": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int"
+      }
+    }
+  },
   "importsConfirmTitle": "Confirm import",
   "importsConfirmMessage": "Start processing the valid rows from this file? Invalid rows will be skipped.",
   "importsConfirmCta": "Start import",

@@ -9,10 +9,11 @@ import 'package:saveapenny/features/imports/domain/import_models.dart';
 import 'package:saveapenny/features/imports/domain/imports_repository.dart';
 
 class _FakeImportsRepository implements ImportsRepository {
-  _FakeImportsRepository({this.onPreview, this.onConfirm});
+  _FakeImportsRepository({this.onPreview, this.onConfirm, this.onStatus});
 
   final Future<ImportPreview> Function(String filePath)? onPreview;
   final Future<ImportStatus> Function(String importId)? onConfirm;
+  final Future<ImportStatus> Function(String importId)? onStatus;
 
   @override
   Future<ImportPreview> preview({required String filePath}) {
@@ -26,7 +27,7 @@ class _FakeImportsRepository implements ImportsRepository {
 
   @override
   Future<ImportStatus> status({required String importId}) {
-    throw UnimplementedError();
+    return onStatus!(importId);
   }
 }
 
@@ -143,6 +144,34 @@ void main() {
     final state = container.read(importsControllerProvider);
     expect(state.isCompleted, isTrue);
     expect(state.status!.importedRows, 4);
+  });
+
+  test('confirmImport surfaces polling failures instead of staying stuck', () async {
+    final container = ProviderContainer(
+      overrides: [
+        importsRepositoryProvider.overrideWith(
+          (ref) => _FakeImportsRepository(
+            onPreview: (_) async => _preview(),
+            onConfirm: (_) async =>
+                _status(status: ImportJobStatus.running, importedRows: 0),
+            onStatus: (_) async {
+              throw const Failure.network();
+            },
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(importsControllerProvider.notifier)
+        .previewFile(filePath: 'test.csv');
+    await container.read(importsControllerProvider.notifier).confirmImport();
+    await Future<void>.delayed(const Duration(milliseconds: 2200));
+
+    final state = container.read(importsControllerProvider);
+    expect(state.isConfirming, isTrue);
+    expect(state.error, isA<NetworkFailure>());
   });
 
   test('reset returns to idle state', () async {

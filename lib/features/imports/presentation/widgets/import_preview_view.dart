@@ -132,6 +132,8 @@ class _ErrorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Card(
@@ -141,7 +143,7 @@ class _ErrorRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Row ${error.rowNumber}',
+                l10n.importsPreviewErrorRowLabel(error.rowNumber),
                 style: context.textTheme.label.copyWith(
                   color: context.finance.expense,
                 ),

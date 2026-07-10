@@ -519,6 +519,14 @@
   "importsPreviewValidRowsLabel": "Gecerli",
   "importsPreviewInvalidRowsLabel": "Gecersiz",
   "importsPreviewErrorsTitle": "Satir hatalari",
+  "importsPreviewErrorRowLabel": "Satir {rowNumber}",
+  "@importsPreviewErrorRowLabel": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int"
+      }
+    }
+  },
   "importsConfirmTitle": "Aktarmayi onayla",
   "importsConfirmMessage": "Bu dosyadaki gecerli satirlar islensin mi? Gecersiz satirlar atlanacaktir.",
   "importsConfirmCta": "Aktarmayi baslat",
