@@ -143,9 +143,7 @@ class ImportsController extends _$ImportsController {
       state = state.copyWith(error: error);
     } on Object catch (error) {
       _pollTimer?.cancel();
-      state = state.copyWith(
-        error: Failure.unknown(message: error.toString()),
-      );
+      state = state.copyWith(error: Failure.unknown(message: error.toString()));
     }
   }
 
