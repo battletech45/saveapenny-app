@@ -146,33 +146,36 @@ void main() {
     expect(state.status!.importedRows, 4);
   });
 
-  test('confirmImport surfaces polling failures instead of staying stuck', () async {
-    final container = ProviderContainer(
-      overrides: [
-        importsRepositoryProvider.overrideWith(
-          (ref) => _FakeImportsRepository(
-            onPreview: (_) async => _preview(),
-            onConfirm: (_) async =>
-                _status(status: ImportJobStatus.running, importedRows: 0),
-            onStatus: (_) async {
-              throw const Failure.network();
-            },
+  test(
+    'confirmImport surfaces polling failures instead of staying stuck',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          importsRepositoryProvider.overrideWith(
+            (ref) => _FakeImportsRepository(
+              onPreview: (_) async => _preview(),
+              onConfirm: (_) async =>
+                  _status(status: ImportJobStatus.running, importedRows: 0),
+              onStatus: (_) async {
+                throw const Failure.network();
+              },
+            ),
           ),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await container
-        .read(importsControllerProvider.notifier)
-        .previewFile(filePath: 'test.csv');
-    await container.read(importsControllerProvider.notifier).confirmImport();
-    await Future<void>.delayed(const Duration(milliseconds: 2200));
+      await container
+          .read(importsControllerProvider.notifier)
+          .previewFile(filePath: 'test.csv');
+      await container.read(importsControllerProvider.notifier).confirmImport();
+      await Future<void>.delayed(const Duration(milliseconds: 2200));
 
-    final state = container.read(importsControllerProvider);
-    expect(state.isConfirming, isTrue);
-    expect(state.error, isA<NetworkFailure>());
-  });
+      final state = container.read(importsControllerProvider);
+      expect(state.isConfirming, isTrue);
+      expect(state.error, isA<NetworkFailure>());
+    },
+  );
 
   test('reset returns to idle state', () async {
     final container = ProviderContainer(
