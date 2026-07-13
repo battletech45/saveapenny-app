@@ -30,6 +30,8 @@ enum ApiErrorCode {
   goalNotFound('GOAL_NOT_FOUND'),
   scenarioNotFound('SCENARIO_NOT_FOUND'),
   linkedAccountNotFound('LINKED_ACCOUNT_NOT_FOUND'),
+  insightNotFound('INSIGHT_NOT_FOUND'),
+  insightGenerationFailed('INSIGHT_GENERATION_FAILED'),
   invalidGoalDate('INVALID_GOAL_DATE'),
   invalidGoalStatusTransition('INVALID_GOAL_STATUS_TRANSITION'),
   invalidGoalType('INVALID_GOAL_TYPE'),
