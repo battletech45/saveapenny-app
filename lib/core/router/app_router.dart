@@ -14,6 +14,7 @@ import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
+import 'package:saveapenny/features/assistant/presentation/assistant_screen.dart';
 import 'package:saveapenny/features/auth/application/auth_controller.dart';
 import 'package:saveapenny/features/auth/presentation/login_screen.dart';
 import 'package:saveapenny/features/auth/presentation/register_screen.dart';
@@ -90,6 +91,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/assistant',
+        builder: (context, state) => const AssistantScreen(),
       ),
       GoRoute(
         path: '/accounts',
@@ -261,6 +266,43 @@ class _HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: () => GoRouter.of(context).go('/assistant'),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.assistantHomeCardTitle,
+                              style: context.textTheme.title,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.assistantHomeCardSubtitle,
+                              style: context.textTheme.body.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: context.colors.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
