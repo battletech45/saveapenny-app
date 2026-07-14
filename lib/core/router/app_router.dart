@@ -25,6 +25,7 @@ import 'package:saveapenny/features/imports/presentation/imports_screen.dart';
 import 'package:saveapenny/features/insights/presentation/insight_detail_screen.dart';
 import 'package:saveapenny/features/insights/presentation/insights_screen.dart';
 import 'package:saveapenny/features/notifications/presentation/notifications_screen.dart';
+import 'package:saveapenny/features/ocr/presentation/ocr_screen.dart';
 import 'package:saveapenny/features/recurring_transactions/presentation/recurring_transactions_screen.dart';
 import 'package:saveapenny/features/reports/presentation/reports_screen.dart';
 import 'package:saveapenny/features/stocks/presentation/stock_detail_screen.dart';
@@ -150,6 +151,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) =>
             InsightDetailScreen(insightId: state.pathParameters['insightId']!),
       ),
+      GoRoute(path: '/ocr', builder: (context, state) => const OcrScreen()),
       GoRoute(path: '/home', builder: (context, state) => const _HomeScreen()),
     ],
     redirect: (context, state) {
@@ -652,6 +654,43 @@ class _HomeScreen extends ConsumerWidget {
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               l10n.insightsHomeCardSubtitle,
+                              style: context.textTheme.body.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: context.colors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: () => GoRouter.of(context).go('/ocr'),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              l10n.ocrHomeCardTitle,
+                              style: context.textTheme.title,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              l10n.ocrHomeCardSubtitle,
                               style: context.textTheme.body.copyWith(
                                 color: context.colors.textSecondary,
                               ),
