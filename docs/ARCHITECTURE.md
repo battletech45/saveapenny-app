@@ -46,16 +46,16 @@ core/
   config/    app_environment.dart      # flavors, base URL (--dart-define)
   network/   api_envelope.dart         # ApiEnvelope<T>, ApiError, PaginatedData<T>
              api_error_code.dart       # backend error-code enum (source of truth)
-             dio_client.dart           # configured Dio + interceptors        [to build]
-             auth_interceptor.dart     # token attach + proactive/reactive refresh [to build]
+             dio_client.dart           # configured Dio + interceptors
+             auth_interceptor.dart     # token attach + proactive/reactive refresh
   error/     failure.dart              # typed Failure hierarchy + Dio mapping
-  storage/   secure_token_store.dart   # flutter_secure_storage wrapper        [to build]
-  router/    app_router.dart           # GoRouter + auth redirect              [to build]
-  theme/     app_theme.dart, tokens.dart  # minimal design tokens              [to build]
-  l10n/      (generated AppLocalizations)                                      [to build]
+  storage/   secure_token_store.dart   # flutter_secure_storage wrapper
+  router/    app_router.dart           # GoRouter + auth redirect
+  theme/     app_theme.dart, tokens.dart  # minimal design tokens
+  l10n/      (generated AppLocalizations)
 ```
 
-`[to build]` = next steps, not yet created.
+All of the above are implemented. See `ROADMAP.md` for feature-slice status.
 
 ## The backend contract (authoritative summary)
 

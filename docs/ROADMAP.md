@@ -38,6 +38,9 @@ contains:
   - `goals` (CRUD, scenarios, simulation, what-if, progress)
   - `stocks` (holdings, quotes, financials, technical indicators)
   - `imports` (CSV preview/confirm/status flow)
+  - `assistant` (AI chat, local persistence, disabled-state handling)
+  - `insights` (automated observations, insight detail, disabled-state handling)
+  - `ocr` (receipt upload, async job polling, candidate confirmation flow)
 - unit/widget tests across those features and `integration_test/auth_flow_test.dart`
 
 This means the old "Phase 0: build lib/ from zero" plan is obsolete. The roadmap
@@ -225,40 +228,37 @@ Expected ongoing work in this phase:
 - verify DTOs against `/v3/api-docs` as the backend's imports contract evolves
 - expand golden/E2E coverage once the feature stabilizes
 
-## Phase F3 — Remaining backend families not yet present
+## Phase F3 — Assistant, insights, and OCR
+
+**Status:** Implemented in repository
+
+Implemented now:
+
+1. **Assistant**
+   - AI chat UI (`assistant_screen.dart`), controller, repository, and local
+     persistence (`assistant_local_store.dart`) for conversation state
+   - disabled-state handling via `ApiErrorCode.assistantDisabled`
+   - repository/controller/presentation tests
+2. **Insights**
+   - automated observations list + insight detail screen/controller
+   - disabled-state handling via `ApiErrorCode.insightsDisabled`
+   - repository/controller/presentation tests
+3. **OCR**
+   - receipt upload, async job polling (`ocr_controller.dart`)
+   - candidate confirmation flow (`ocr_candidate_transaction_sheet.dart`)
+   - repository/controller/presentation tests
+
+Expected ongoing work in this phase:
+
+- verify DTOs against `/v3/api-docs` as these contracts evolve
+- expand golden/E2E coverage once these features stabilize
+
+## Phase F4 — Remaining backend families not yet present
 
 **Status:** Not yet implemented in repository
 
-These backend families are still missing from `lib/features/` and are the main
-source of remaining scope:
-
-1. **Assistant**
-   - AI chat UI and API integration
-   - disabled-state handling when the feature flag is off
-2. **Insights**
-   - automated observations
-   - disabled-state handling
-3. **OCR**
-   - receipt upload
-   - async job polling
-   - candidate confirmation flow
-4. **Audit logs**
+1. **Audit logs**
    - history screens and pagination
-
-Recommended build order for the remaining families:
-
-1. `ocr`
-2. `insights`
-3. `assistant`
-4. `audit_logs`
-
-Reasoning:
-
-- `ocr` is a substantial but bounded vertical slice that extends the core
-  transaction-entry flow, similar in shape to the now-implemented `imports`
-- `insights` and `assistant` depend heavily on feature-flag-aware UX and backend
-  readiness
-- `audit_logs` is useful but less critical than core user-facing finance flows
 
 ---
 
@@ -308,7 +308,7 @@ Even where slices already exist, the repo still needs continuous completion work
 
 ## Suggested cadence for future work
 
-1. Pick one missing backend family from Phase F3.
+1. Pick one missing backend family from Phase F4.
 2. Pull field-level DTO details from `/v3/api-docs`.
 3. Build the slice in `features/<name>/` using the existing implemented slices as the reference pattern.
 4. Keep repository errors throwing typed `Failure`s only.
