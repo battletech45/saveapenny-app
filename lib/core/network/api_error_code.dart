@@ -53,6 +53,8 @@ enum ApiErrorCode {
   stockRateLimitExceeded('STOCK_RATE_LIMIT_EXCEEDED'),
   stockProviderError('STOCK_PROVIDER_ERROR'),
   assistantDisabled('ASSISTANT_DISABLED'),
+  assistantProcessingFailed('ASSISTANT_PROCESSING_FAILED'),
+  assistantChatSessionNotFound('ASSISTANT_CHAT_SESSION_NOT_FOUND'),
   stockDisabled('STOCK_DISABLED'),
   insightsDisabled('INSIGHTS_DISABLED'),
   goalProgressDisabled('GOAL_PROGRESS_DISABLED'),
