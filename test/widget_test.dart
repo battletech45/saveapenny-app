@@ -45,9 +45,15 @@ class _MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 /// `package:riverpod/misc.dart`, which isn't otherwise needed here. Type
 /// inference resolves it correctly without spelling the name.
 final _dashboardDependencyOverrides = [
-  reportsRepositoryProvider.overrideWith((ref) => const _EmptyReportsRepository()),
-  accountsRepositoryProvider.overrideWith((ref) => const _EmptyAccountsRepository()),
-  budgetsRepositoryProvider.overrideWith((ref) => const _EmptyBudgetsRepository()),
+  reportsRepositoryProvider.overrideWith(
+    (ref) => const _EmptyReportsRepository(),
+  ),
+  accountsRepositoryProvider.overrideWith(
+    (ref) => const _EmptyAccountsRepository(),
+  ),
+  budgetsRepositoryProvider.overrideWith(
+    (ref) => const _EmptyBudgetsRepository(),
+  ),
   recurringTransactionsRepositoryProvider.overrideWith(
     (ref) => const _EmptyRecurringTransactionsRepository(),
   ),
@@ -57,7 +63,9 @@ class _EmptyReportsRepository implements ReportsRepository {
   const _EmptyReportsRepository();
 
   @override
-  Future<NetWorthSnapshot> netWorthSnapshot({required DateTime snapshotDate}) async {
+  Future<NetWorthSnapshot> netWorthSnapshot({
+    required DateTime snapshotDate,
+  }) async {
     return NetWorthSnapshot(
       snapshotDate: snapshotDate,
       totalAssets: 0,
@@ -218,7 +226,8 @@ class _EmptyRecurringTransactionsRepository
   }) => throw UnimplementedError();
 
   @override
-  Future<void> delete(String recurringTransactionId) => throw UnimplementedError();
+  Future<void> delete(String recurringTransactionId) =>
+      throw UnimplementedError();
 
   @override
   Future<RecurringTransaction> pause(String recurringTransactionId) =>
@@ -441,7 +450,9 @@ void main() {
     // Sign-out now lives on the profile screen rather than the dashboard's
     // app bar, so the logout half of this cycle is covered separately once
     // that screen has its own widget test.
-    expect(find.text('Home'), findsOneWidget);
+    // "Home" now appears twice: the dashboard app bar title and the shell's
+    // bottom nav destination label.
+    expect(find.text('Home'), findsWidgets);
   });
 
   testWidgets('register success authenticates and routes to home', (
@@ -490,7 +501,7 @@ void main() {
     await tester.tap(find.text('Create account').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Home'), findsWidgets);
   });
 
   testWidgets('register surfaces invalid password failure copy', (
@@ -568,7 +579,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Home'), findsWidgets);
 
     container.read(authSessionControllerProvider.notifier).setUnauthenticated();
     await tester.pumpAndSettle();
@@ -599,47 +610,47 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Home'), findsWidgets);
   });
 
-  testWidgets(
-    'authenticated shell localizes the dashboard app bar title',
-    (WidgetTester tester) async {
-      final storage = _MockFlutterSecureStorage();
-      when(
-        () => storage.read(key: any(named: 'key')),
-      ).thenAnswer((_) async => 'access-token');
+  testWidgets('authenticated shell localizes the dashboard app bar title', (
+    WidgetTester tester,
+  ) async {
+    final storage = _MockFlutterSecureStorage();
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => 'access-token');
 
-      tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
-      tester.binding.platformDispatcher.localesTestValue = const <Locale>[
-        Locale('tr'),
-      ];
-      addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
-      addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+    tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
+    tester.binding.platformDispatcher.localesTestValue = const <Locale>[
+      Locale('tr'),
+    ];
+    addTearDown(tester.binding.platformDispatcher.clearLocaleTestValue);
+    addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
 
-      final container = ProviderContainer(
-        retry: (retryCount, error) => null,
-        overrides: [
-          secureTokenStoreProvider.overrideWith(
-            (ref) => SecureTokenStore(storage: storage),
-          ),
-          ..._dashboardDependencyOverrides,
-        ],
-      );
-      addTearDown(container.dispose);
+    final container = ProviderContainer(
+      retry: (retryCount, error) => null,
+      overrides: [
+        secureTokenStoreProvider.overrideWith(
+          (ref) => SecureTokenStore(storage: storage),
+        ),
+        ..._dashboardDependencyOverrides,
+      ],
+    );
+    addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: const App()),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const App()),
+    );
+    await tester.pumpAndSettle();
 
-      // Dashboard body content (net worth, accounts, etc.) depends on live
-      // repositories and is covered by dashboard_controller_test.dart and
-      // future dashboard widget tests instead — this only pins that routing
-      // + localization land on the authenticated shell's app bar.
-      expect(find.text('Ana Sayfa'), findsOneWidget);
-    },
-  );
+    // Dashboard body content (net worth, accounts, etc.) depends on live
+    // repositories and is covered by dashboard_controller_test.dart and
+    // future dashboard widget tests instead — this only pins that routing
+    // + localization land on the authenticated shell's app bar. "Ana
+    // Sayfa" appears twice: the app bar title and the bottom nav label.
+    expect(find.text('Ana Sayfa'), findsWidgets);
+  });
 }
 
 EditableText _passwordEditableText(WidgetTester tester) {
