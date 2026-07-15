@@ -8,6 +8,7 @@ import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
+import 'package:saveapenny/core/ui/inline_empty_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/stocks/application/stock_holdings_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding.dart';
@@ -48,9 +49,13 @@ class StocksScreen extends ConsumerWidget {
                 Text(l10n.stocksTitle, style: context.textTheme.title),
                 const SizedBox(height: AppSpacing.sm),
                 if (data.items.isEmpty)
-                  _InlineEmptyState(
+                  InlineEmptyView(
                     title: l10n.stocksEmptyTitle,
                     message: l10n.stocksEmptyMessage,
+                    action: ElevatedButton(
+                      onPressed: () => _showHoldingSheet(context),
+                      child: Text(l10n.stocksAddCta),
+                    ),
                   )
                 else
                   ...data.items.map(
@@ -516,40 +521,6 @@ class _InfoPill extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(value, style: context.textTheme.body),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InlineEmptyState extends StatelessWidget {
-  const _InlineEmptyState({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(title, style: context.textTheme.body),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              message,
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
           ],
         ),
       ),

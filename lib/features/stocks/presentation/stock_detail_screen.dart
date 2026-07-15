@@ -9,6 +9,7 @@ import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
+import 'package:saveapenny/core/ui/inline_empty_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/stocks/application/stock_detail_controller.dart';
 import 'package:saveapenny/features/stocks/application/stock_financials_controller.dart';
@@ -66,7 +67,7 @@ class StockDetailScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
                 if (data.dailySeries == null ||
                     data.dailySeries!.dataPoints.isEmpty)
-                  _InlineEmptyState(
+                  InlineEmptyView(
                     title: l10n.stocksDailySeriesEmptyTitle,
                     message: l10n.stocksDailySeriesEmptyMessage,
                   )
@@ -86,7 +87,7 @@ class StockDetailScreen extends ConsumerWidget {
                 Text(l10n.stocksNewsTitle, style: context.textTheme.title),
                 const SizedBox(height: AppSpacing.sm),
                 if (data.news == null || data.news!.articles.isEmpty)
-                  _InlineEmptyState(
+                  InlineEmptyView(
                     title: l10n.stocksNewsEmptyTitle,
                     message: l10n.stocksNewsEmptyMessage,
                   )
@@ -801,40 +802,6 @@ class _InfoRow extends StatelessWidget {
         ),
         Expanded(child: Text(value, style: context.textTheme.body)),
       ],
-    );
-  }
-}
-
-class _InlineEmptyState extends StatelessWidget {
-  const _InlineEmptyState({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(title, style: context.textTheme.body),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              message,
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
