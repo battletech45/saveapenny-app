@@ -44,7 +44,21 @@ class AuthInterceptor extends Interceptor {
       }
 
       if (_shouldRefreshAccessToken(accessToken)) {
-        await _refreshTokens();
+        try {
+          await _refreshTokens();
+        } on DioException catch (_) {
+          await _expireSession();
+          handler.reject(
+            DioException(
+              requestOptions: options,
+              response: Response<dynamic>(
+                requestOptions: options,
+                statusCode: 401,
+              ),
+            ),
+          );
+          return;
+        }
       }
 
       final latestAccessToken = await _tokenStore.readAccessToken();

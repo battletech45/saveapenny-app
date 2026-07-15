@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
@@ -23,13 +22,7 @@ class ProfileScreen extends ConsumerWidget {
     final profileState = ref.watch(usersControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(l10n.profileTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.profileTitle)),
       body: SafeArea(
         child: profileState.when(
           data: (profile) {

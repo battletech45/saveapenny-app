@@ -25,10 +25,6 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
         title: Text(l10n.insightsTitle),
         actions: <Widget>[
           IconButton(

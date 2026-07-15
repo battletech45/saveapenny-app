@@ -1,7 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
@@ -23,13 +22,7 @@ class ImportsScreen extends ConsumerWidget {
     final flowState = ref.watch(importsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(l10n.importsTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.importsTitle)),
       body: SafeArea(
         child: flowState.isIdle
             ? _IdleView(

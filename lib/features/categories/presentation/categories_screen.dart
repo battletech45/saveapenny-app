@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
@@ -23,13 +22,7 @@ class CategoriesScreen extends ConsumerWidget {
     final categoriesState = ref.watch(categoriesControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(l10n.categoriesTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.categoriesTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCategorySheet(context, ref),
         icon: const Icon(Icons.add_rounded),

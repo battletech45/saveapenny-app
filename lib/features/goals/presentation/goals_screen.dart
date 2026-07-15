@@ -24,13 +24,7 @@ class GoalsScreen extends ConsumerWidget {
     final goalsState = ref.watch(goalsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(l10n.goalsTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.goalsTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showGoalSheet(context),
         icon: const Icon(Icons.add_rounded),

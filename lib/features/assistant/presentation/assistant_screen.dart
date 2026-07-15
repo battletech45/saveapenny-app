@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
@@ -55,10 +54,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
         title: Text(l10n.assistantTitle),
         actions: <Widget>[
           IconButton(
