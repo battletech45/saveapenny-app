@@ -71,6 +71,7 @@ class _CashFlowTile extends StatelessWidget {
                     style: context.textTheme.label.copyWith(
                       color: context.colors.textSecondary,
                     ),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
