@@ -24,7 +24,10 @@ class AccountRow extends StatelessWidget {
       onTap: () => GoRouter.of(context).go('/accounts'),
       leading: CircleAvatar(
         backgroundColor: context.colors.surfaceSubtle,
-        child: Icon(_iconFor(account.type), color: context.colors.textSecondary),
+        child: Icon(
+          _iconFor(account.type),
+          color: context.colors.textSecondary,
+        ),
       ),
       title: Text(account.name, style: context.textTheme.body),
       subtitle: Text(

@@ -18,18 +18,58 @@ class QuickLinksSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final links = <_QuickLink>[
-      _QuickLink(l10n.transactionsHomeCardTitle, l10n.transactionsHomeCardSubtitle, '/transactions'),
-      _QuickLink(l10n.budgetsHomeCardTitle, l10n.budgetsHomeCardSubtitle, '/budgets'),
+      _QuickLink(
+        l10n.transactionsHomeCardTitle,
+        l10n.transactionsHomeCardSubtitle,
+        '/transactions',
+      ),
+      _QuickLink(
+        l10n.budgetsHomeCardTitle,
+        l10n.budgetsHomeCardSubtitle,
+        '/budgets',
+      ),
       _QuickLink(l10n.goalsHomeCardTitle, l10n.goalsHomeCardSubtitle, '/goals'),
-      _QuickLink(l10n.categoriesHomeCardTitle, l10n.categoriesHomeCardSubtitle, '/categories'),
-      _QuickLink(l10n.reportsHomeCardTitle, l10n.reportsHomeCardSubtitle, '/reports'),
-      _QuickLink(l10n.stocksHomeCardTitle, l10n.stocksHomeCardSubtitle, '/stocks'),
-      _QuickLink(l10n.insightsHomeCardTitle, l10n.insightsHomeCardSubtitle, '/insights'),
-      _QuickLink(l10n.assistantHomeCardTitle, l10n.assistantHomeCardSubtitle, '/assistant'),
+      _QuickLink(
+        l10n.categoriesHomeCardTitle,
+        l10n.categoriesHomeCardSubtitle,
+        '/categories',
+      ),
+      _QuickLink(
+        l10n.reportsHomeCardTitle,
+        l10n.reportsHomeCardSubtitle,
+        '/reports',
+      ),
+      _QuickLink(
+        l10n.stocksHomeCardTitle,
+        l10n.stocksHomeCardSubtitle,
+        '/stocks',
+      ),
+      _QuickLink(
+        l10n.insightsHomeCardTitle,
+        l10n.insightsHomeCardSubtitle,
+        '/insights',
+      ),
+      _QuickLink(
+        l10n.assistantHomeCardTitle,
+        l10n.assistantHomeCardSubtitle,
+        '/assistant',
+      ),
       _QuickLink(l10n.ocrHomeCardTitle, l10n.ocrHomeCardSubtitle, '/ocr'),
-      _QuickLink(l10n.importsHomeCardTitle, l10n.importsHomeCardSubtitle, '/imports'),
-      _QuickLink(l10n.notificationsHomeCardTitle, l10n.notificationsHomeCardSubtitle, '/notifications'),
-      _QuickLink(l10n.profileHomeCardTitle, l10n.profileHomeCardSubtitle, '/profile'),
+      _QuickLink(
+        l10n.importsHomeCardTitle,
+        l10n.importsHomeCardSubtitle,
+        '/imports',
+      ),
+      _QuickLink(
+        l10n.notificationsHomeCardTitle,
+        l10n.notificationsHomeCardSubtitle,
+        '/notifications',
+      ),
+      _QuickLink(
+        l10n.profileHomeCardTitle,
+        l10n.profileHomeCardSubtitle,
+        '/profile',
+      ),
     ];
 
     return Card(

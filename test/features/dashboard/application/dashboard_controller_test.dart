@@ -252,66 +252,74 @@ PaginatedData<Budget> _budgetPage(List<Budget> items) {
 }
 
 void main() {
-  test('build composes net worth, cash flow, accounts, at-risk budgets, and upcoming bills', () async {
-    final onTrackBudget = _budget(id: 'b-onTrack');
-    final warningBudget = _budget(id: 'b-warning');
+  test(
+    'build composes net worth, cash flow, accounts, at-risk budgets, and upcoming bills',
+    () async {
+      final onTrackBudget = _budget(id: 'b-onTrack');
+      final warningBudget = _budget(id: 'b-warning');
 
-    final container = ProviderContainer(
-      overrides: [
-        reportsRepositoryProvider.overrideWith(
-          (ref) => _FakeReportsRepository(
-            onNetWorth: ({required snapshotDate}) async => NetWorthSnapshot(
-              snapshotDate: snapshotDate,
-              totalAssets: 5000,
-              totalLiabilities: 500,
-              netWorth: 4500,
-            ),
-            onMonthlySummary: ({required from, required to}) async => MonthlySummary(
-              startDate: from,
-              endDate: to,
-              totalIncome: 1200,
-              totalExpense: 800,
-              netSavings: 400,
-            ),
-          ),
-        ),
-        accountsRepositoryProvider.overrideWith(
-          (ref) => _FakeAccountsRepository(onList: () async => <Account>[_account()]),
-        ),
-        budgetsRepositoryProvider.overrideWith(
-          (ref) => _FakeBudgetsRepository(
-            onList: () async => _budgetPage(<Budget>[onTrackBudget, warningBudget]),
-            onStatus: (budgetId) async => budgetId == onTrackBudget.id
-                ? _status(BudgetHealth.onTrack)
-                : _status(BudgetHealth.warning),
-          ),
-        ),
-        recurringTransactionsRepositoryProvider.overrideWith(
-          (ref) => _FakeRecurringTransactionsRepository(
-            onUpcoming: ({limit = 10}) async => <UpcomingRecurringTransaction>[
-              UpcomingRecurringTransaction(
-                recurringTransactionId: 'r-1',
-                name: 'Netflix',
-                amount: 149,
-                scheduledDate: DateTime.parse('2026-07-18T00:00:00Z'),
+      final container = ProviderContainer(
+        overrides: [
+          reportsRepositoryProvider.overrideWith(
+            (ref) => _FakeReportsRepository(
+              onNetWorth: ({required snapshotDate}) async => NetWorthSnapshot(
+                snapshotDate: snapshotDate,
+                totalAssets: 5000,
+                totalLiabilities: 500,
+                netWorth: 4500,
               ),
-            ],
+              onMonthlySummary: ({required from, required to}) async =>
+                  MonthlySummary(
+                    startDate: from,
+                    endDate: to,
+                    totalIncome: 1200,
+                    totalExpense: 800,
+                    netSavings: 400,
+                  ),
+            ),
           ),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+          accountsRepositoryProvider.overrideWith(
+            (ref) => _FakeAccountsRepository(
+              onList: () async => <Account>[_account()],
+            ),
+          ),
+          budgetsRepositoryProvider.overrideWith(
+            (ref) => _FakeBudgetsRepository(
+              onList: () async =>
+                  _budgetPage(<Budget>[onTrackBudget, warningBudget]),
+              onStatus: (budgetId) async => budgetId == onTrackBudget.id
+                  ? _status(BudgetHealth.onTrack)
+                  : _status(BudgetHealth.warning),
+            ),
+          ),
+          recurringTransactionsRepositoryProvider.overrideWith(
+            (ref) => _FakeRecurringTransactionsRepository(
+              onUpcoming: ({limit = 10}) async =>
+                  <UpcomingRecurringTransaction>[
+                    UpcomingRecurringTransaction(
+                      recurringTransactionId: 'r-1',
+                      name: 'Netflix',
+                      amount: 149,
+                      scheduledDate: DateTime.parse('2026-07-18T00:00:00Z'),
+                    ),
+                  ],
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final snapshot = await container.read(dashboardControllerProvider.future);
+      final snapshot = await container.read(dashboardControllerProvider.future);
 
-    expect(snapshot.netWorth.netWorth, 4500);
-    expect(snapshot.monthlySummary.totalIncome, 1200);
-    expect(snapshot.accounts, hasLength(1));
-    expect(snapshot.atRiskBudgets, hasLength(1));
-    expect(snapshot.atRiskBudgets.single.status, BudgetHealth.warning);
-    expect(snapshot.upcomingBills, hasLength(1));
-    expect(snapshot.upcomingBills.single.name, 'Netflix');
-  });
+      expect(snapshot.netWorth.netWorth, 4500);
+      expect(snapshot.monthlySummary.totalIncome, 1200);
+      expect(snapshot.accounts, hasLength(1));
+      expect(snapshot.atRiskBudgets, hasLength(1));
+      expect(snapshot.atRiskBudgets.single.status, BudgetHealth.warning);
+      expect(snapshot.upcomingBills, hasLength(1));
+      expect(snapshot.upcomingBills.single.name, 'Netflix');
+    },
+  );
 
   test('build surfaces a thrown Failure as AsyncError', () async {
     final container = ProviderContainer(
@@ -325,24 +333,28 @@ void main() {
             onNetWorth: ({required snapshotDate}) async {
               throw const Failure.network();
             },
-            onMonthlySummary: ({required from, required to}) async => MonthlySummary(
-              startDate: from,
-              endDate: to,
-              totalIncome: 0,
-              totalExpense: 0,
-              netSavings: 0,
-            ),
+            onMonthlySummary: ({required from, required to}) async =>
+                MonthlySummary(
+                  startDate: from,
+                  endDate: to,
+                  totalIncome: 0,
+                  totalExpense: 0,
+                  netSavings: 0,
+                ),
           ),
         ),
         accountsRepositoryProvider.overrideWith(
           (ref) => _FakeAccountsRepository(onList: () async => <Account>[]),
         ),
         budgetsRepositoryProvider.overrideWith(
-          (ref) => _FakeBudgetsRepository(onList: () async => _budgetPage(<Budget>[])),
+          (ref) => _FakeBudgetsRepository(
+            onList: () async => _budgetPage(<Budget>[]),
+          ),
         ),
         recurringTransactionsRepositoryProvider.overrideWith(
           (ref) => _FakeRecurringTransactionsRepository(
-            onUpcoming: ({limit = 10}) async => <UpcomingRecurringTransaction>[],
+            onUpcoming: ({limit = 10}) async =>
+                <UpcomingRecurringTransaction>[],
           ),
         ),
       ],
