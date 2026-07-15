@@ -36,6 +36,11 @@ dependencies:
   path_provider: ^2.1.5
   file_picker: ^8.0.0
 
+  # Firebase
+  firebase_core: ^3.12.0
+  firebase_crashlytics: ^4.3.4
+  firebase_analytics: ^11.4.4
+
 dev_dependencies:
   integration_test:
     sdk: flutter
@@ -62,16 +67,16 @@ flutter:
   generate: true
   uses-material-design: true
 
-#flutter_launcher_icons:
-#  android: true
-#  ios: true
-#  image_path: "assets/icon/app_icon.png"
-#  adaptive_icon_background: "#FFFFFF"
-#  adaptive_icon_foreground: "assets/icon/app_icon.png"
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
-#flutter_native_splash:
-#  color: "#FFFFFF"
-#  image: assets/splash/splash.png
-#  android: true
-#  ios: true
-#  web: false
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/splash/splash.png
+  android: true
+  ios: true
+  web: false
