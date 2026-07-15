@@ -13,8 +13,8 @@ import 'package:saveapenny/features/dashboard/presentation/widgets/account_row.d
 import 'package:saveapenny/features/dashboard/presentation/widgets/attention_strip.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/cash_flow_summary_card.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/net_worth_hero.dart';
-import 'package:saveapenny/features/dashboard/presentation/widgets/quick_links_section.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/upcoming_bills_list.dart';
+import 'package:saveapenny/features/notifications/application/notifications_controller.dart';
 import 'package:saveapenny/features/transactions/presentation/widgets/transaction_form_sheet.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -25,15 +25,22 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final snapshot = ref.watch(dashboardControllerProvider);
+    final unreadCount =
+        ref.watch(notificationsControllerProvider).asData?.value.unreadCount ??
+        0;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.homeTitle),
         actions: <Widget>[
-          IconButton(
-            onPressed: () => GoRouter.of(context).go('/notifications'),
-            icon: const Icon(Icons.notifications_outlined),
-            tooltip: l10n.notificationsHomeCardTitle,
+          Badge(
+            isLabelVisible: unreadCount > 0,
+            label: Text('$unreadCount'),
+            child: IconButton(
+              onPressed: () => GoRouter.of(context).go('/notifications'),
+              icon: const Icon(Icons.notifications_outlined),
+              tooltip: l10n.notificationsHomeCardTitle,
+            ),
           ),
         ],
       ),
@@ -87,10 +94,6 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: AppSpacing.xl),
-                Text(l10n.dashboardMoreTitle, style: context.textTheme.title),
-                const SizedBox(height: AppSpacing.sm),
-                const QuickLinksSection(),
                 const SizedBox(height: AppSpacing.giant),
               ],
             ),
