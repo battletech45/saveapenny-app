@@ -34,6 +34,12 @@ import 'package:saveapenny/features/reports/domain/reports_repository.dart';
 
 class _MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
+void _stubHasOnboarded(_MockFlutterSecureStorage storage) {
+  when(
+    () => storage.read(key: 'has_onboarded'),
+  ).thenAnswer((_) async => 'true');
+}
+
 /// Empty-data dashboard dependencies so any test that lands on the
 /// authenticated `/home` shell resolves [dashboardControllerProvider]
 /// without hitting real network calls. Content of the dashboard itself is
@@ -308,6 +314,134 @@ void main() {
     expect(find.text('Create account'), findsOneWidget);
   });
 
+  testWidgets('fresh account routes through onboarding before reaching home', (
+    WidgetTester tester,
+  ) async {
+    final storage = _MockFlutterSecureStorage();
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => null);
+    when(
+      () => storage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+        aOptions: any(named: 'aOptions'),
+        iOptions: any(named: 'iOptions'),
+        lOptions: any(named: 'lOptions'),
+        wOptions: any(named: 'wOptions'),
+      ),
+    ).thenAnswer((_) async {});
+
+    final container = ProviderContainer(
+      retry: (retryCount, error) => null,
+      overrides: [
+        secureTokenStoreProvider.overrideWith(
+          (ref) => SecureTokenStore(storage: storage),
+        ),
+        authRepositoryProvider.overrideWith(
+          (ref) => _FakeAuthRepository(
+            onLogin: (email, password) async => const AuthSession(
+              accessToken: 'access-1',
+              refreshToken: 'refresh-1',
+              tokenType: 'Bearer',
+              expiresIn: 900,
+            ),
+          ),
+        ),
+        ..._dashboardDependencyOverrides,
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const App()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'altay@example.com',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'secret');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('See where it goes'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
+
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home'), findsWidgets);
+  });
+
+  testWidgets('fresh account onboarding get-started navigates to home', (
+    WidgetTester tester,
+  ) async {
+    final storage = _MockFlutterSecureStorage();
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenAnswer((_) async => null);
+    when(
+      () => storage.write(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+        aOptions: any(named: 'aOptions'),
+        iOptions: any(named: 'iOptions'),
+        lOptions: any(named: 'lOptions'),
+        wOptions: any(named: 'wOptions'),
+      ),
+    ).thenAnswer((_) async {});
+
+    final container = ProviderContainer(
+      retry: (retryCount, error) => null,
+      overrides: [
+        secureTokenStoreProvider.overrideWith(
+          (ref) => SecureTokenStore(storage: storage),
+        ),
+        authRepositoryProvider.overrideWith(
+          (ref) => _FakeAuthRepository(
+            onLogin: (email, password) async => const AuthSession(
+              accessToken: 'access-1',
+              refreshToken: 'refresh-1',
+              tokenType: 'Bearer',
+              expiresIn: 900,
+            ),
+          ),
+        ),
+        ..._dashboardDependencyOverrides,
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const App()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'altay@example.com',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'secret');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    // Swipe to the last page
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Get started'), findsOneWidget);
+
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home'), findsWidgets);
+  });
+
   testWidgets('login screen navigates to register screen', (
     WidgetTester tester,
   ) async {
@@ -412,6 +546,7 @@ void main() {
     when(
       () => storage.read(key: any(named: 'key')),
     ).thenAnswer((_) async => null);
+    _stubHasOnboarded(storage);
 
     final container = ProviderContainer(
       retry: (retryCount, error) => null,
@@ -462,6 +597,7 @@ void main() {
     when(
       () => storage.read(key: any(named: 'key')),
     ).thenAnswer((_) async => null);
+    _stubHasOnboarded(storage);
 
     final container = ProviderContainer(
       retry: (retryCount, error) => null,
@@ -562,6 +698,7 @@ void main() {
     when(
       () => storage.read(key: any(named: 'key')),
     ).thenAnswer((_) async => 'access-token');
+    _stubHasOnboarded(storage);
 
     final container = ProviderContainer(
       retry: (retryCount, error) => null,
@@ -595,6 +732,7 @@ void main() {
     when(
       () => storage.read(key: any(named: 'key')),
     ).thenAnswer((_) async => 'access-token');
+    _stubHasOnboarded(storage);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -620,6 +758,7 @@ void main() {
     when(
       () => storage.read(key: any(named: 'key')),
     ).thenAnswer((_) async => 'access-token');
+    _stubHasOnboarded(storage);
 
     tester.binding.platformDispatcher.localeTestValue = const Locale('tr');
     tester.binding.platformDispatcher.localesTestValue = const <Locale>[
