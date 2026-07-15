@@ -24,13 +24,7 @@ class StocksScreen extends ConsumerWidget {
     final stocksState = ref.watch(stockHoldingsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/home'),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: Text(l10n.stocksTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.stocksTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showHoldingSheet(context),
         icon: const Icon(Icons.add_rounded),

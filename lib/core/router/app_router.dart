@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/storage/secure_token_store.dart';
+import 'package:saveapenny/core/ui/app_shell.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
 import 'package:saveapenny/features/assistant/presentation/assistant_screen.dart';
@@ -70,72 +71,109 @@ GoRouter appRouter(Ref ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(
-        path: '/assistant',
-        builder: (context, state) => const AssistantScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const DashboardScreen(),
+              ),
+              GoRoute(
+                path: '/notifications',
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/transactions',
+                builder: (context, state) => const TransactionsScreen(),
+              ),
+              GoRoute(
+                path: '/recurring-transactions',
+                builder: (context, state) =>
+                    const RecurringTransactionsScreen(),
+              ),
+              GoRoute(
+                path: '/imports',
+                builder: (context, state) => const ImportsScreen(),
+              ),
+              GoRoute(
+                path: '/ocr',
+                builder: (context, state) => const OcrScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/budgets',
+                builder: (context, state) => const BudgetsScreen(),
+              ),
+              GoRoute(
+                path: '/goals',
+                builder: (context, state) => const GoalsScreen(),
+              ),
+              GoRoute(
+                path: '/goals/:goalId',
+                builder: (context, state) =>
+                    GoalDetailScreen(goalId: state.pathParameters['goalId']!),
+              ),
+              GoRoute(
+                path: '/insights',
+                builder: (context, state) => const InsightsScreen(),
+              ),
+              GoRoute(
+                path: '/insights/:insightId',
+                builder: (context, state) => InsightDetailScreen(
+                  insightId: state.pathParameters['insightId']!,
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/stocks',
+                builder: (context, state) => const StocksScreen(),
+              ),
+              GoRoute(
+                path: '/stocks/:symbol',
+                builder: (context, state) =>
+                    StockDetailScreen(symbol: state.pathParameters['symbol']!),
+              ),
+              GoRoute(
+                path: '/reports',
+                builder: (context, state) => const ReportsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/accounts',
+                builder: (context, state) => const AccountsScreen(),
+              ),
+              GoRoute(
+                path: '/categories',
+                builder: (context, state) => const CategoriesScreen(),
+              ),
+              GoRoute(
+                path: '/assistant',
+                builder: (context, state) => const AssistantScreen(),
+              ),
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
-      GoRoute(
-        path: '/accounts',
-        builder: (context, state) => const AccountsScreen(),
-      ),
-      GoRoute(
-        path: '/categories',
-        builder: (context, state) => const CategoriesScreen(),
-      ),
-      GoRoute(path: '/goals', builder: (context, state) => const GoalsScreen()),
-      GoRoute(
-        path: '/goals/:goalId',
-        builder: (context, state) =>
-            GoalDetailScreen(goalId: state.pathParameters['goalId']!),
-      ),
-      GoRoute(
-        path: '/budgets',
-        builder: (context, state) => const BudgetsScreen(),
-      ),
-      GoRoute(
-        path: '/transactions',
-        builder: (context, state) => const TransactionsScreen(),
-      ),
-      GoRoute(
-        path: '/recurring-transactions',
-        builder: (context, state) => const RecurringTransactionsScreen(),
-      ),
-      GoRoute(
-        path: '/reports',
-        builder: (context, state) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: '/stocks',
-        builder: (context, state) => const StocksScreen(),
-      ),
-      GoRoute(
-        path: '/stocks/:symbol',
-        builder: (context, state) =>
-            StockDetailScreen(symbol: state.pathParameters['symbol']!),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: '/imports',
-        builder: (context, state) => const ImportsScreen(),
-      ),
-      GoRoute(
-        path: '/insights',
-        builder: (context, state) => const InsightsScreen(),
-      ),
-      GoRoute(
-        path: '/insights/:insightId',
-        builder: (context, state) =>
-            InsightDetailScreen(insightId: state.pathParameters['insightId']!),
-      ),
-      GoRoute(path: '/ocr', builder: (context, state) => const OcrScreen()),
-      GoRoute(path: '/home', builder: (context, state) => const DashboardScreen()),
     ],
     redirect: (context, state) {
       final isBooting = state.matchedLocation == '/boot';
@@ -174,4 +212,3 @@ class _BootScreen extends StatelessWidget {
     return const Scaffold(body: SafeArea(child: LoadingView()));
   }
 }
-

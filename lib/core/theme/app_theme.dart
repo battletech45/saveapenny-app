@@ -365,6 +365,32 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 64,
+        indicatorColor: primaryContainer,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return textTheme.label.copyWith(
+            color: selected ? colors.textPrimary : colors.textSecondary,
+            fontWeight: selected
+                ? AppFontWeight.semibold
+                : AppFontWeight.medium,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? onPrimaryContainer : colors.textSecondary,
+            size: 24,
+          );
+        }),
+      ),
     );
   }
 }
