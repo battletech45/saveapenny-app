@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/features/imports/data/imports_repository.dart';
 import 'package:saveapenny/features/imports/domain/import_models.dart';
@@ -72,6 +73,7 @@ class ImportsController extends _$ImportsController {
           .read(importsRepositoryProvider)
           .preview(filePath: filePath);
       state = ImportFlowState(step: ImportStep.previewReady, preview: preview);
+      unawaited(ref.read(analyticsServiceProvider).logImportStarted());
     } on Failure catch (error) {
       state = ImportFlowState(step: ImportStep.idle, error: error);
     } on Object catch (error, stackTrace) {
@@ -137,6 +139,9 @@ class ImportsController extends _$ImportsController {
         }
       } else {
         _pollTimer?.cancel();
+        if (status.status == ImportJobStatus.completed) {
+          unawaited(ref.read(analyticsServiceProvider).logImportCompleted());
+        }
       }
     } on Failure catch (error) {
       _pollTimer?.cancel();

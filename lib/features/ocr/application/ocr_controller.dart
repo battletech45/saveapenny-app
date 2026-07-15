@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/features/ocr/data/ocr_repository.dart';
 import 'package:saveapenny/features/ocr/domain/ocr_models.dart';
@@ -75,6 +76,7 @@ class OcrController extends _$OcrController {
         filePath: filePath,
       );
       await _pollStatus(submitJob.jobId, startTimerIfPending: true);
+      unawaited(ref.read(analyticsServiceProvider).logOcrScanStarted());
     } on Failure catch (error) {
       state = OcrFlowState(
         step: OcrStep.idle,
