@@ -8,11 +8,14 @@ class AnalyticsService {
 
   final FirebaseAnalytics? _analytics;
 
-  Future<void> logSignUp() => _tryLog(() => _analytics!.logSignUp(signUpMethod: 'email'));
+  Future<void> logSignUp() =>
+      _tryLog(() => _analytics!.logSignUp(signUpMethod: 'email'));
 
-  Future<void> logLogin() => _tryLog(() => _analytics!.logLogin(loginMethod: 'email'));
+  Future<void> logLogin() =>
+      _tryLog(() => _analytics!.logLogin(loginMethod: 'email'));
 
-  Future<void> logAssistantMessageSent() => _tryLogEvent('assistant_message_sent');
+  Future<void> logAssistantMessageSent() =>
+      _tryLogEvent('assistant_message_sent');
 
   Future<void> logOcrScanStarted() => _tryLogEvent('ocr_scan_started');
 
@@ -55,4 +58,14 @@ AnalyticsService analyticsService(Ref ref) {
     // no-op: instance stays null when Firebase is unavailable (e.g. tests).
   }
   return AnalyticsService(instance);
+}
+
+@Riverpod(keepAlive: true)
+Future<String?> analyticsClientId(Ref ref) async {
+  try {
+    return await FirebaseAnalytics.instance.appInstanceId;
+  } on Object {
+    // Never let analytics correlation block or crash request setup.
+    return null;
+  }
 }
