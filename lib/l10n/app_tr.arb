@@ -648,5 +648,13 @@
   "importsCompletedImportedLabel": "Aktarilan",
   "importsCompletedFailedLabel": "Basarisiz",
   "importsInvalidFileError": "Secilen dosya gecerli bir CSV degil veya bos.",
-  "importsAlreadyRunningError": "Bu aktarma islemi zaten devam ediyor."
+  "importsAlreadyRunningError": "Bu aktarma islemi zaten devam ediyor.",
+  "onboardingPage1Headline": "Paranin nereye gittigini gorun",
+  "onboardingPage1Body": "Tum hesaplari ve harcamalari tek bir yerde, TRY veya kullandiginiz herhangi bir para biriminde takip edin.",
+  "onboardingPage2Headline": "Hesap tablosu olmadan planlayin",
+  "onboardingPage2Body": "Akilli ilerleme takibi ve senaryo karsilastirmalariyla butce ve hedefler belirleyin.",
+  "onboardingPage3Headline": "Olmadan once bilin",
+  "onboardingPage3Body": "Otomatik icgoruler, fis tarama ve paranizi anlayan bir yapay zeka asistani edinin.",
+  "onboardingSkip": "Atla",
+  "onboardingGetStarted": "Baslayin"
 }

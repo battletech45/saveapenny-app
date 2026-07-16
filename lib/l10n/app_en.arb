@@ -648,5 +648,13 @@
   "importsCompletedImportedLabel": "Imported",
   "importsCompletedFailedLabel": "Failed",
   "importsInvalidFileError": "The selected file is not a valid CSV or is empty.",
-  "importsAlreadyRunningError": "This import is already being processed."
+  "importsAlreadyRunningError": "This import is already being processed.",
+  "onboardingPage1Headline": "See where it goes",
+  "onboardingPage1Body": "Track every account and expense in one place, in TRY or any currency you use.",
+  "onboardingPage2Headline": "Plan without the spreadsheet",
+  "onboardingPage2Body": "Set budgets and goals with smart progress tracking and scenario comparisons.",
+  "onboardingPage3Headline": "Know before it happens",
+  "onboardingPage3Body": "Get automated insights, receipt scanning, and an AI assistant that understands your money.",
+  "onboardingSkip": "Skip",
+  "onboardingGetStarted": "Get started"
 }

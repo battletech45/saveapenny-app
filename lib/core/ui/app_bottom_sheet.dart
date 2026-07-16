@@ -11,7 +11,7 @@ Future<T?> showAppModalBottomSheet<T>({
     isScrollControlled: isScrollControlled,
     showDragHandle: showDragHandle,
     constraints: BoxConstraints(
-      maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      maxHeight: MediaQuery.sizeOf(context).height * 0.75,
     ),
     builder: builder,
   );

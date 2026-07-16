@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/config/app_environment.dart';
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/network/analytics_headers_interceptor.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/auth_interceptor.dart';
 import 'package:saveapenny/core/router/app_router.dart';
@@ -81,6 +82,7 @@ Dio dio(Ref ref) {
       },
     ),
   );
+  dio.interceptors.add(AnalyticsHeadersInterceptor(ref));
 
   return dio;
 }

@@ -63,7 +63,7 @@ class OcrScreen extends ConsumerWidget {
   }
 
   Future<void> _pickAndSubmit(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const <String>['png', 'jpg', 'jpeg', 'pdf'],
     );

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/router/app_router.dart';
 import 'package:saveapenny/features/auth/data/auth_repository.dart';
 
@@ -27,6 +30,7 @@ class AuthController extends _$AuthController {
           .read(authRepositoryProvider)
           .register(email: email, password: password, fullName: fullName);
       ref.read(authSessionControllerProvider.notifier).setAuthenticated();
+      unawaited(ref.read(analyticsServiceProvider).logSignUp());
     });
     if (state.hasError) {
       ref.read(authSessionControllerProvider.notifier).setUnauthenticated();
@@ -40,6 +44,7 @@ class AuthController extends _$AuthController {
           .read(authRepositoryProvider)
           .login(email: email, password: password);
       ref.read(authSessionControllerProvider.notifier).setAuthenticated();
+      unawaited(ref.read(analyticsServiceProvider).logLogin());
     });
     if (state.hasError) {
       ref.read(authSessionControllerProvider.notifier).setUnauthenticated();

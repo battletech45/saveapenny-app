@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "236642936869",
+    "project_id": "saveapenny",
+    "storage_bucket": "saveapenny.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:236642936869:android:4133669b68069f9b1d37cc",
+        "android_client_info": {
+          "package_name": "com.example.saveapenny"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfiqz1Z9H7ffDXUyQUgUheGq0mEf5Ks5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

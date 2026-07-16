@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:saveapenny/core/formatting/money_formatter.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/animated_money.dart';
 import 'package:saveapenny/features/reports/domain/monthly_summary.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -49,12 +49,6 @@ class _CashFlowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = MoneyFormatter.format(
-      context: context,
-      amount: amount,
-      currencyCode: 'TRY',
-    );
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -63,7 +57,11 @@ class _CashFlowTile extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Icon(icon, size: AppSpacing.lg, color: formatted.color),
+                Icon(
+                  icon,
+                  size: AppSpacing.lg,
+                  color: context.finance.forAmount(amount),
+                ),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
@@ -78,9 +76,13 @@ class _CashFlowTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              formatted.text,
-              style: context.textTheme.money.copyWith(color: formatted.color),
+            Align(
+              alignment: Alignment.centerRight,
+              child: AnimatedMoney(
+                amount: amount,
+                currencyCode: 'TRY',
+                style: context.textTheme.money,
+              ),
             ),
           ],
         ),

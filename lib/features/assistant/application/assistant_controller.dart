@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/features/assistant/data/assistant_local_store.dart';
@@ -81,6 +84,7 @@ class AssistantController extends _$AssistantController {
               messages: next.messages,
             ),
           );
+      unawaited(ref.read(analyticsServiceProvider).logAssistantMessageSent());
       return true;
     } on Failure catch (failure) {
       final next = current.copyWith(

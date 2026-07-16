@@ -575,7 +575,7 @@ class _RequiredDateField extends StatelessWidget {
           OutlinedButton(
             onPressed: onPressed,
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, AppSpacing.giant),
+              minimumSize: const Size(64, AppSpacing.giant),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
             child: Text(actionLabel),
@@ -617,7 +617,7 @@ class _OptionalDateField extends StatelessWidget {
           OutlinedButton(
             onPressed: onPressed,
             style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, AppSpacing.giant),
+              minimumSize: const Size(64, AppSpacing.giant),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
             child: Text(actionLabel),

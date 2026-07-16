@@ -21,6 +21,8 @@ import 'package:saveapenny/features/insights/presentation/insight_detail_screen.
 import 'package:saveapenny/features/insights/presentation/insights_screen.dart';
 import 'package:saveapenny/features/notifications/presentation/notifications_screen.dart';
 import 'package:saveapenny/features/ocr/presentation/ocr_screen.dart';
+import 'package:saveapenny/features/onboarding/application/onboarding_controller.dart';
+import 'package:saveapenny/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:saveapenny/features/recurring_transactions/presentation/recurring_transactions_screen.dart';
 import 'package:saveapenny/features/reports/presentation/reports_screen.dart';
 import 'package:saveapenny/features/stocks/presentation/stock_detail_screen.dart';
@@ -70,6 +72,10 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -179,6 +185,7 @@ GoRouter appRouter(Ref ref) {
       final isBooting = state.matchedLocation == '/boot';
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
+      final isOnboarding = state.matchedLocation == '/onboarding';
 
       if (authStatus == AuthStatus.checking) {
         return isBooting ? null : '/boot';
@@ -192,6 +199,20 @@ GoRouter appRouter(Ref ref) {
 
       if (authStatus == AuthStatus.authenticated &&
           (isLoggingIn || isRegistering || isBooting)) {
+        return '/home';
+      }
+
+      final onboarding = ref.watch(onboardingControllerProvider);
+      if (authStatus == AuthStatus.authenticated && !isOnboarding) {
+        final hasOnboarded = onboarding.asData?.value;
+        if (hasOnboarded == false) {
+          return '/onboarding';
+        }
+      }
+
+      if (authStatus == AuthStatus.authenticated &&
+          isOnboarding &&
+          onboarding.asData?.value == true) {
         return '/home';
       }
 

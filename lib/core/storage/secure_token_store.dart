@@ -9,6 +9,7 @@ class SecureTokenStore {
 
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
+  static const String _hasOnboardedKey = 'has_onboarded';
 
   final FlutterSecureStorage _storage;
 
@@ -18,6 +19,15 @@ class SecureTokenStore {
 
   Future<String?> readRefreshToken() {
     return _storage.read(key: _refreshTokenKey);
+  }
+
+  Future<bool> readHasOnboarded() async {
+    final value = await _storage.read(key: _hasOnboardedKey);
+    return value == 'true';
+  }
+
+  Future<void> setHasOnboarded({required bool value}) {
+    return _storage.write(key: _hasOnboardedKey, value: value.toString());
   }
 
   Future<void> writeTokens({
