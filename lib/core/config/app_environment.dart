@@ -1,3 +1,5 @@
+import 'dart:io';
+
 enum AppFlavor {
   dev,
   staging,
@@ -26,9 +28,11 @@ class AppEnvironment {
     final flavor = AppFlavor.fromWire(
       const String.fromEnvironment('APP_FLAVOR', defaultValue: 'dev'),
     );
-    const baseUrl = String.fromEnvironment(
+    final baseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'http://localhost:8080',
+      defaultValue: Platform.isAndroid
+          ? 'http://172.16.27.182:8080'
+          : 'http://localhost:8080',
     );
 
     return AppEnvironment._(

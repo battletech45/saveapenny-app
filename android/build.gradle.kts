@@ -19,6 +19,23 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// file_picker >=11.0.0 skips applying the Kotlin Android plugin under AGP 9+,
+// relying on AGP's built-in Kotlin support instead. This project keeps
+// android.builtInKotlin=false (see android/gradle.properties) because
+// firebase_core still requires the legacy DSL, so nothing else compiles
+// file_picker's Kotlin sources. Apply the plugin explicitly for that module,
+// matching how it built before 11.0.0.
+subprojects {
+    if (name == "file_picker") {
+        apply(plugin = "org.jetbrains.kotlin.android")
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
