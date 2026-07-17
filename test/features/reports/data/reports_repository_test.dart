@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/network/dio_client.dart';
 import 'package:saveapenny/features/reports/data/reports_api.dart';
 import 'package:saveapenny/features/reports/data/reports_repository.dart';
@@ -76,5 +78,60 @@ void main() {
     expect(items, hasLength(1));
     expect(items.single.categoryName, 'Groceries');
     expect(items.single.usagePercentage, 56.25);
+  });
+
+  test(
+    'monthlySummary throws a mapped Failure on a success:false envelope',
+    () async {
+      adapter.enqueueJson(
+        path: '/reports/monthly-summary',
+        statusCode: 200,
+        body: <String, dynamic>{
+          'success': false,
+          'data': null,
+          'error': <String, dynamic>{
+            'code': 'VALIDATION_FAILED',
+            'message': 'from: must not be null',
+            'details': <String>['from: must not be null'],
+          },
+          'timestamp': '2026-06-30T12:00:00Z',
+        },
+      );
+
+      await expectLater(
+        () => repository.monthlySummary(
+          from: DateTime.utc(2026, 6, 1),
+          to: DateTime.utc(2026, 6, 30),
+        ),
+        throwsA(
+          isA<ApiFailure>().having(
+            (failure) => failure.code,
+            'code',
+            ApiErrorCode.validationFailed,
+          ),
+        ),
+      );
+    },
+  );
+
+  test('categorySpending throws a mapped Failure on a DioException', () async {
+    adapter.enqueueJson(
+      path: '/reports/category-spending',
+      statusCode: 500,
+      body: <String, dynamic>{
+        'success': false,
+        'data': null,
+        'error': null,
+        'timestamp': '2026-06-30T12:00:00Z',
+      },
+    );
+
+    await expectLater(
+      () => repository.categorySpending(
+        from: DateTime.utc(2026, 6, 1),
+        to: DateTime.utc(2026, 6, 30),
+      ),
+      throwsA(isA<Failure>()),
+    );
   });
 }
