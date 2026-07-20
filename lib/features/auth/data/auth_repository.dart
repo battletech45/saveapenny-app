@@ -1,6 +1,9 @@
+import 'dart:developer' as developer;
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/push/push_messaging_gateway.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/features/auth/data/auth_api.dart';
 import 'package:saveapenny/features/auth/data/dto/auth_token_response.dart';
@@ -10,14 +13,22 @@ import 'package:saveapenny/features/auth/data/dto/refresh_token_request.dart';
 import 'package:saveapenny/features/auth/data/dto/register_request.dart';
 import 'package:saveapenny/features/auth/domain/auth_repository.dart';
 import 'package:saveapenny/features/auth/domain/auth_session.dart';
+import 'package:saveapenny/features/push/data/device_token_api.dart';
 
 part 'auth_repository.g.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(this._authApi, this._tokenStore);
+  const AuthRepositoryImpl(
+    this._authApi,
+    this._tokenStore,
+    this._deviceTokenApi,
+    this._pushMessagingGateway,
+  );
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
+  final DeviceTokenApi _deviceTokenApi;
+  final PushMessagingGateway _pushMessagingGateway;
 
   @override
   Future<AuthSession> register({
@@ -75,6 +86,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    await _unregisterDeviceToken();
+
     final refreshToken = await _tokenStore.readRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
       await _tokenStore.clearTokens();
@@ -84,6 +97,21 @@ class AuthRepositoryImpl implements AuthRepository {
     await _authApi.logout(LogoutRequest(refreshToken: refreshToken));
     await _tokenStore.clearTokens();
   }
+
+  Future<void> _unregisterDeviceToken() async {
+    try {
+      final token = await _pushMessagingGateway.getToken();
+      if (token == null) {
+        return;
+      }
+      await _deviceTokenApi.unregister(token);
+    } on Object catch (error) {
+      developer.log(
+        'Failed to unregister FCM device token on logout: $error',
+        name: 'push',
+      );
+    }
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -91,5 +119,7 @@ AuthRepository authRepository(Ref ref) {
   return AuthRepositoryImpl(
     ref.watch(authApiProvider),
     ref.watch(secureTokenStoreProvider),
+    ref.watch(deviceTokenApiProvider),
+    ref.watch(pushMessagingGatewayProvider),
   );
 }
