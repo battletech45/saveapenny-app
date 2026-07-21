@@ -27,6 +27,7 @@ class StocksScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.stocksTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'stocksFab',
         onPressed: () => _showHoldingSheet(context),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.stocksAddCta),

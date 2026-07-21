@@ -9,6 +9,9 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/domain/plan.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/upgrade_card.dart';
 import 'package:saveapenny/features/users/application/users_controller.dart';
 import 'package:saveapenny/features/users/domain/user_profile.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -20,6 +23,9 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final profileState = ref.watch(usersControllerProvider);
+    final entitlement = ref.watch(entitlementControllerProvider).value;
+    final showUpgradeCard =
+        entitlement != null && entitlement.plan != Plan.plus;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profileTitle)),
@@ -32,6 +38,10 @@ class ProfileScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
+                  if (showUpgradeCard) ...<Widget>[
+                    const UpgradeCard(),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),

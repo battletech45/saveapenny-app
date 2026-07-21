@@ -11,6 +11,8 @@ import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
 import 'package:saveapenny/features/assistant/presentation/assistant_screen.dart';
 import 'package:saveapenny/features/auth/presentation/login_screen.dart';
 import 'package:saveapenny/features/auth/presentation/register_screen.dart';
+import 'package:saveapenny/features/billing/domain/feature_access.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/paywall_gate.dart';
 import 'package:saveapenny/features/budgets/presentation/budgets_screen.dart';
 import 'package:saveapenny/features/categories/presentation/categories_screen.dart';
 import 'package:saveapenny/features/dashboard/presentation/dashboard_screen.dart';
@@ -28,6 +30,7 @@ import 'package:saveapenny/features/reports/presentation/reports_screen.dart';
 import 'package:saveapenny/features/stocks/presentation/stock_detail_screen.dart';
 import 'package:saveapenny/features/stocks/presentation/stocks_screen.dart';
 import 'package:saveapenny/features/transactions/presentation/transactions_screen.dart';
+import 'package:saveapenny/features/upgrade/presentation/upgrade_screen.dart';
 import 'package:saveapenny/features/users/presentation/profile_screen.dart';
 
 part 'app_router.g.dart';
@@ -77,6 +80,10 @@ GoRouter appRouter(Ref ref) {
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
       ),
+      GoRoute(
+        path: '/upgrade',
+        builder: (context, state) => const UpgradeScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
@@ -106,11 +113,19 @@ GoRouter appRouter(Ref ref) {
               ),
               GoRoute(
                 path: '/imports',
-                builder: (context, state) => const ImportsScreen(),
+                builder: (context, state) => const PaywallGate(
+                  feature: 'csv_import',
+                  isUnlocked: _isCsvImportUnlocked,
+                  child: ImportsScreen(),
+                ),
               ),
               GoRoute(
                 path: '/ocr',
-                builder: (context, state) => const OcrScreen(),
+                builder: (context, state) => const PaywallGate(
+                  feature: 'ocr',
+                  isUnlocked: _isOcrUnlocked,
+                  child: OcrScreen(),
+                ),
               ),
             ],
           ),
@@ -131,12 +146,20 @@ GoRouter appRouter(Ref ref) {
               ),
               GoRoute(
                 path: '/insights',
-                builder: (context, state) => const InsightsScreen(),
+                builder: (context, state) => const PaywallGate(
+                  feature: 'insights',
+                  isUnlocked: _isInsightsUnlocked,
+                  child: InsightsScreen(),
+                ),
               ),
               GoRoute(
                 path: '/insights/:insightId',
-                builder: (context, state) => InsightDetailScreen(
-                  insightId: state.pathParameters['insightId']!,
+                builder: (context, state) => PaywallGate(
+                  feature: 'insights',
+                  isUnlocked: _isInsightsUnlocked,
+                  child: InsightDetailScreen(
+                    insightId: state.pathParameters['insightId']!,
+                  ),
                 ),
               ),
             ],
@@ -145,12 +168,21 @@ GoRouter appRouter(Ref ref) {
             routes: <RouteBase>[
               GoRoute(
                 path: '/stocks',
-                builder: (context, state) => const StocksScreen(),
+                builder: (context, state) => const PaywallGate(
+                  feature: 'stocks',
+                  isUnlocked: _isStocksUnlocked,
+                  child: StocksScreen(),
+                ),
               ),
               GoRoute(
                 path: '/stocks/:symbol',
-                builder: (context, state) =>
-                    StockDetailScreen(symbol: state.pathParameters['symbol']!),
+                builder: (context, state) => PaywallGate(
+                  feature: 'stocks',
+                  isUnlocked: _isStocksUnlocked,
+                  child: StockDetailScreen(
+                    symbol: state.pathParameters['symbol']!,
+                  ),
+                ),
               ),
               GoRoute(
                 path: '/reports',
@@ -170,7 +202,11 @@ GoRouter appRouter(Ref ref) {
               ),
               GoRoute(
                 path: '/assistant',
-                builder: (context, state) => const AssistantScreen(),
+                builder: (context, state) => const PaywallGate(
+                  feature: 'assistant',
+                  isUnlocked: _isAssistantUnlocked,
+                  child: AssistantScreen(),
+                ),
               ),
               GoRoute(
                 path: '/profile',
@@ -224,6 +260,12 @@ GoRouter appRouter(Ref ref) {
     },
   );
 }
+
+bool _isAssistantUnlocked(FeatureAccess features) => features.assistant;
+bool _isInsightsUnlocked(FeatureAccess features) => features.insights;
+bool _isStocksUnlocked(FeatureAccess features) => features.stocks;
+bool _isOcrUnlocked(FeatureAccess features) => features.ocr;
+bool _isCsvImportUnlocked(FeatureAccess features) => features.csvImport;
 
 class _BootScreen extends StatelessWidget {
   const _BootScreen();

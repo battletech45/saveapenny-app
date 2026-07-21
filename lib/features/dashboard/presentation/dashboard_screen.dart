@@ -45,6 +45,7 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'dashboardFab',
         onPressed: () => _showTransactionSheet(context),
         child: const Icon(Icons.add_rounded),
       ),

@@ -53,6 +53,7 @@ class TransactionsScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'transactionsFab',
         onPressed: () => _showTransactionSheet(context),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.transactionsAddCta),

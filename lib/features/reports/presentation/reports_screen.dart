@@ -10,6 +10,8 @@ import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/reports/application/reports_controller.dart';
 import 'package:saveapenny/features/reports/domain/cash_flow_point.dart';
 import 'package:saveapenny/features/reports/domain/category_spending.dart';
@@ -27,6 +29,7 @@ class ReportsScreen extends ConsumerWidget {
         _readAsyncData(ref.watch(accountsControllerProvider)) ??
         const <Account>[];
     final currencyCode = accounts.isEmpty ? 'TRY' : accounts.first.currency;
+    final entitlement = ref.watch(entitlementControllerProvider).value;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.reportsTitle)),
@@ -42,6 +45,12 @@ class ReportsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
+                  PlanLockedFeatureBanner(
+                    isUnlocked: entitlement?.features.reportExport ?? true,
+                    message: l10n.reportsHistoryLimitedMessage(
+                      entitlement?.limits.reportHistoryMonths ?? 3,
+                    ),
+                  ),
                   _MonthSwitcher(month: data.month),
                   const SizedBox(height: AppSpacing.lg),
                   _SummaryCard(state: data, currencyCode: currencyCode),
