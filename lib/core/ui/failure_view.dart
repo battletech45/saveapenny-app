@@ -124,6 +124,18 @@ class FailureView extends StatelessWidget {
         title: l10n.failureFeatureDisabledTitle,
         message: l10n.failureFeatureDisabledMessage,
       ),
+      ApiErrorCode.plusRequired => _FailureCopy(
+        title: l10n.failurePlusRequiredTitle,
+        message: l10n.failurePlusRequiredMessage,
+      ),
+      ApiErrorCode.freePlanLimitReached => _FailureCopy(
+        title: l10n.failureFreePlanLimitTitle,
+        message: l10n.failureFreePlanLimitMessage,
+      ),
+      ApiErrorCode.reportHistoryLimitReached => _FailureCopy(
+        title: l10n.failureReportHistoryLimitTitle,
+        message: l10n.failureReportHistoryLimitMessage,
+      ),
       _ => _FailureCopy(
         title: l10n.failureGenericTitle,
         message: l10n.failureGenericMessage,

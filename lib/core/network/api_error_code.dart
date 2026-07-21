@@ -65,6 +65,9 @@ enum ApiErrorCode {
   ocrJobNotFound('OCR_JOB_NOT_FOUND'),
   ocrProcessingFailed('OCR_PROCESSING_FAILED'),
   featureDisabled('FEATURE_DISABLED'),
+  plusRequired('PLUS_REQUIRED'),
+  freePlanLimitReached('FREE_PLAN_LIMIT_REACHED'),
+  reportHistoryLimitReached('REPORT_HISTORY_LIMIT_REACHED'),
   serverError('SERVER_ERROR'),
   internalServerError('INTERNAL_SERVER_ERROR'),
   serviceUnavailable('SERVICE_UNAVAILABLE');
@@ -101,5 +104,11 @@ enum ApiErrorCode {
         this == ApiErrorCode.insightsDisabled ||
         this == ApiErrorCode.goalProgressDisabled ||
         this == ApiErrorCode.featureDisabled;
+  }
+
+  bool get isPlanRestricted {
+    return this == ApiErrorCode.plusRequired ||
+        this == ApiErrorCode.freePlanLimitReached ||
+        this == ApiErrorCode.reportHistoryLimitReached;
   }
 }
