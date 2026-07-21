@@ -22,6 +22,7 @@ class AppEnvironment {
     required this.receiveTimeout,
     required this.sendTimeout,
     required this.enableNetworkLogs,
+    required this.revenueCatApiKey,
   });
 
   factory AppEnvironment.current() {
@@ -34,6 +35,9 @@ class AppEnvironment {
           ? 'http://172.16.27.182:8080'
           : 'http://localhost:8080',
     );
+    final revenueCatApiKey = Platform.isIOS
+        ? const String.fromEnvironment('REVENUECAT_IOS_SDK_KEY')
+        : const String.fromEnvironment('REVENUECAT_ANDROID_SDK_KEY');
 
     return AppEnvironment._(
       flavor: flavor,
@@ -42,6 +46,7 @@ class AppEnvironment {
       receiveTimeout: const Duration(seconds: 20),
       sendTimeout: const Duration(seconds: 20),
       enableNetworkLogs: flavor == AppFlavor.dev,
+      revenueCatApiKey: revenueCatApiKey,
     );
   }
 
@@ -51,6 +56,7 @@ class AppEnvironment {
   final Duration receiveTimeout;
   final Duration sendTimeout;
   final bool enableNetworkLogs;
+  final String revenueCatApiKey;
 
   String get apiRoot => '${baseUrl.replaceFirst(RegExp(r'/+$'), '')}/api/v1';
 
