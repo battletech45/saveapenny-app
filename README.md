@@ -35,6 +35,21 @@ flutter run --dart-define=API_BASE_URL=https://api.saveapenny.app --dart-define=
 Tip: keep these in VS Code `launch.json` configs or a `Makefile` so you don't
 retype them.
 
+### RevenueCat SDK keys
+
+The RevenueCat keys (`REVENUECAT_IOS_SDK_KEY`, `REVENUECAT_ANDROID_SDK_KEY`) are
+also compile-time `--dart-define` values — **not** read from a `.env` file
+(`String.fromEnvironment` only resolves values passed at build time). Instead of
+typing every `--dart-define` by hand, use a JSON file with `--dart-define-from-file`:
+
+```bash
+cp dart_define/dev.example.json dart_define/dev.json   # once, then fill in real keys
+flutter run --dart-define-from-file=dart_define/dev.json
+```
+
+`dart_define/*.json` is gitignored except the `*.example.json` templates — never
+commit real RevenueCat keys.
+
 ## Common commands
 
 ```bash
