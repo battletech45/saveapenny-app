@@ -91,6 +91,38 @@
   "failureRateLimitedMessage": "Tekrar denemeden once biraz bekleyin.",
   "failureFeatureDisabledTitle": "Ozellik kullanilamiyor",
   "failureFeatureDisabledMessage": "Bu ozellik su anda sunucuda devre disi.",
+  "failurePlusRequiredTitle": "Plus gerekli",
+  "failurePlusRequiredMessage": "Bu ozelligi kullanmak icin SaveAPenny Plus'a yukseltin.",
+  "failureFreePlanLimitTitle": "Ucretsiz plan siniri asildi",
+  "failureFreePlanLimitMessage": "Bu siniri kaldirmak icin Plus'a yukseltin.",
+  "failureReportHistoryLimitTitle": "Rapor gecmisi siniri asildi",
+  "failureReportHistoryLimitMessage": "Tum rapor gecmisinizi gormek icin Plus'a yukseltin.",
+  "paywallLockedTitle": "Bu bir Plus ozelligi",
+  "paywallLockedMessage": "Bu ozelligin kilidini acmak icin SaveAPenny Plus'a yukseltin.",
+  "paywallUpgradeCta": "Plus'a yukselt",
+  "planLimitUsageLabel": "{max} icin {used} kullanildi",
+  "@planLimitUsageLabel": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "planLimitReachedCta": "Plus'a yukselt",
+  "upgradeCardTitle": "Plus'a gec",
+  "upgradeCardMessage": "Asistan, ic gorusler, hisse senetleri ve daha fazlasinin kilidini acin.",
+  "upgradeTitle": "SaveAPenny Plus",
+  "upgradeHeading": "SaveAPenny'nin sundugu her seyin kilidini acin",
+  "upgradeSubtitle": "Asistan, ic gorusler, hisse senetleri, OCR ve CSV ice aktarma icin bir plan secin.",
+  "upgradeNoOfferingsMessage": "Planlar su anda kullanilamiyor. Lutfen daha sonra tekrar deneyin.",
+  "upgradeRestoreCta": "Satin alimlari geri yukle",
+  "upgradeSuccessMessage": "Artik SaveAPenny Plus'tasiniz.",
+  "upgradeRestoreSuccessMessage": "Satin alimlariniz geri yuklendi.",
+  "upgradeRestoreFailureMessage": "Geri yuklenecek bir satin alim bulamadik.",
+  "upgradePurchaseFailedMessage": "Bir sorun olustu. Lutfen tekrar deneyin.",
   "failureValidationFailedTitle": "Girdinizi kontrol edin",
   "failureValidationFailedMessage": "Devam etmeden once bazi alanlar duzeltilmeli.",
   "failureInvalidPasswordTitle": "Gecersiz sifre",
@@ -129,6 +161,7 @@
   "goalsAddCta": "Hedef ekle",
   "goalsAddFirstCta": "Ilk hedefinizi olusturun",
   "goalsLoadMoreCta": "Daha fazla yukle",
+  "goalsLimitReachedMessage": "Ucretsiz plan siniri asildi — sinirsiz aktif hedef icin Plus'a yukseltin.",
   "goalsEmptyTitle": "Henuz hedef yok",
   "goalsEmptyMessage": "Bir hedef tutari, tarih ve planlama varsayimlari belirlemek icin hedef olusturun.",
   "goalsCreateTitle": "Hedef olustur",
@@ -265,6 +298,7 @@
   "budgetsDeleteTitle": "Butceyi sil",
   "budgetsDeleteMessage": "Bu butce silinsin mi?",
   "budgetsLoadMoreCta": "Daha fazla yukle",
+  "budgetsLimitReachedMessage": "Ucretsiz plan siniri asildi — sinirsiz aktif butce icin Plus'a yukseltin.",
   "budgetsBudgetAmountLabel": "Butce",
   "budgetsSpentAmountLabel": "Harcanan",
   "budgetsRemainingAmountLabel": "Kalan",
@@ -280,6 +314,7 @@
   "recurringTransactionsOpenCta": "Tekrarlayan islemleri ac",
   "recurringTransactionsAddCta": "Tekrarlayan kayit ekle",
   "recurringTransactionsAddFirstCta": "Ilk tekrarlayan kaydinizi olusturun",
+  "recurringTransactionsAdvancedLockedMessage": "Otomatik tekrarlayan islemler icin Plus gerekir. Kayitlari yine de manuel olarak takip edebilirsiniz.",
   "recurringTransactionsEmptyTitle": "Henuz tekrarlayan islem yok",
   "recurringTransactionsEmptyMessage": "Duzenli gelir veya gider kayitlarini otomatik olusturulacak sekilde planlayin.",
   "recurringTransactionsCreateTitle": "Tekrarlayan islem olustur",
@@ -525,6 +560,14 @@
   "reportsEmptyMessage": "Bu ayda islemler olustukca ozet, nakit akisi ve kategori harcama bolumleri burada dolacak.",
   "reportsMonthlySummaryTitle": "Aylik ozet",
   "reportsMonthlySummarySubtitle": "Secilen ayin su ana kadarki dengesini kisa bir gorunumde izleyin.",
+  "reportsHistoryLimitedMessage": "Son {months} ay gosteriliyor — tum gecmis icin Plus'a yukseltin.",
+  "@reportsHistoryLimitedMessage": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "reportsNetWorthTitle": "Net deger",
   "reportsNetWorthSubtitle": "Secilen ay icin varliklar, yukumlulukler ve alti aylik net deger goruntuleri.",
   "reportsTrendTitle": "Son goruntuler",
