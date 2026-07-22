@@ -1,6 +1,7 @@
 {
   "APP_FLAVOR": "dev",
-  "API_BASE_URL": "http://172.16.27.182:8080",
+  "API_BASE_ANDROID_URL": "http://10.0.2.2:8080",
+  "API_BASE_IOS_URL": "http://localhost:8080",
   "REVENUECAT_IOS_SDK_KEY": "appl_REPLACE_ME",
   "REVENUECAT_ANDROID_SDK_KEY": "goog_REPLACE_ME"
 }
