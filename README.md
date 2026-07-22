@@ -20,16 +20,23 @@ dart run build_runner build --delete-conflicting-outputs   # once code/annotatio
 ## Running
 
 The base URL is injected at build time via `--dart-define` (never hardcoded).
+Android and iOS take separate keys — `API_BASE_ANDROID_URL` /
+`API_BASE_IOS_URL` — because the emulator and simulator resolve `localhost`
+differently (the Android emulator is its own network namespace; the host is
+reachable at `10.0.2.2`, not `localhost`).
 
 ```bash
-# Local backend — Android emulator reaches the host at 10.0.2.2
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080 --dart-define=APP_FLAVOR=dev
+# Local backend — both platforms in one run
+flutter run \
+  --dart-define=API_BASE_ANDROID_URL=http://10.0.2.2:8080 \
+  --dart-define=API_BASE_IOS_URL=http://localhost:8080 \
+  --dart-define=APP_FLAVOR=dev
 
-# Local backend — iOS simulator
-flutter run --dart-define=API_BASE_URL=http://localhost:8080 --dart-define=APP_FLAVOR=dev
-
-# Staging / Prod
-flutter run --dart-define=API_BASE_URL=https://api.saveapenny.app --dart-define=APP_FLAVOR=prod
+# Staging / Prod (same URL works for both platforms)
+flutter run \
+  --dart-define=API_BASE_ANDROID_URL=https://api.saveapenny.app \
+  --dart-define=API_BASE_IOS_URL=https://api.saveapenny.app \
+  --dart-define=APP_FLAVOR=prod
 ```
 
 Tip: keep these in VS Code `launch.json` configs or a `Makefile` so you don't
