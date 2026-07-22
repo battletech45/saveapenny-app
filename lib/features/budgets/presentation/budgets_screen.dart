@@ -10,6 +10,8 @@ import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/budgets/application/budgets_controller.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/domain/budget_status.dart';
@@ -23,10 +25,12 @@ class BudgetsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final budgetsState = ref.watch(budgetsControllerProvider);
+    final limits = ref.watch(entitlementControllerProvider).value?.limits;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.budgetsTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'budgetsFab',
         onPressed: () => _showBudgetSheet(context),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.budgetsAddCta),
@@ -48,29 +52,32 @@ class BudgetsScreen extends ConsumerWidget {
             return RefreshIndicator(
               onRefresh: () =>
                   ref.read(budgetsControllerProvider.notifier).refresh(),
-              child: ListView.separated(
+              child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: data.items.length + (data.hasNext ? 1 : 0),
-                separatorBuilder: (context, index) =>
+                children: <Widget>[
+                  PlanLimitBanner(
+                    used: limits?.activeBudgets ?? 0,
+                    max: limits?.maxActiveBudgets,
+                    message: l10n.budgetsLimitReachedMessage,
+                  ),
+                  for (final item in data.items) ...<Widget>[
+                    _BudgetCard(
+                      item: item,
+                      onEdit: () =>
+                          _showBudgetSheet(context, existing: item.budget),
+                      onDelete: () =>
+                          _confirmDelete(context, ref, item.budget),
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) {
-                  if (index == data.items.length) {
-                    return OutlinedButton(
+                  ],
+                  if (data.hasNext)
+                    OutlinedButton(
                       onPressed: () => ref
                           .read(budgetsControllerProvider.notifier)
                           .loadMore(),
                       child: Text(l10n.budgetsLoadMoreCta),
-                    );
-                  }
-
-                  final item = data.items[index];
-                  return _BudgetCard(
-                    item: item,
-                    onEdit: () =>
-                        _showBudgetSheet(context, existing: item.budget),
-                    onDelete: () => _confirmDelete(context, ref, item.budget),
-                  );
-                },
+                    ),
+                ],
               ),
             );
           },

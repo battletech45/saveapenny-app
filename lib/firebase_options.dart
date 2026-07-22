@@ -51,17 +51,18 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAfiqz1Z9H7ffDXUyQUgUheGq0mEf5Ks5E',
-    appId: '1:236642936869:android:4133669b68069f9b1d37cc',
+    appId: '1:236642936869:android:c9c7fb12758418921d37cc',
     messagingSenderId: '236642936869',
     projectId: 'saveapenny',
     storageBucket: 'saveapenny.firebasestorage.app',
   );
+
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBGYkG3iottzshD9NxOUtl2_4-jmWewOWE',
-    appId: '1:236642936869:ios:aadc70042ab6c51f1d37cc',
+    appId: '1:236642936869:ios:c8e357b760d0a9a81d37cc',
     messagingSenderId: '236642936869',
     projectId: 'saveapenny',
     storageBucket: 'saveapenny.firebasestorage.app',
-    iosBundleId: 'com.example.saveapenny.RunnerUITests',
+    iosBundleId: 'com.example.saveapenny',
   );
 }

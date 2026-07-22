@@ -33,6 +33,11 @@ class AnalyticsService {
     parameters: <String, Object>{'plan': plan},
   );
 
+  Future<void> logUpgradeScreenOpened() =>
+      _tryLogEvent('upgrade_screen_opened');
+
+  Future<void> logRestoreCompleted() => _tryLogEvent('restore_completed');
+
   Future<void> _tryLogEvent(String name, {Map<String, Object>? parameters}) {
     return _tryLog(
       () => _analytics!.logEvent(name: name, parameters: parameters),

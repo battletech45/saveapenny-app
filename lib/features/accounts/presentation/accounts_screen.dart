@@ -24,6 +24,7 @@ class AccountsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.accountsTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'accountsFab',
         onPressed: () => _showAccountSheet(context, ref),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.accountsAddCta),

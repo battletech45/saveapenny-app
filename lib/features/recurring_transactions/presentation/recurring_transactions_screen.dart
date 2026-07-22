@@ -12,6 +12,8 @@ import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/recurring_transactions/application/recurring_transactions_controller.dart';
@@ -40,10 +42,14 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     final categoryById = <String, Category>{
       for (final category in categories) category.id: category,
     };
+    final advancedRecurringUnlocked =
+        ref.watch(entitlementControllerProvider).value?.features.advancedRecurring ??
+        true;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.recurringTransactionsTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'recurringTransactionsFab',
         onPressed: () => _showFormSheet(context),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.recurringTransactionsAddCta),
@@ -69,6 +75,10 @@ class RecurringTransactionsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
+                  PlanLockedFeatureBanner(
+                    isUnlocked: advancedRecurringUnlocked,
+                    message: l10n.recurringTransactionsAdvancedLockedMessage,
+                  ),
                   if (data.upcoming.isNotEmpty) ...[
                     Text(
                       l10n.recurringTransactionsUpcomingTitle,

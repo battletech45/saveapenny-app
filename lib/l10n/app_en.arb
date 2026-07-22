@@ -91,6 +91,38 @@
   "failureRateLimitedMessage": "Please wait a moment before trying again.",
   "failureFeatureDisabledTitle": "Feature unavailable",
   "failureFeatureDisabledMessage": "This feature is currently disabled on the server.",
+  "failurePlusRequiredTitle": "Plus required",
+  "failurePlusRequiredMessage": "Upgrade to SaveAPenny Plus to use this feature.",
+  "failureFreePlanLimitTitle": "Free plan limit reached",
+  "failureFreePlanLimitMessage": "Upgrade to Plus to remove this limit.",
+  "failureReportHistoryLimitTitle": "Report history limit reached",
+  "failureReportHistoryLimitMessage": "Upgrade to Plus to see your full report history.",
+  "paywallLockedTitle": "This is a Plus feature",
+  "paywallLockedMessage": "Upgrade to SaveAPenny Plus to unlock this feature.",
+  "paywallUpgradeCta": "Upgrade to Plus",
+  "planLimitUsageLabel": "{used} of {max} used",
+  "@planLimitUsageLabel": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "planLimitReachedCta": "Upgrade to Plus",
+  "upgradeCardTitle": "Go Plus",
+  "upgradeCardMessage": "Unlock the assistant, insights, stocks, and more.",
+  "upgradeTitle": "SaveAPenny Plus",
+  "upgradeHeading": "Unlock everything SaveAPenny offers",
+  "upgradeSubtitle": "Choose a plan to get the assistant, insights, stocks, OCR, and CSV import.",
+  "upgradeNoOfferingsMessage": "Plans are not available right now. Please try again later.",
+  "upgradeRestoreCta": "Restore purchases",
+  "upgradeSuccessMessage": "You're now on SaveAPenny Plus.",
+  "upgradeRestoreSuccessMessage": "Your purchases were restored.",
+  "upgradeRestoreFailureMessage": "We couldn't find any purchases to restore.",
+  "upgradePurchaseFailedMessage": "Something went wrong. Please try again.",
   "failureValidationFailedTitle": "Please review your input",
   "failureValidationFailedMessage": "Some fields need attention before you can continue.",
   "failureInvalidPasswordTitle": "Invalid password",
@@ -129,6 +161,7 @@
   "goalsAddCta": "Add goal",
   "goalsAddFirstCta": "Create your first goal",
   "goalsLoadMoreCta": "Load more",
+  "goalsLimitReachedMessage": "Free plan limit reached — upgrade to Plus for unlimited active goals.",
   "goalsEmptyTitle": "No goals yet",
   "goalsEmptyMessage": "Create a goal to start tracking a target amount, date, and planning assumptions.",
   "goalsCreateTitle": "Create goal",
@@ -265,6 +298,7 @@
   "budgetsDeleteTitle": "Delete budget",
   "budgetsDeleteMessage": "Delete this budget?",
   "budgetsLoadMoreCta": "Load more",
+  "budgetsLimitReachedMessage": "Free plan limit reached — upgrade to Plus for unlimited active budgets.",
   "budgetsBudgetAmountLabel": "Budget",
   "budgetsSpentAmountLabel": "Spent",
   "budgetsRemainingAmountLabel": "Remaining",
@@ -280,6 +314,7 @@
   "recurringTransactionsOpenCta": "Open recurring transactions",
   "recurringTransactionsAddCta": "Add recurring entry",
   "recurringTransactionsAddFirstCta": "Create your first recurring entry",
+  "recurringTransactionsAdvancedLockedMessage": "Automated recurring processing requires Plus. You can still track entries manually.",
   "recurringTransactionsEmptyTitle": "No recurring transactions yet",
   "recurringTransactionsEmptyMessage": "Schedule regular income or expense entries so they are generated automatically.",
   "recurringTransactionsCreateTitle": "Create recurring transaction",
@@ -525,6 +560,14 @@
   "reportsEmptyMessage": "Once this month has transactions, the summary, cash flow, and category spending sections will fill in here.",
   "reportsMonthlySummaryTitle": "Monthly summary",
   "reportsMonthlySummarySubtitle": "A compact view of how this month is balancing out so far.",
+  "reportsHistoryLimitedMessage": "Showing the last {months} months — upgrade to Plus for full history.",
+  "@reportsHistoryLimitedMessage": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "reportsNetWorthTitle": "Net worth",
   "reportsNetWorthSubtitle": "Assets, liabilities, and a six-month snapshot trail for the selected month.",
   "reportsTrendTitle": "Recent snapshots",
