@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.saveapenny.RunnerUITests</string>
+	<string>com.example.saveapenny</string>
 	<key>PROJECT_ID</key>
 	<string>saveapenny</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:236642936869:ios:aadc70042ab6c51f1d37cc</string>
+	<string>1:236642936869:ios:c8e357b760d0a9a81d37cc</string>
 </dict>
 </plist>
