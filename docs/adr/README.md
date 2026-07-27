@@ -19,6 +19,3 @@ reversal-resistant guard get a file here.
 |---|-------|--------|
 | [0001](0001-repositories-throw-failures.md) | Repositories throw `Failure` into `AsyncValue` | Accepted |
 | [0002](0002-handwritten-api-envelope.md) | Hand-written generic `ApiEnvelope` | Accepted |
-
-> The generated-code commit-vs-gitignore question is tracked as a `[decide: …]`
-> note in `README.md`, not as an ADR.

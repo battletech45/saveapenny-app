@@ -114,9 +114,8 @@ hardcoded user-facing strings — see `CLAUDE.md` §9. `generate: true` is set u
 
 ## Generated code
 
-`*.g.dart` and `*.freezed.dart` are **[decide: committed / gitignored]**. Pick one
-and set `.gitignore` accordingly before the first feature lands, to avoid noisy
-diffs. (Common choice: gitignore them and run `build_runner` in CI.)
+`*.g.dart` and `*.freezed.dart` are **gitignored** (see `.gitignore`) — run
+`build_runner` locally and in CI rather than committing generated output.
 
 ## License
 
