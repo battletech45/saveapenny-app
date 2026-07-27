@@ -1,294 +1,83 @@
 # Roadmap — SaveAPenny Mobile
 
-Build order for the client, derived from the backend's feature set. This file now
-reflects the **actual repository state** instead of the original greenfield plan.
-Use it to understand what is already implemented, what still needs hardening, and
-what feature families remain unbuilt.
-
+Current state of the client, organized by backend feature family. Use this to
+see what's implemented, what's still hardening, and what to pick up next.
 Follow the layered pattern in `ARCHITECTURE.md`, the operating rules in
 `CLAUDE.md`, the backend contract in `API_CONTRACT.md`, and the visual rules in
-`DESIGN_SYSTEM.md`. A slice is not done until it meets the Definition of Done at
-the bottom.
+`DESIGN_SYSTEM.md`. A slice is not done until it meets the Definition of Done
+at the bottom.
 
-Backend feature flags to respect (these return `503` when off and must be handled
-gracefully): `ASSISTANT_DISABLED`, `STOCK_DISABLED`, `INSIGHTS_DISABLED`, and
-`GOAL_PROGRESS_DISABLED`.
-
----
-
-## Current repository snapshot
-
-The repository is **well past the foundation stage**. The current `lib/` already
-contains:
-
-- `main.dart` + `app.dart`
-- `core/` foundation for config, network, errors, router, storage, theme, UI, and
-  money formatting
-- `l10n/` ARB localization for English and Turkish
-- implemented feature slices for:
-  - `auth`
-  - `accounts`
-  - `categories`
-  - `budgets`
-  - `transactions`
-  - `recurring_transactions`
-  - `reports`
-  - `notifications`
-  - `users` (profile + password change)
-  - `goals` (CRUD, scenarios, simulation, what-if, progress)
-  - `stocks` (holdings, quotes, financials, technical indicators)
-  - `imports` (CSV preview/confirm/status flow)
-  - `assistant` (AI chat, local persistence, disabled-state handling)
-  - `insights` (automated observations, insight detail, disabled-state handling)
-  - `ocr` (receipt upload, async job polling, candidate confirmation flow)
-- unit/widget tests across those features and `integration_test/auth_flow_test.dart`
-
-This means the old "Phase 0: build lib/ from zero" plan is obsolete. The roadmap
-below is organized around the **current maturity** of the repo.
+Backend feature flags to respect (these return `503` when off and must be
+handled gracefully): `ASSISTANT_DISABLED`, `STOCK_DISABLED`,
+`INSIGHTS_DISABLED`, `GOAL_PROGRESS_DISABLED`.
 
 ---
 
-## Phase A — Foundation and app shell
+## Implemented feature families
 
-**Status:** Implemented in repository
+| Family | Notes |
+|---|---|
+| Foundation & app shell | `core/` (config, network, error, storage, router, theme, formatting), `l10n/` (TR/EN), `main.dart`/`app.dart` |
+| Auth & session | register/login/refresh/logout, secure token storage, proactive + reactive refresh, auth-aware router redirects |
+| Accounts | list/create/update/delete |
+| Categories | system vs. user categories, create/update/delete |
+| Transactions | paginated list, income/expense/transfer flows, account-sync after mutation |
+| Budgets | CRUD, status-oriented modeling and UI |
+| Recurring transactions | CRUD, frequency/lifecycle handling, history view |
+| Reports | monthly summary, category spending, cash flow, net worth snapshots |
+| Notifications | list, unread count, mark read/mark-all-read, delete |
+| Users / profile | `users/me`, profile update, password change (incl. reused-password handling) |
+| Goals | CRUD, scenarios, simulation, what-if, progress checks |
+| Stocks | holdings CRUD + summary, quotes, daily series, news, overview, financial statements, technical indicators (SMA/EMA/RSI), rate-limit- and disabled-state-aware UX |
+| Imports | CSV preview/confirm/status polling, per-row error reporting |
+| Assistant | AI chat UI, local conversation persistence, disabled-state handling |
+| Insights | automated observations list + detail, disabled-state handling |
+| OCR | receipt upload, async job polling, candidate confirmation flow |
+| Dashboard | home surface aggregating net worth, monthly income/expense, at-risk budgets, and upcoming bills from existing repositories |
+| Onboarding | first-run flow after registration (accounts/categories setup) |
+| Navigation shell | `StatefulShellRoute` with a persistent bottom `NavigationBar` (Home / Transactions / Plan / Portfolio / More), each branch keeping its own stack |
+| Billing | entitlement + purchase flow via RevenueCat (`purchases_flutter`), paywall gating on premium features |
+| Push | device token registration with the backend; `firebase_messaging` wired |
+| Crash reporting & analytics | `firebase_crashlytics`, `firebase_analytics` dependencies wired |
 
-Implemented now:
-
-- `core/config/app_environment.dart`
-- `core/network/api_envelope.dart`
-- `core/network/api_error_code.dart`
-- `core/network/dio_client.dart`
-- `core/network/auth_interceptor.dart`
-- `core/error/failure.dart`
-- `core/storage/secure_token_store.dart`
-- `core/router/app_router.dart`
-- `core/theme/tokens.dart`
-- `core/theme/app_theme.dart`
-- `core/ui/loading_view.dart`
-- `core/ui/empty_view.dart`
-- `core/ui/failure_view.dart`
-- `core/formatting/money_formatter.dart`
-- `lib/l10n/app_en.arb` and `lib/l10n/app_tr.arb`
-- `main.dart` and `app.dart`
-
-Expected ongoing work in this phase:
-
-- keep envelope parsing and `Failure` mapping consistent for every new API call
-- keep theme/token usage strict as new UI is added
-- expand shared UI states only when a real reuse case appears
-- keep localization keys synchronized between `en` and `tr`
-
----
-
-## Phase B — Auth and session management
-
-**Status:** Implemented in repository
-
-Implemented now:
-
-- endpoints and DTO flow for register, login, refresh, logout
-- secure token persistence
-- auth-aware router redirects
-- proactive and reactive refresh handling in the interceptor
-- login and register presentation screens
-- auth repository/controller tests plus integration coverage entrypoint
-
-Remaining hardening work as needed:
-
-- verify edge cases against the live backend contract when backend auth behavior changes
-- keep forced sign-out/session expiry UX polished and localized
+All of the above have unit/widget tests for their happy path, and an
+`integration_test/auth_flow_test.dart` E2E entrypoint exists.
 
 ---
 
-## Phase C — Core money features
+## Not planned
 
-**Status:** Implemented in repository
-
-Implemented now:
-
-1. `accounts`
-   - list/create/update/delete flows
-   - typed domain/DTO/repository/application/presentation layers
-2. `categories`
-   - system vs user category handling
-   - create/update/delete flows
-3. `transactions`
-   - paginated list
-   - income, expense, and transfer flows
-   - account-sync behavior after transaction mutations
-
-Expected ongoing work in this phase:
-
-- keep DTOs aligned with `/v3/api-docs`
-- tighten validation and failure-path UX where backend behavior evolves
-- add more test coverage when new transaction/account/category rules are introduced
+Nothing from the backend's feature surface is currently out of scope. If a new
+backend family ships, pull its DTO shape from `/v3/api-docs` and build the
+slice using an existing feature as the reference pattern.
 
 ---
 
-## Phase D — Planning features
+## Ongoing hardening (Phase G)
 
-**Status:** Implemented in repository
+Even where a slice already exists end-to-end, this work stays open-ended:
 
-Implemented now:
-
-1. `budgets`
-   - CRUD flows
-   - status-oriented modeling and UI
-2. `recurring_transactions`
-   - recurring entry management
-   - frequency/lifecycle handling
-   - history-oriented presentation and tests
-
-Expected ongoing work in this phase:
-
-- validate lifecycle/status behavior against backend contract changes
-- continue covering primary failure-path behavior in tests
-
----
-
-## Phase E — Reporting and communication
-
-**Status:** Implemented in repository
-
-Implemented now:
-
-1. `reports`
-   - monthly summary
-   - category spending
-   - cash flow points
-   - net worth snapshots
-2. `notifications`
-   - list/read-state-oriented flows
-   - presentation and repository/controller tests
-
-Expected ongoing work in this phase:
-
-- expand report interactions only if backend endpoints justify it
-- keep empty/error/loading states consistent with shared UI conventions
-
----
-
-## Phase F1 — Users, goals, and stocks
-
-**Status:** Implemented in repository
-
-Implemented now:
-
-1. **Users / profile**
-   - `users/me`
-   - profile update flows
-   - password change UX (including reused-password error handling)
-2. **Goals**
-   - CRUD
-   - scenarios
-   - simulation
-   - what-if
-   - progress checks
-3. **Stocks**
-   - holdings CRUD + summary
-   - quotes, daily series, news, overview
-   - financial statements (income statement, balance sheet, cash flow)
-   - technical indicators (SMA, EMA, RSI)
-   - rate-limit- and disabled-state-aware UX
-
-Known gap (see Phase G): `stock_detail_controller`, `stock_financials_controller`,
-and `stock_indicators_controller` still need unit test coverage — only
-`stock_holdings_controller` has a controller test today.
-
-Implementation-quality fixes already applied from the Phase G audit:
-- `StockDetailController`/`GoalDetailController` (both `family` providers)
-  switched from `keepAlive: true` to `autoDispose` — each was leaking a full
-  detail-state tree per symbol/goal ID visited, for the lifetime of the app.
-- All `loadMore()` pagination logic (transactions, notifications, goals,
-  goal detail runs, budgets, recurring transactions + history, stock holdings)
-  now shares `core/riverpod/load_more_guard.dart`'s `LoadMoreGuard` mixin
-  instead of 6+ copy-pasted implementations, and swallowed load-more errors
-  are now logged via `dart:developer` instead of vanishing silently.
-- `auth_interceptor.dart`'s 401 retry path no longer force-logs-out a user
-  when token refresh succeeds but the retried request fails for an unrelated
-  reason (timeout/5xx/offline).
-
-## Phase F2 — Imports
-
-**Status:** Implemented in repository
-
-Implemented now:
-
-1. **Imports**
-   - CSV file selection via `file_picker`
-   - preview (total/valid/invalid row counts, per-row errors)
-   - confirm workflow with polling until the job leaves `RUNNING`
-   - completed/failed status summary UI
-   - repository, controller, and presentation tests covering the happy path
-     and the primary failure paths (invalid file, duplicate/already-running
-     import, unsupported wire status)
-
-Expected ongoing work in this phase:
-
-- verify DTOs against `/v3/api-docs` as the backend's imports contract evolves
-- expand golden/E2E coverage once the feature stabilizes
-
-## Phase F3 — Assistant, insights, and OCR
-
-**Status:** Implemented in repository
-
-Implemented now:
-
-1. **Assistant**
-   - AI chat UI (`assistant_screen.dart`), controller, repository, and local
-     persistence (`assistant_local_store.dart`) for conversation state
-   - disabled-state handling via `ApiErrorCode.assistantDisabled`
-   - repository/controller/presentation tests
-2. **Insights**
-   - automated observations list + insight detail screen/controller
-   - disabled-state handling via `ApiErrorCode.insightsDisabled`
-   - repository/controller/presentation tests
-3. **OCR**
-   - receipt upload, async job polling (`ocr_controller.dart`)
-   - candidate confirmation flow (`ocr_candidate_transaction_sheet.dart`)
-   - repository/controller/presentation tests
-
-Expected ongoing work in this phase:
-
-- verify DTOs against `/v3/api-docs` as these contracts evolve
-- expand golden/E2E coverage once these features stabilize
-
-## Phase F4 — Remaining backend families not yet present
-
-**Status:** Not yet implemented in repository
-
-1. **Audit logs**
-   - history screens and pagination
-
----
-
-## Phase G — Hardening, parity, and release readiness
-
-**Status:** Ongoing
-
-Even where slices already exist, the repo still needs continuous completion work:
-
-- verify every implemented DTO against `/v3/api-docs`
-- keep `Failure` mapping exhaustive as backend error codes expand
-- fill any missing happy-path and primary failure-path tests, including known
-  gaps identified by audit:
-  - `transactions`: add a repository-level test (`transactions_repository_test.dart`)
-    covering both success and thrown-`Failure` paths — currently only DTO
-    mapping is tested
-  - `reports`: `reports_repository_test.dart` only covers happy paths; add a
-    failure-path case (thrown `Failure` on a `success:false` envelope or
-    `DioException`)
-  - `stocks`: add controller tests for `stock_detail_controller`,
-    `stock_financials_controller`, and `stock_indicators_controller` (only
-    `stock_holdings_controller` has coverage today)
-- expand widget/golden coverage for key screens
-- expand end-to-end coverage beyond auth into core money flows
-- verify feature-disabled (`503`) behavior for flagged backend families
-- verify dark mode and 1.3x text scaling on all key screens
-- confirm no raw user-facing strings slip into new UI
-- run `dart run build_runner build --delete-conflicting-outputs` before
+- Verify every implemented DTO against `/v3/api-docs` as the backend evolves.
+- Keep `Failure` mapping exhaustive as backend error codes expand.
+- Expand widget/golden coverage for key screens.
+- Expand end-to-end coverage beyond auth into core money flows.
+- Verify feature-disabled (`503`) behavior for every flagged backend family.
+- Verify dark mode and 1.3x text scaling on all key screens.
+- Confirm no raw user-facing strings slip into new UI.
+- Run `dart run build_runner build --delete-conflicting-outputs` before
   committing after deleting/renaming an `@riverpod`-annotated source file, so
-  no orphaned `*.g.dart` build artifacts linger locally
+  no orphaned `*.g.dart` build artifacts linger locally.
+
+## Store readiness
+
+Non-code items still needed before a store submission:
+
+- [ ] Privacy policy & data disclosure — map what's actually collected
+  (email, transaction data, secure tokens) to Apple's App Privacy labels and
+  Play's Data Safety form.
+- [ ] Store screenshots captured against the current dashboard and nav shell.
+- [ ] Verify `flutter_launcher_icons` / `flutter_native_splash` output against
+  final brand assets (config already active in `pubspec.yaml`).
 
 ---
 
@@ -306,11 +95,11 @@ Even where slices already exist, the repo still needs continuous completion work
 
 ---
 
-## Suggested cadence for future work
+## Suggested cadence for new work
 
-1. Pick one missing backend family from Phase F4.
-2. Pull field-level DTO details from `/v3/api-docs`.
-3. Build the slice in `features/<name>/` using the existing implemented slices as the reference pattern.
-4. Keep repository errors throwing typed `Failure`s only.
-5. Add TR/EN strings before considering the UI complete.
-6. Run codegen, analyze, and tests before moving to the next slice.
+1. Pick one item from "Ongoing hardening" or "Store readiness" above.
+2. Pull field-level DTO details from `/v3/api-docs` if the work touches a
+   contract.
+3. Keep repository errors throwing typed `Failure`s only.
+4. Add/update TR/EN strings before considering the UI complete.
+5. Run codegen, analyze, and tests before moving on.
