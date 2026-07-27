@@ -79,7 +79,8 @@ dart format .
 │   ├── ARCHITECTURE.md        # structure, layering, conventions
 │   ├── API_CONTRACT.md        # backend envelope, auth, errors, pagination
 │   ├── DESIGN_SYSTEM.md       # color/type/spacing tokens, components
-│   └── ROADMAP.md             # feature build order
+│   ├── ROADMAP.md             # feature status and remaining work
+│   └── adr/                   # architecture decision records
 └── lib/
     ├── core/                  # network, error, config, theme, storage, router, l10n
     ├── features/<feature>/    # data / domain / application / presentation
@@ -96,6 +97,7 @@ dart format .
 | [docs/API_CONTRACT.md](docs/API_CONTRACT.md) | Building any API call or DTO |
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Building any UI |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Picking what to build next |
+| [docs/adr/](docs/adr/) | Understanding why a locked-in pattern exists before "helpfully" reversing it |
 
 ## Developing with AI
 
