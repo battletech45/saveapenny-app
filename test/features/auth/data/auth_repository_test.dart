@@ -202,10 +202,7 @@ void main() {
       );
       expect(unregisterRequests, hasLength(1));
       expect(unregisterRequests.single.method, 'DELETE');
-      expect(
-        unregisterRequests.single.queryParameters['token'],
-        'fcm-token-1',
-      );
+      expect(unregisterRequests.single.queryParameters['token'], 'fcm-token-1');
       expect(values, isEmpty);
     },
   );

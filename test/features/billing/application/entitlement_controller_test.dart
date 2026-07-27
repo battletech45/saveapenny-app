@@ -116,62 +116,68 @@ void main() {
     expect(state.features.assistant, isTrue);
   });
 
-  test('refreshQuietly updates state without an interim loading state', () async {
-    final container = ProviderContainer(
-      overrides: [
-        billingRepositoryProvider.overrideWith(
-          (ref) => _FakeBillingRepository(
-            onGetEntitlement: () async => _entitlement(Plan.free),
-            onSync: () async => _entitlement(Plan.plus),
-          ),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
-
-    await container.read(entitlementControllerProvider.future);
-
-    final states = <AsyncValue<Entitlement>>[];
-    container.listen(
-      entitlementControllerProvider,
-      (previous, next) => states.add(next),
-      fireImmediately: false,
-    );
-
-    await container
-        .read(entitlementControllerProvider.notifier)
-        .refreshQuietly();
-
-    expect(states, hasLength(1));
-    expect(states.single.hasValue, isTrue);
-    expect(states.single.requireValue.plan, Plan.plus);
-
-    final state = container.read(entitlementControllerProvider).requireValue;
-    expect(state.plan, Plan.plus);
-  });
-
-  test('refreshQuietly surfaces a mapped Failure without clearing prior data first', () async {
-    final container = ProviderContainer(
-      overrides: [
-        billingRepositoryProvider.overrideWith(
-          (ref) => _FakeBillingRepository(
-            onGetEntitlement: () async => _entitlement(Plan.plus),
-            onSync: () async => throw const Failure.unauthenticated(
-              code: ApiErrorCode.unauthorized,
+  test(
+    'refreshQuietly updates state without an interim loading state',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          billingRepositoryProvider.overrideWith(
+            (ref) => _FakeBillingRepository(
+              onGetEntitlement: () async => _entitlement(Plan.free),
+              onSync: () async => _entitlement(Plan.plus),
             ),
           ),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await container.read(entitlementControllerProvider.future);
-    await container
-        .read(entitlementControllerProvider.notifier)
-        .refreshQuietly();
+      await container.read(entitlementControllerProvider.future);
 
-    final state = container.read(entitlementControllerProvider);
-    expect(state.hasError, isTrue);
-    expect(state.error, isA<UnauthenticatedFailure>());
-  });
+      final states = <AsyncValue<Entitlement>>[];
+      container.listen(
+        entitlementControllerProvider,
+        (previous, next) => states.add(next),
+        fireImmediately: false,
+      );
+
+      await container
+          .read(entitlementControllerProvider.notifier)
+          .refreshQuietly();
+
+      expect(states, hasLength(1));
+      expect(states.single.hasValue, isTrue);
+      expect(states.single.requireValue.plan, Plan.plus);
+
+      final state = container.read(entitlementControllerProvider).requireValue;
+      expect(state.plan, Plan.plus);
+    },
+  );
+
+  test(
+    'refreshQuietly surfaces a mapped Failure without clearing prior data first',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          billingRepositoryProvider.overrideWith(
+            (ref) => _FakeBillingRepository(
+              onGetEntitlement: () async => _entitlement(Plan.plus),
+              onSync: () async => throw const Failure.unauthenticated(
+                code: ApiErrorCode.unauthorized,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(entitlementControllerProvider.future);
+      await container
+          .read(entitlementControllerProvider.notifier)
+          .refreshQuietly();
+
+      final state = container.read(entitlementControllerProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<UnauthenticatedFailure>());
+    },
+  );
 }

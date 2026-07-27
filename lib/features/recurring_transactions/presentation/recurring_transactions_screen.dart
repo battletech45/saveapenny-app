@@ -43,7 +43,11 @@ class RecurringTransactionsScreen extends ConsumerWidget {
       for (final category in categories) category.id: category,
     };
     final advancedRecurringUnlocked =
-        ref.watch(entitlementControllerProvider).value?.features.advancedRecurring ??
+        ref
+            .watch(entitlementControllerProvider)
+            .value
+            ?.features
+            .advancedRecurring ??
         true;
 
     return Scaffold(

@@ -12,10 +12,8 @@ class DeviceTokenApi {
 
   Future<void> register(RegisterDeviceTokenRequest request) {
     return _apiClient.send<void>(
-      call: (dio) => dio.post<dynamic>(
-        '/users/me/device-tokens',
-        data: request.toJson(),
-      ),
+      call: (dio) =>
+          dio.post<dynamic>('/users/me/device-tokens', data: request.toJson()),
       fromData: (_) {},
     );
   }

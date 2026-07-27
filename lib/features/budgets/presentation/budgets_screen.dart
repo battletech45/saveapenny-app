@@ -65,8 +65,7 @@ class BudgetsScreen extends ConsumerWidget {
                       item: item,
                       onEdit: () =>
                           _showBudgetSheet(context, existing: item.budget),
-                      onDelete: () =>
-                          _confirmDelete(context, ref, item.budget),
+                      onDelete: () => _confirmDelete(context, ref, item.budget),
                     ),
                     const SizedBox(height: AppSpacing.md),
                   ],

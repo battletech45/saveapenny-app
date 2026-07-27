@@ -72,7 +72,11 @@ class PlanLockedFeatureBanner extends StatelessWidget {
 }
 
 class _Banner extends StatelessWidget {
-  const _Banner({required this.leading, required this.message, required this.ctaLabel});
+  const _Banner({
+    required this.leading,
+    required this.message,
+    required this.ctaLabel,
+  });
 
   final Widget? leading;
   final String message;
