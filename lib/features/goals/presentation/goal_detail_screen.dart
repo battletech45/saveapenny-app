@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
@@ -16,9 +12,9 @@ import 'package:saveapenny/features/goals/application/goal_detail_controller.dar
 import 'package:saveapenny/features/goals/application/goals_controller.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
 import 'package:saveapenny/features/goals/domain/goal_detail.dart';
-import 'package:saveapenny/features/goals/domain/goal_run.dart';
-import 'package:saveapenny/features/goals/domain/goal_scenario.dart';
+import 'package:saveapenny/features/goals/presentation/widgets/goal_detail_sections.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/goal_form_sheet.dart';
+import 'package:saveapenny/features/goals/presentation/widgets/goal_shared.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/scenario_form_sheet.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -66,27 +62,27 @@ class GoalDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xl),
-                          _DetailRow(
+                          GoalDetailRow(
                             label: l10n.goalsStatusLabel,
                             value: goalStatusLabel(l10n, goal.status),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          _DetailRow(
+                          GoalDetailRow(
                             label: l10n.goalsCurrencyLabel,
                             value: goal.currency,
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          _DetailRow(
+                          GoalDetailRow(
                             label: l10n.goalsTargetAmountLabel,
                             value: goal.targetAmount.toString(),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          _DetailRow(
+                          GoalDetailRow(
                             label: l10n.goalsTargetDateLabel,
-                            value: _formatDate(context, goal.targetDate),
+                            value: formatGoalDate(context, goal.targetDate),
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          _DetailRow(
+                          GoalDetailRow(
                             label: l10n.goalsLinkedAccountLabel,
                             value:
                                 goal.linkedAccountId ??
@@ -126,7 +122,7 @@ class GoalDetailScreen extends ConsumerWidget {
                     style: context.textTheme.title,
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _JsonCard(value: goal.inputs),
+                  GoalJsonCard(value: goal.inputs),
                   const SizedBox(height: AppSpacing.xxl),
                   Row(
                     children: <Widget>[
@@ -144,7 +140,7 @@ class GoalDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   if (goal.scenarios.isEmpty)
-                    _InlineEmptyState(
+                    GoalInlineEmptyState(
                       title: l10n.goalsScenariosEmptyTitle,
                       message: l10n.goalsScenariosEmptyMessage,
                     )
@@ -152,7 +148,7 @@ class GoalDetailScreen extends ConsumerWidget {
                     ...goal.scenarios.map(
                       (scenario) => Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: _ScenarioCard(scenario: scenario),
+                        child: GoalScenarioCard(scenario: scenario),
                       ),
                     ),
                   const SizedBox(height: AppSpacing.xxl),
@@ -169,11 +165,11 @@ class GoalDetailScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    _RunCard(run: goal.latestRun!),
+                    GoalRunCard(run: goal.latestRun!),
                     const SizedBox(height: AppSpacing.lg),
                   ],
                   if (data.runs.isEmpty)
-                    _InlineEmptyState(
+                    GoalInlineEmptyState(
                       title: l10n.goalsRunsEmptyTitle,
                       message: l10n.goalsRunsEmptyMessage,
                     )
@@ -181,7 +177,7 @@ class GoalDetailScreen extends ConsumerWidget {
                     ...data.runs.map(
                       (run) => Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: _RunCard(run: run),
+                        child: GoalRunCard(run: run),
                       ),
                     ),
                   if (data.hasNext) ...<Widget>[
@@ -287,7 +283,7 @@ class GoalDetailScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(_goalFailureMessage(context, failure))),
+          SnackBar(content: Text(goalFailureMessage(context, failure))),
         );
     }
   }
@@ -324,293 +320,4 @@ class GoalDetailScreen extends ConsumerWidget {
     }
     GoRouter.of(context).go('/goals');
   }
-}
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: context.textTheme.label.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(value, style: context.textTheme.body),
-      ],
-    );
-  }
-}
-
-class _ScenarioCard extends StatelessWidget {
-  const _ScenarioCard({required this.scenario});
-
-  final GoalScenario scenario;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(scenario.name, style: context.textTheme.body),
-                ),
-                if (scenario.isBaseline)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      l10n.goalsScenarioBaselineBadge,
-                      style: context.textTheme.label,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _JsonCard(value: scenario.inputs),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RunCard extends StatelessWidget {
-  const _RunCard({required this.run});
-
-  final GoalRun run;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    goalFeasibilityLabel(l10n, run.feasibility),
-                    style: context.textTheme.body,
-                  ),
-                ),
-                Text(
-                  goalRunTriggerLabel(l10n, run.triggeredBy),
-                  style: context.textTheme.label.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              _formatDateTime(context, run.createdAt),
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (run.outputSummary != null) ...<Widget>[
-              Text(
-                l10n.goalsRunSummaryLabel,
-                style: context.textTheme.label.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              _JsonCard(value: run.outputSummary),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            Text(
-              l10n.goalsRunInputsLabel,
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            _JsonCard(value: run.inputsSnapshot),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _JsonCard extends StatelessWidget {
-  const _JsonCard({required this.value});
-
-  final Object? value;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: context.colors.surfaceSubtle,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: context.colors.border),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: SelectableText(
-            _pretty(value),
-            style: context.textTheme.label.copyWith(
-              color: context.colors.textPrimary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InlineEmptyState extends StatelessWidget {
-  const _InlineEmptyState({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(title, style: context.textTheme.body),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              message,
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-String goalStatusLabel(AppLocalizations l10n, GoalStatus status) {
-  return switch (status) {
-    GoalStatus.draft => l10n.goalsStatusDraft,
-    GoalStatus.active => l10n.goalsStatusActive,
-    GoalStatus.achieved => l10n.goalsStatusAchieved,
-    GoalStatus.abandoned => l10n.goalsStatusAbandoned,
-  };
-}
-
-String goalFeasibilityLabel(AppLocalizations l10n, GoalFeasibility value) {
-  return switch (value) {
-    GoalFeasibility.onTrack => l10n.goalsFeasibilityOnTrack,
-    GoalFeasibility.tight => l10n.goalsFeasibilityTight,
-    GoalFeasibility.atRisk => l10n.goalsFeasibilityAtRisk,
-    GoalFeasibility.infeasible => l10n.goalsFeasibilityInfeasible,
-  };
-}
-
-String goalRunTriggerLabel(AppLocalizations l10n, GoalRunTrigger value) {
-  return switch (value) {
-    GoalRunTrigger.user => l10n.goalsRunTriggerUser,
-    GoalRunTrigger.agent => l10n.goalsRunTriggerAgent,
-    GoalRunTrigger.progressJob => l10n.goalsRunTriggerProgressJob,
-    GoalRunTrigger.whatIf => l10n.goalsRunTriggerWhatIf,
-  };
-}
-
-String _goalFailureMessage(BuildContext context, Failure failure) {
-  final l10n = AppLocalizations.of(context);
-
-  return switch (failure) {
-    NetworkFailure() => l10n.failureNetworkMessage,
-    UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-    RateLimitedFailure() => l10n.failureRateLimitedMessage,
-    UnknownFailure(message: final message) =>
-      message != null && message.isNotEmpty
-          ? message
-          : l10n.failureGenericMessage,
-    ApiFailure(
-      code: final code,
-      message: final message,
-      details: final details,
-    ) =>
-      switch (code) {
-        ApiErrorCode.invalidGoalDate => l10n.goalsInvalidDateError,
-        ApiErrorCode.invalidGoalStatusTransition =>
-          l10n.goalsInvalidStatusTransitionError,
-        ApiErrorCode.invalidGoalType => l10n.goalsInvalidTypeError,
-        ApiErrorCode.goalNotFound ||
-        ApiErrorCode.linkedAccountNotFound ||
-        ApiErrorCode.scenarioNotFound => l10n.failureResourceNotFoundMessage,
-        ApiErrorCode.validationFailed =>
-          details.isNotEmpty
-              ? details.first
-              : l10n.failureValidationFailedMessage,
-        ApiErrorCode.goalProgressDisabled ||
-        ApiErrorCode.featureDisabled => l10n.failureFeatureDisabledMessage,
-        ApiErrorCode.serverError ||
-        ApiErrorCode.internalServerError ||
-        ApiErrorCode.serviceUnavailable => l10n.failureGenericMessage,
-        _ => message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
-      },
-  };
-}
-
-String _pretty(Object? value) {
-  if (value == null) {
-    return '';
-  }
-
-  if (value is! Map<String, dynamic> && value is! List<Object?>) {
-    return value.toString();
-  }
-
-  const encoder = JsonEncoder.withIndent('  ');
-  return encoder.convert(value);
-}
-
-String _formatDate(BuildContext context, DateTime value) {
-  return DateFormat.yMMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(value);
-}
-
-String _formatDateTime(BuildContext context, DateTime value) {
-  final locale = Localizations.localeOf(context).toLanguageTag();
-  final date = DateFormat.yMMMd(locale).format(value);
-  final time = DateFormat.Hm(locale).format(value);
-  return '$date $time';
 }

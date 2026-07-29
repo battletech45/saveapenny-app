@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
+import 'package:saveapenny/features/goals/presentation/widgets/goal_form_shared.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/goal_inputs_form.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -76,7 +76,7 @@ class _ScenarioFormSheetState extends ConsumerState<ScenarioFormSheet> {
               ),
               if (_submissionFailure != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                _SheetFailureNotice(failure: _submissionFailure!),
+                GoalSheetFailureNotice(failure: _submissionFailure!),
               ],
               const SizedBox(height: AppSpacing.xxl),
               TextFormField(
@@ -181,62 +181,5 @@ class _ScenarioFormSheetState extends ConsumerState<ScenarioFormSheet> {
     }
 
     Navigator.of(context).pop();
-  }
-}
-
-class _SheetFailureNotice extends StatelessWidget {
-  const _SheetFailureNotice({required this.failure});
-
-  final Failure failure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final message = switch (failure) {
-      NetworkFailure() => l10n.failureNetworkMessage,
-      UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-      RateLimitedFailure() => l10n.failureRateLimitedMessage,
-      UnknownFailure(message: final msg) =>
-        msg != null && msg.isNotEmpty ? msg : l10n.failureGenericMessage,
-      ApiFailure(
-        code: final code,
-        message: final message,
-        details: final details,
-      ) =>
-        switch (code) {
-          ApiErrorCode.goalNotFound ||
-          ApiErrorCode.scenarioNotFound ||
-          ApiErrorCode.linkedAccountNotFound =>
-            l10n.failureResourceNotFoundMessage,
-          ApiErrorCode.validationFailed =>
-            details.isNotEmpty
-                ? details.first
-                : l10n.failureValidationFailedMessage,
-          ApiErrorCode.goalProgressDisabled ||
-          ApiErrorCode.featureDisabled => l10n.failureFeatureDisabledMessage,
-          ApiErrorCode.serverError ||
-          ApiErrorCode.internalServerError ||
-          ApiErrorCode.serviceUnavailable => l10n.failureGenericMessage,
-          _ =>
-            message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
-        },
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.finance.expenseSurface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.finance.expense),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          message,
-          style: context.textTheme.body.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-      ),
-    );
   }
 }
