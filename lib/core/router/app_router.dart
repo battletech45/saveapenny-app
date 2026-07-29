@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/core/ui/app_shell.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/navigation_hub_screen.dart';
 import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
 import 'package:saveapenny/features/assistant/presentation/assistant_screen.dart';
 import 'package:saveapenny/features/auth/presentation/login_screen.dart';
@@ -32,6 +33,7 @@ import 'package:saveapenny/features/stocks/presentation/stocks_screen.dart';
 import 'package:saveapenny/features/transactions/presentation/transactions_screen.dart';
 import 'package:saveapenny/features/upgrade/presentation/upgrade_screen.dart';
 import 'package:saveapenny/features/users/presentation/profile_screen.dart';
+import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 part 'app_router.g.dart';
 
@@ -103,6 +105,37 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
+                path: '/money',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navTransactions,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.receipt_long_rounded,
+                      label: AppLocalizations.of(context).transactionsTitle,
+                      onTap: () => GoRouter.of(context).go('/transactions'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.repeat_rounded,
+                      label: AppLocalizations.of(
+                        context,
+                      ).recurringTransactionsTitle,
+                      onTap: () =>
+                          GoRouter.of(context).go('/recurring-transactions'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.upload_file_rounded,
+                      label: AppLocalizations.of(context).importsTitle,
+                      onTap: () => GoRouter.of(context).go('/imports'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.document_scanner_rounded,
+                      label: AppLocalizations.of(context).ocrTitle,
+                      onTap: () => GoRouter.of(context).go('/ocr'),
+                    ),
+                  ],
+                ),
+              ),
+              GoRoute(
                 path: '/transactions',
                 builder: (context, state) => const TransactionsScreen(),
               ),
@@ -131,6 +164,29 @@ GoRouter appRouter(Ref ref) {
           ),
           StatefulShellBranch(
             routes: <RouteBase>[
+              GoRoute(
+                path: '/plan',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navPlan,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.pie_chart_outline_rounded,
+                      label: AppLocalizations.of(context).budgetsTitle,
+                      onTap: () => GoRouter.of(context).go('/budgets'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.flag_rounded,
+                      label: AppLocalizations.of(context).goalsTitle,
+                      onTap: () => GoRouter.of(context).go('/goals'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.lightbulb_outline_rounded,
+                      label: AppLocalizations.of(context).insightsTitle,
+                      onTap: () => GoRouter.of(context).go('/insights'),
+                    ),
+                  ],
+                ),
+              ),
               GoRoute(
                 path: '/budgets',
                 builder: (context, state) => const BudgetsScreen(),
@@ -167,6 +223,24 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
+                path: '/portfolio',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navPortfolio,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.trending_up_rounded,
+                      label: AppLocalizations.of(context).stocksTitle,
+                      onTap: () => GoRouter.of(context).go('/stocks'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.bar_chart_rounded,
+                      label: AppLocalizations.of(context).reportsTitle,
+                      onTap: () => GoRouter.of(context).go('/reports'),
+                    ),
+                  ],
+                ),
+              ),
+              GoRoute(
                 path: '/stocks',
                 builder: (context, state) => const PaywallGate(
                   feature: 'stocks',
@@ -192,6 +266,34 @@ GoRouter appRouter(Ref ref) {
           ),
           StatefulShellBranch(
             routes: <RouteBase>[
+              GoRoute(
+                path: '/more',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navMore,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.account_balance_outlined,
+                      label: AppLocalizations.of(context).accountsTitle,
+                      onTap: () => GoRouter.of(context).go('/accounts'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.category_outlined,
+                      label: AppLocalizations.of(context).categoriesTitle,
+                      onTap: () => GoRouter.of(context).go('/categories'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.auto_awesome_rounded,
+                      label: AppLocalizations.of(context).assistantTitle,
+                      onTap: () => GoRouter.of(context).go('/assistant'),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.person_outline_rounded,
+                      label: AppLocalizations.of(context).profileTitle,
+                      onTap: () => GoRouter.of(context).go('/profile'),
+                    ),
+                  ],
+                ),
+              ),
               GoRoute(
                 path: '/accounts',
                 builder: (context, state) => const AccountsScreen(),
