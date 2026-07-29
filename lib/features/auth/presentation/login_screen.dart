@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/auth/application/auth_controller.dart';
+import 'package:saveapenny/features/auth/presentation/widgets/auth_email_field.dart';
 import 'package:saveapenny/features/auth/presentation/widgets/auth_form_shell.dart';
+import 'package:saveapenny/features/auth/presentation/widgets/auth_password_field.dart';
+import 'package:saveapenny/features/auth/presentation/widgets/auth_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -20,7 +22,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  var _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -45,42 +46,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            TextFormField(
+            AuthEmailField(
               controller: _emailController,
               enabled: !isSubmitting,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: l10n.commonEmail,
-                hintText: l10n.authEmailHint,
-              ),
-              validator: (value) => _validateEmail(l10n, value),
             ),
             const SizedBox(height: AppSpacing.lg),
-            TextFormField(
+            AuthPasswordField(
               controller: _passwordController,
               enabled: !isSubmitting,
-              obscureText: !_isPasswordVisible,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: l10n.commonPassword,
-                hintText: l10n.authPasswordHint,
-                suffixIcon: IconButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                ),
-              ),
-              validator: (value) => _validateRequired(l10n, value),
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: AppSpacing.xxl),
@@ -91,53 +64,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
         ),
       ),
-      footer: Center(
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: AppSpacing.xs,
-          children: <Widget>[
-            Text(
-              l10n.loginNoAccountPrompt,
-              style: context.textTheme.body.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            TextButton(
-              onPressed: isSubmitting
-                  ? null
-                  : () {
-                      ref.read(authControllerProvider.notifier).clearFeedback();
-                      context.go('/register');
-                    },
-              child: Text(l10n.loginCreateAccount),
-            ),
-          ],
-        ),
+      footer: AuthFooterPrompt(
+        prompt: l10n.loginNoAccountPrompt,
+        actionLabel: l10n.loginCreateAccount,
+        onPressed: isSubmitting
+            ? null
+            : () {
+                ref.read(authControllerProvider.notifier).clearFeedback();
+                context.go('/register');
+              },
       ),
     );
-  }
-
-  String? _validateEmail(AppLocalizations l10n, String? value) {
-    final requiredError = _validateRequired(l10n, value);
-    if (requiredError != null) {
-      return requiredError;
-    }
-
-    final trimmed = value!.trim();
-    if (!trimmed.contains('@') || !trimmed.contains('.')) {
-      return l10n.authInvalidEmailError;
-    }
-
-    return null;
-  }
-
-  String? _validateRequired(AppLocalizations l10n, String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return l10n.authRequiredFieldError;
-    }
-
-    return null;
   }
 
   Future<void> _submit() async {
