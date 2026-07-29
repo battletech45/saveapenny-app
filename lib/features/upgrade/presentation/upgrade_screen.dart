@@ -11,6 +11,7 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/billing/application/purchase_controller.dart';
+import 'package:saveapenny/features/upgrade/presentation/widgets/upgrade_package_card.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class UpgradeScreen extends ConsumerStatefulWidget {
@@ -66,7 +67,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 for (final package in packages) ...<Widget>[
-                  _PackageCard(
+                  UpgradePackageCard(
                     package: package,
                     isBusy: isBusy,
                     onSelected: () => _purchase(package),
@@ -137,63 +138,5 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
       };
     }
     return l10n.upgradePurchaseFailedMessage;
-  }
-}
-
-class _PackageCard extends StatelessWidget {
-  const _PackageCard({
-    required this.package,
-    required this.isBusy,
-    required this.onSelected,
-  });
-
-  final Package package;
-  final bool isBusy;
-  final VoidCallback onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final product = package.storeProduct;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(product.title, style: context.textTheme.title),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    product.priceString,
-                    style: context.textTheme.body.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            ElevatedButton(
-              onPressed: isBusy ? null : onSelected,
-              child: isBusy
-                  ? const SizedBox(
-                      width: AppSpacing.lg,
-                      height: AppSpacing.lg,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(AppLocalizations.of(context).paywallUpgradeCta),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
