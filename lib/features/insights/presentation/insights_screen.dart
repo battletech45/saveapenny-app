@@ -156,7 +156,7 @@ class InsightsScreen extends ConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      GoRouter.of(context).go('/insights/${insight.id}');
+      await GoRouter.of(context).push('/insights/${insight.id}');
     } on Failure catch (failure) {
       if (!context.mounted) {
         return;

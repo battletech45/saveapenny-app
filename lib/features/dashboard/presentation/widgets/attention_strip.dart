@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,7 +44,7 @@ class AttentionStrip extends StatelessWidget {
               '${budget.category} ${budget.usagePercentage.round()}%',
               style: context.textTheme.label.copyWith(color: foreground),
             ),
-            onPressed: () => GoRouter.of(context).go('/budgets'),
+            onPressed: () => unawaited(GoRouter.of(context).push('/budgets')),
           );
         },
       ),

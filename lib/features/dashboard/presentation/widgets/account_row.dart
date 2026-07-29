@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,7 +23,7 @@ class AccountRow extends StatelessWidget {
     );
 
     return ListTile(
-      onTap: () => GoRouter.of(context).go('/accounts'),
+      onTap: () => unawaited(GoRouter.of(context).push('/accounts')),
       leading: CircleAvatar(
         backgroundColor: context.colors.surfaceSubtle,
         child: Icon(

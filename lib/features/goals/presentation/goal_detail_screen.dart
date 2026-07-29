@@ -31,7 +31,7 @@ class GoalDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/goals'),
+          onPressed: () => GoRouter.of(context).pop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(l10n.goalsDetailTitle),
@@ -318,6 +318,6 @@ class GoalDetailScreen extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    GoRouter.of(context).go('/goals');
+    GoRouter.of(context).pop();
   }
 }

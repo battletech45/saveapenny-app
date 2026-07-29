@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,7 +22,7 @@ class GoalCard extends StatelessWidget {
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        onTap: () => GoRouter.of(context).go('/goals/${goal.id}'),
+        onTap: () => unawaited(GoRouter.of(context).push('/goals/${goal.id}')),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(

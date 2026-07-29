@@ -30,7 +30,7 @@ class StockDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/stocks'),
+          onPressed: () => GoRouter.of(context).pop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text('${l10n.stocksDetailsTitle} · ${symbol.toUpperCase()}'),

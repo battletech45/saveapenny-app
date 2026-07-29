@@ -112,7 +112,7 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.receipt_long_rounded,
                       label: AppLocalizations.of(context).transactionsTitle,
-                      onTap: () => GoRouter.of(context).go('/transactions'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/transactions')),
                     ),
                     NavigationHubItem(
                       icon: Icons.repeat_rounded,
@@ -120,17 +120,17 @@ GoRouter appRouter(Ref ref) {
                         context,
                       ).recurringTransactionsTitle,
                       onTap: () =>
-                          GoRouter.of(context).go('/recurring-transactions'),
+                          unawaited(GoRouter.of(context).push('/recurring-transactions')),
                     ),
                     NavigationHubItem(
                       icon: Icons.upload_file_rounded,
                       label: AppLocalizations.of(context).importsTitle,
-                      onTap: () => GoRouter.of(context).go('/imports'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/imports')),
                     ),
                     NavigationHubItem(
                       icon: Icons.document_scanner_rounded,
                       label: AppLocalizations.of(context).ocrTitle,
-                      onTap: () => GoRouter.of(context).go('/ocr'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/ocr')),
                     ),
                   ],
                 ),
@@ -172,17 +172,17 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.pie_chart_outline_rounded,
                       label: AppLocalizations.of(context).budgetsTitle,
-                      onTap: () => GoRouter.of(context).go('/budgets'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/budgets')),
                     ),
                     NavigationHubItem(
                       icon: Icons.flag_rounded,
                       label: AppLocalizations.of(context).goalsTitle,
-                      onTap: () => GoRouter.of(context).go('/goals'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/goals')),
                     ),
                     NavigationHubItem(
                       icon: Icons.lightbulb_outline_rounded,
                       label: AppLocalizations.of(context).insightsTitle,
-                      onTap: () => GoRouter.of(context).go('/insights'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/insights')),
                     ),
                   ],
                 ),
@@ -230,12 +230,12 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.trending_up_rounded,
                       label: AppLocalizations.of(context).stocksTitle,
-                      onTap: () => GoRouter.of(context).go('/stocks'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/stocks')),
                     ),
                     NavigationHubItem(
                       icon: Icons.bar_chart_rounded,
                       label: AppLocalizations.of(context).reportsTitle,
-                      onTap: () => GoRouter.of(context).go('/reports'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/reports')),
                     ),
                   ],
                 ),
@@ -274,22 +274,22 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.account_balance_outlined,
                       label: AppLocalizations.of(context).accountsTitle,
-                      onTap: () => GoRouter.of(context).go('/accounts'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/accounts')),
                     ),
                     NavigationHubItem(
                       icon: Icons.category_outlined,
                       label: AppLocalizations.of(context).categoriesTitle,
-                      onTap: () => GoRouter.of(context).go('/categories'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/categories')),
                     ),
                     NavigationHubItem(
                       icon: Icons.auto_awesome_rounded,
                       label: AppLocalizations.of(context).assistantTitle,
-                      onTap: () => GoRouter.of(context).go('/assistant'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/assistant')),
                     ),
                     NavigationHubItem(
                       icon: Icons.person_outline_rounded,
                       label: AppLocalizations.of(context).profileTitle,
-                      onTap: () => GoRouter.of(context).go('/profile'),
+                      onTap: () => unawaited(GoRouter.of(context).push('/profile')),
                     ),
                   ],
                 ),

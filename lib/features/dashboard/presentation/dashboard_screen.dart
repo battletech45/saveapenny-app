@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,7 +39,7 @@ class DashboardScreen extends ConsumerWidget {
             isLabelVisible: unreadCount > 0,
             label: Text('$unreadCount'),
             child: IconButton(
-              onPressed: () => GoRouter.of(context).go('/notifications'),
+              onPressed: () => unawaited(GoRouter.of(context).push('/notifications')),
               icon: const Icon(Icons.notifications_outlined),
               tooltip: l10n.notificationsHomeCardTitle,
             ),

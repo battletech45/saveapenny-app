@@ -25,7 +25,7 @@ class InsightDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => GoRouter.of(context).go('/insights'),
+          onPressed: () => GoRouter.of(context).pop(),
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(l10n.insightsDetailTitle),
@@ -66,7 +66,7 @@ class InsightDetailScreen extends ConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      GoRouter.of(context).go('/insights');
+      GoRouter.of(context).pop();
     } on Failure catch (failure) {
       if (!context.mounted) {
         return;

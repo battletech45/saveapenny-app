@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +48,7 @@ class StocksScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
                 StockLookupCard(
                   onLookup: (symbol) =>
-                      GoRouter.of(context).go('/stocks/$symbol'),
+                      unawaited(GoRouter.of(context).push('/stocks/$symbol')),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 Text(l10n.stocksTitle, style: context.textTheme.title),
@@ -67,7 +69,7 @@ class StocksScreen extends ConsumerWidget {
                       child: StockHoldingCard(
                         holding: item,
                         onOpen: () =>
-                            GoRouter.of(context).go('/stocks/${item.symbol}'),
+                            unawaited(GoRouter.of(context).push('/stocks/${item.symbol}')),
                         onEdit: () =>
                             _showHoldingSheet(context, existing: item),
                         onDelete: () => _confirmDelete(context, ref, item),
