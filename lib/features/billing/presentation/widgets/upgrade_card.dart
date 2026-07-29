@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/billing_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 /// Compact upsell surface for entry points outside a full-screen paywall
@@ -45,10 +44,7 @@ class UpgradeCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            TextButton(
-              onPressed: () => context.push('/upgrade'),
-              child: Text(l10n.paywallUpgradeCta),
-            ),
+            const BillingUpgradeTextButton(),
           ],
         ),
       ),

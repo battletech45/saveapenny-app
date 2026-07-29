@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:saveapenny/core/theme/app_theme.dart';
-import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/billing_upgrade_banner.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 /// Inline "N of M used" upsell banner for capped free-tier flows (budgets,
@@ -30,7 +28,7 @@ class PlanLimitBanner extends StatelessWidget {
     }
     final l10n = AppLocalizations.of(context);
 
-    return _Banner(
+    return BillingUpgradeBanner(
       leading: Text(
         l10n.planLimitUsageLabel(used, cap),
         style: context.textTheme.label.copyWith(
@@ -63,60 +61,10 @@ class PlanLockedFeatureBanner extends StatelessWidget {
     }
     final l10n = AppLocalizations.of(context);
 
-    return _Banner(
+    return BillingUpgradeBanner(
       leading: null,
       message: message,
       ctaLabel: l10n.planLimitReachedCta,
-    );
-  }
-}
-
-class _Banner extends StatelessWidget {
-  const _Banner({
-    required this.leading,
-    required this.message,
-    required this.ctaLabel,
-  });
-
-  final Widget? leading;
-  final String message;
-  final String ctaLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: context.colors.surfaceSubtle,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: context.colors.border),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    if (leading != null) ...<Widget>[
-                      leading!,
-                      const SizedBox(height: AppSpacing.xs),
-                    ],
-                    Text(message, style: context.textTheme.body),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              TextButton(
-                onPressed: () => context.push('/upgrade'),
-                child: Text(ctaLabel),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
