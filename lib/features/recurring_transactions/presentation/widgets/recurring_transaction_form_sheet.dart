@@ -12,6 +12,7 @@ import 'package:saveapenny/features/categories/application/categories_controller
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/recurring_transactions/application/recurring_transactions_controller.dart';
 import 'package:saveapenny/features/recurring_transactions/domain/recurring_transaction.dart';
+import 'package:saveapenny/features/recurring_transactions/presentation/widgets/recurring_transaction_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class RecurringTransactionFormSheet extends ConsumerStatefulWidget {
@@ -76,12 +77,16 @@ class _RecurringTransactionFormSheetState
     final l10n = AppLocalizations.of(context);
     final accountsState = ref.watch(accountsControllerProvider);
     final categoriesState = ref.watch(categoriesControllerProvider);
-    final accounts = (_readAsyncData(accountsState) ?? const <Account>[])
-        .where((account) => account.active)
-        .toList(growable: false);
-    final categories = (_readAsyncData(categoriesState) ?? const <Category>[])
-        .where((category) => category.type == _categoryTypeFor(_type))
-        .toList(growable: false);
+    final accounts =
+        (readRecurringAsyncData(accountsState) ?? const <Account>[])
+            .where((account) => account.active)
+            .toList(growable: false);
+    final categories =
+        (readRecurringAsyncData(categoriesState) ?? const <Category>[])
+            .where(
+              (category) => category.type == recurringCategoryTypeFor(_type),
+            )
+            .toList(growable: false);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -114,7 +119,7 @@ class _RecurringTransactionFormSheetState
               ),
               if (_submissionFailure != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                _FailureNotice(failure: _submissionFailure!),
+                RecurringFailureNotice(failure: _submissionFailure!),
               ],
               const SizedBox(height: AppSpacing.xxl),
               DropdownButtonFormField<RecurringTransactionType>(
@@ -255,7 +260,7 @@ class _RecurringTransactionFormSheetState
                       },
               ),
               const SizedBox(height: AppSpacing.lg),
-              _RequiredDateField(
+              RecurringRequiredDateField(
                 label: l10n.recurringTransactionsNextRunDateLabel,
                 value: _formatDate(context, _nextRunDate),
                 actionLabel: l10n.commonContinue,
@@ -280,7 +285,7 @@ class _RecurringTransactionFormSheetState
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _OptionalDateField(
+              RecurringOptionalDateField(
                 label: l10n.recurringTransactionsStartDateLabel,
                 value: _startDate == null
                     ? l10n.recurringTransactionsNoDateValue
@@ -292,7 +297,7 @@ class _RecurringTransactionFormSheetState
                     : () => setState(() => _startDate = null),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _OptionalDateField(
+              RecurringOptionalDateField(
                 label: l10n.recurringTransactionsEndDateLabel,
                 value: _endDate == null
                     ? l10n.recurringTransactionsNoDateValue
@@ -317,7 +322,7 @@ class _RecurringTransactionFormSheetState
                   ...RecurringClassification.values.map(
                     (value) => DropdownMenuItem<RecurringClassification?>(
                       value: value,
-                      child: Text(_classificationLabel(l10n, value)),
+                      child: Text(recurringClassificationLabel(l10n, value)),
                     ),
                   ),
                 ],
@@ -501,162 +506,4 @@ class _RecurringTransactionFormSheetState
 
     Navigator.of(context).pop();
   }
-}
-
-class _FailureNotice extends StatelessWidget {
-  const _FailureNotice({required this.failure});
-
-  final Failure failure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final message = switch (failure) {
-      NetworkFailure() => l10n.failureNetworkMessage,
-      UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-      RateLimitedFailure() => l10n.failureRateLimitedMessage,
-      UnknownFailure() => l10n.failureGenericMessage,
-      ApiFailure(code: final code) => switch (code) {
-        ApiErrorCode.recurringTransactionNotFound =>
-          l10n.failureResourceNotFoundMessage,
-        ApiErrorCode.recurringTransactionDependencyNotFound =>
-          l10n.failureResourceNotFoundMessage,
-        ApiErrorCode.invalidRecurringTransactionNextRunDate =>
-          l10n.recurringTransactionsNextRunDateError,
-        ApiErrorCode.invalidRecurringTransactionType =>
-          l10n.recurringTransactionsTypeError,
-        ApiErrorCode.invalidRecurringTransactionStatusTransition =>
-          l10n.recurringTransactionsStatusTransitionError,
-        _ when code.isFeatureDisabled => l10n.failureFeatureDisabledMessage,
-        _ => l10n.failureValidationFailedMessage,
-      },
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.finance.expenseSurface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.finance.expense),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          message,
-          style: context.textTheme.body.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RequiredDateField extends StatelessWidget {
-  const _RequiredDateField({
-    required this.label,
-    required this.value,
-    required this.actionLabel,
-    required this.onPressed,
-  });
-
-  final String label;
-  final String value;
-  final String actionLabel;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label),
-      child: Row(
-        children: <Widget>[
-          Expanded(child: Text(value, style: context.textTheme.body)),
-          const SizedBox(width: AppSpacing.md),
-          OutlinedButton(
-            onPressed: onPressed,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(64, AppSpacing.giant),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            ),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OptionalDateField extends StatelessWidget {
-  const _OptionalDateField({
-    required this.label,
-    required this.value,
-    required this.actionLabel,
-    required this.onPressed,
-    required this.onClear,
-  });
-
-  final String label;
-  final String value;
-  final String actionLabel;
-  final VoidCallback? onPressed;
-  final VoidCallback? onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label),
-      child: Row(
-        children: <Widget>[
-          Expanded(child: Text(value, style: context.textTheme.body)),
-          if (onClear != null)
-            IconButton(
-              onPressed: onClear,
-              icon: const Icon(Icons.close_rounded),
-              tooltip: AppLocalizations.of(context).commonBack,
-            ),
-          OutlinedButton(
-            onPressed: onPressed,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(64, AppSpacing.giant),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            ),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-CategoryType _categoryTypeFor(RecurringTransactionType type) {
-  return switch (type) {
-    RecurringTransactionType.income => CategoryType.income,
-    RecurringTransactionType.expense => CategoryType.expense,
-  };
-}
-
-String _classificationLabel(
-  AppLocalizations l10n,
-  RecurringClassification classification,
-) {
-  return switch (classification) {
-    RecurringClassification.paycheck =>
-      l10n.recurringTransactionsClassificationPaycheck,
-    RecurringClassification.subscription =>
-      l10n.recurringTransactionsClassificationSubscription,
-    RecurringClassification.rent =>
-      l10n.recurringTransactionsClassificationRent,
-    RecurringClassification.utility =>
-      l10n.recurringTransactionsClassificationUtility,
-    RecurringClassification.loanPayment =>
-      l10n.recurringTransactionsClassificationLoanPayment,
-    RecurringClassification.savingsContribution =>
-      l10n.recurringTransactionsClassificationSavingsContribution,
-    RecurringClassification.other =>
-      l10n.recurringTransactionsClassificationOther,
-  };
-}
-
-T? _readAsyncData<T>(AsyncValue<T> value) {
-  return value is AsyncData<T> ? value.value : null;
 }
