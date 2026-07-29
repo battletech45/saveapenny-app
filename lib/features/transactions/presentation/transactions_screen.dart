@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/formatting/money_formatter.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
@@ -18,6 +14,8 @@ import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/transactions/application/transactions_controller.dart';
 import 'package:saveapenny/features/transactions/domain/transaction.dart';
 import 'package:saveapenny/features/transactions/presentation/widgets/transaction_form_sheet.dart';
+import 'package:saveapenny/features/transactions/presentation/widgets/transaction_shared.dart';
+import 'package:saveapenny/features/transactions/presentation/widgets/transaction_tile.dart';
 import 'package:saveapenny/features/transactions/presentation/widgets/transfer_form_sheet.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -29,10 +27,10 @@ class TransactionsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final transactionsState = ref.watch(transactionsControllerProvider);
     final accounts =
-        _readAsyncData(ref.watch(accountsControllerProvider)) ??
+        readTransactionsAsyncData(ref.watch(accountsControllerProvider)) ??
         const <Account>[];
     final categories =
-        _readAsyncData(ref.watch(categoriesControllerProvider)) ??
+        readTransactionsAsyncData(ref.watch(categoriesControllerProvider)) ??
         const <Category>[];
     final accountById = <String, Account>{
       for (final account in accounts) account.id: account,
@@ -101,7 +99,7 @@ class TransactionsScreen extends ConsumerWidget {
                   }
 
                   final transaction = data.items[index];
-                  return _TransactionTile(
+                  return TransactionTile(
                     transaction: transaction,
                     account: accountById[transaction.accountId],
                     category: categoryById[transaction.categoryId],
@@ -185,195 +183,8 @@ class TransactionsScreen extends ConsumerWidget {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_failureMessage(context, failure))),
+        SnackBar(content: Text(transactionFailureMessage(context, failure))),
       );
     }
   }
-}
-
-class _TransactionTile extends StatelessWidget {
-  const _TransactionTile({
-    required this.transaction,
-    required this.account,
-    required this.category,
-    required this.onDelete,
-    this.onEdit,
-  });
-
-  final Transaction transaction;
-  final Account? account;
-  final Category? category;
-  final VoidCallback? onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final amount = MoneyFormatter.format(
-      context: context,
-      amount: _signedAmount(transaction),
-      currencyCode: transaction.currency,
-    );
-    final dateLabel = DateFormat.yMMMd(
-      Localizations.localeOf(context).toLanguageTag(),
-    ).format(transaction.transactionDate);
-    final title = switch (transaction.type) {
-      TransactionType.transfer => l10n.transactionsTypeTransfer,
-      _ => category?.name ?? _transactionTypeLabel(l10n, transaction.type),
-    };
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: <Widget>[
-            _TransactionIcon(type: transaction.type, category: category),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(title, style: context.textTheme.body),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    _subtitle(
-                      l10n: l10n,
-                      accountName: account?.name,
-                      dateLabel: dateLabel,
-                      description: transaction.description,
-                    ),
-                    style: context.textTheme.label.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                Text(
-                  amount.text,
-                  textAlign: TextAlign.right,
-                  style: context.textTheme.money.copyWith(color: amount.color),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEdit?.call();
-                      return;
-                    }
-                    onDelete();
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    if (onEdit != null)
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text(l10n.transactionsEditCta),
-                      ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text(l10n.transactionsDeleteCta),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  num _signedAmount(Transaction transaction) {
-    return switch (transaction.type) {
-      TransactionType.income => transaction.amount,
-      TransactionType.expense ||
-      TransactionType.transfer => -transaction.amount,
-    };
-  }
-
-  String _subtitle({
-    required AppLocalizations l10n,
-    required String? accountName,
-    required String dateLabel,
-    required String? description,
-  }) {
-    final values = <String>[
-      if (accountName != null && accountName.isNotEmpty) accountName,
-      dateLabel,
-      if (description != null && description.isNotEmpty) description,
-    ];
-    return values.join(' · ');
-  }
-}
-
-class _TransactionIcon extends StatelessWidget {
-  const _TransactionIcon({required this.type, required this.category});
-
-  final TransactionType type;
-  final Category? category;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (type) {
-      TransactionType.income => Icons.trending_up_rounded,
-      TransactionType.expense => Icons.trending_down_rounded,
-      TransactionType.transfer => Icons.swap_horiz_rounded,
-    };
-    final color = switch (type) {
-      TransactionType.income => context.finance.income,
-      TransactionType.expense => context.finance.expense,
-      TransactionType.transfer => Theme.of(context).colorScheme.primary,
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-      ),
-      child: SizedBox(
-        width: AppSpacing.huge,
-        height: AppSpacing.huge,
-        child: Center(child: Icon(icon, color: color)),
-      ),
-    );
-  }
-}
-
-String _transactionTypeLabel(AppLocalizations l10n, TransactionType type) {
-  return switch (type) {
-    TransactionType.income => l10n.transactionsTypeIncome,
-    TransactionType.expense => l10n.transactionsTypeExpense,
-    TransactionType.transfer => l10n.transactionsTypeTransfer,
-  };
-}
-
-String _failureMessage(BuildContext context, Failure failure) {
-  final l10n = AppLocalizations.of(context);
-
-  return switch (failure) {
-    NetworkFailure() => l10n.failureNetworkMessage,
-    UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-    RateLimitedFailure() => l10n.failureRateLimitedMessage,
-    UnknownFailure() => l10n.failureGenericMessage,
-    ApiFailure(code: final code) => switch (code) {
-      ApiErrorCode.insufficientBalance =>
-        l10n.transactionsInsufficientBalanceError,
-      ApiErrorCode.invalidTransfer => l10n.transactionsInvalidTransferError,
-      ApiErrorCode.invalidTransactionCurrency =>
-        l10n.transactionsCurrencyMismatchError,
-      ApiErrorCode.transactionNotFound => l10n.failureResourceNotFoundMessage,
-      _ when code.isFeatureDisabled => l10n.failureFeatureDisabledMessage,
-      _ => l10n.failureValidationFailedMessage,
-    },
-  };
-}
-
-T? _readAsyncData<T>(AsyncValue<T> value) {
-  return value is AsyncData<T> ? value.value : null;
 }
