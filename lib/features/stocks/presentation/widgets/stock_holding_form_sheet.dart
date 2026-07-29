@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/stocks/application/stock_holdings_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding.dart';
+import 'package:saveapenny/features/stocks/presentation/widgets/stock_detail_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class StockHoldingFormSheet extends ConsumerStatefulWidget {
@@ -350,39 +350,6 @@ class _FailureNotice extends StatelessWidget {
       ),
     );
   }
-}
-
-String stockFailureMessage(BuildContext context, Failure failure) {
-  final l10n = AppLocalizations.of(context);
-
-  return switch (failure) {
-    NetworkFailure() => l10n.failureNetworkMessage,
-    UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-    RateLimitedFailure() => l10n.failureRateLimitedMessage,
-    UnknownFailure(message: final message) =>
-      message != null && message.isNotEmpty
-          ? message
-          : l10n.failureGenericMessage,
-    ApiFailure(
-      code: final code,
-      message: final message,
-      details: final details,
-    ) =>
-      switch (code) {
-        ApiErrorCode.invalidStockSymbol => l10n.stocksInvalidSymbolError,
-        ApiErrorCode.stockQuoteNotAvailable => l10n.stocksQuoteUnavailableError,
-        ApiErrorCode.stockHoldingNotFound =>
-          l10n.failureResourceNotFoundMessage,
-        ApiErrorCode.duplicateStockHolding => l10n.stocksDuplicateHoldingError,
-        ApiErrorCode.stockProviderError => l10n.stocksProviderError,
-        ApiErrorCode.validationFailed =>
-          details.isNotEmpty
-              ? details.first
-              : l10n.failureValidationFailedMessage,
-        _ when code.isFeatureDisabled => l10n.failureFeatureDisabledMessage,
-        _ => message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
-      },
-  };
 }
 
 DateTime _today() {
