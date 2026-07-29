@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/imports/domain/import_models.dart';
+import 'package:saveapenny/features/imports/presentation/widgets/import_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class ImportPreviewView extends StatelessWidget {
@@ -36,20 +37,20 @@ class ImportPreviewView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xxl),
-          _StatCard(
+          ImportSummaryCard(
             icon: Icons.description_rounded,
             label: l10n.importsPreviewTotalRowsLabel,
             value: preview.totalRows.toString(),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _StatCard(
+          ImportSummaryCard(
             icon: Icons.check_circle_rounded,
             label: l10n.importsPreviewValidRowsLabel,
             value: preview.validRows.toString(),
             valueColor: context.finance.income,
           ),
           const SizedBox(height: AppSpacing.sm),
-          _StatCard(
+          ImportSummaryCard(
             icon: Icons.error_rounded,
             label: l10n.importsPreviewInvalidRowsLabel,
             value: preview.invalidRows.toString(),
@@ -84,42 +85,6 @@ class ImportPreviewView extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
-          children: <Widget>[
-            Icon(icon, color: context.colors.textSecondary),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(child: Text(label, style: context.textTheme.body)),
-            Text(
-              value,
-              style: context.textTheme.title.copyWith(
-                color: valueColor ?? context.colors.textPrimary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
