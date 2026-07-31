@@ -68,8 +68,9 @@ class StocksScreen extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: StockHoldingCard(
                         holding: item,
-                        onOpen: () =>
-                            unawaited(GoRouter.of(context).push('/stocks/${item.symbol}')),
+                        onOpen: () => unawaited(
+                          GoRouter.of(context).push('/stocks/${item.symbol}'),
+                        ),
                         onEdit: () =>
                             _showHoldingSheet(context, existing: item),
                         onDelete: () => _confirmDelete(context, ref, item),

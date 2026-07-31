@@ -61,6 +61,7 @@ enum ApiErrorCode {
   invalidImportFile('INVALID_IMPORT_FILE'),
   importNotFound('IMPORT_NOT_FOUND'),
   importAlreadyRunning('IMPORT_ALREADY_RUNNING'),
+  feedbackNotFound('FEEDBACK_NOT_FOUND'),
   invalidOcrFile('INVALID_OCR_FILE'),
   ocrJobNotFound('OCR_JOB_NOT_FOUND'),
   ocrProcessingFailed('OCR_PROCESSING_FAILED'),

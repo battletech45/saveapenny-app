@@ -26,6 +26,7 @@ handled gracefully): `ASSISTANT_DISABLED`, `STOCK_DISABLED`,
 | Recurring transactions | CRUD, frequency/lifecycle handling, history view |
 | Reports | monthly summary, category spending, cash flow, net worth snapshots |
 | Notifications | list, unread count, mark read/mark-all-read, delete |
+| Feedback | submit, paginated history, detail, delete, client metadata attachment |
 | Users / profile | `users/me`, profile update, password change (incl. reused-password handling) |
 | Goals | CRUD, scenarios, simulation, what-if, progress checks |
 | Stocks | holdings CRUD + summary, quotes, daily series, news, overview, financial statements, technical indicators (SMA/EMA/RSI), rate-limit- and disabled-state-aware UX |

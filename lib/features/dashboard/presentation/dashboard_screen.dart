@@ -39,7 +39,8 @@ class DashboardScreen extends ConsumerWidget {
             isLabelVisible: unreadCount > 0,
             label: Text('$unreadCount'),
             child: IconButton(
-              onPressed: () => unawaited(GoRouter.of(context).push('/notifications')),
+              onPressed: () =>
+                  unawaited(GoRouter.of(context).push('/notifications')),
               icon: const Icon(Icons.notifications_outlined),
               tooltip: l10n.notificationsHomeCardTitle,
             ),

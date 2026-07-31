@@ -17,6 +17,8 @@ import 'package:saveapenny/features/billing/presentation/widgets/paywall_gate.da
 import 'package:saveapenny/features/budgets/presentation/budgets_screen.dart';
 import 'package:saveapenny/features/categories/presentation/categories_screen.dart';
 import 'package:saveapenny/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:saveapenny/features/feedback/presentation/feedback_detail_screen.dart';
+import 'package:saveapenny/features/feedback/presentation/feedback_screen.dart';
 import 'package:saveapenny/features/goals/presentation/goal_detail_screen.dart';
 import 'package:saveapenny/features/goals/presentation/goals_screen.dart';
 import 'package:saveapenny/features/imports/presentation/imports_screen.dart';
@@ -108,9 +110,8 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.receipt_long_rounded,
                       label: AppLocalizations.of(context).transactionsTitle,
-                      onTap: () => unawaited(
-                        GoRouter.of(context).push('/transactions'),
-                      ),
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/transactions')),
                     ),
                     NavigationHubItem(
                       icon: Icons.repeat_rounded,
@@ -130,8 +131,7 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.document_scanner_rounded,
                       label: AppLocalizations.of(context).ocrTitle,
-                      onTap: () =>
-                          unawaited(GoRouter.of(context).push('/ocr')),
+                      onTap: () => unawaited(GoRouter.of(context).push('/ocr')),
                     ),
                   ],
                 ),
@@ -237,6 +237,16 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
+        path: '/feedback',
+        builder: (context, state) => const FeedbackScreen(),
+      ),
+      GoRoute(
+        path: '/feedback/:feedbackId',
+        builder: (context, state) => FeedbackDetailScreen(
+          feedbackId: state.pathParameters['feedbackId']!,
+        ),
+      ),
+      GoRoute(
         path: '/transactions',
         builder: (context, state) => const TransactionsScreen(),
       ),
@@ -264,10 +274,7 @@ GoRouter appRouter(Ref ref) {
         path: '/budgets',
         builder: (context, state) => const BudgetsScreen(),
       ),
-      GoRoute(
-        path: '/goals',
-        builder: (context, state) => const GoalsScreen(),
-      ),
+      GoRoute(path: '/goals', builder: (context, state) => const GoalsScreen()),
       GoRoute(
         path: '/goals/:goalId',
         builder: (context, state) =>
@@ -304,9 +311,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => PaywallGate(
           feature: 'stocks',
           isUnlocked: _isStocksUnlocked,
-          child: StockDetailScreen(
-            symbol: state.pathParameters['symbol']!,
-          ),
+          child: StockDetailScreen(symbol: state.pathParameters['symbol']!),
         ),
       ),
       GoRoute(
