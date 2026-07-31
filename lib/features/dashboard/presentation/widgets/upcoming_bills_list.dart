@@ -26,7 +26,9 @@ class UpcomingBillsList extends StatelessWidget {
         children: <Widget>[
           for (final bill in bills)
             ListTile(
-              onTap: () => unawaited(GoRouter.of(context).push('/recurring-transactions')),
+              onTap: () => unawaited(
+                GoRouter.of(context).push('/recurring-transactions'),
+              ),
               title: Text(
                 bill.name ?? l10n.recurringTransactionUnnamed,
                 style: context.textTheme.body,

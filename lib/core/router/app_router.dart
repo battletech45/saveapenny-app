@@ -110,9 +110,8 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.receipt_long_rounded,
                       label: AppLocalizations.of(context).transactionsTitle,
-                      onTap: () => unawaited(
-                        GoRouter.of(context).push('/transactions'),
-                      ),
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/transactions')),
                     ),
                     NavigationHubItem(
                       icon: Icons.repeat_rounded,
@@ -132,8 +131,7 @@ GoRouter appRouter(Ref ref) {
                     NavigationHubItem(
                       icon: Icons.document_scanner_rounded,
                       label: AppLocalizations.of(context).ocrTitle,
-                      onTap: () =>
-                          unawaited(GoRouter.of(context).push('/ocr')),
+                      onTap: () => unawaited(GoRouter.of(context).push('/ocr')),
                     ),
                   ],
                 ),
@@ -276,10 +274,7 @@ GoRouter appRouter(Ref ref) {
         path: '/budgets',
         builder: (context, state) => const BudgetsScreen(),
       ),
-      GoRoute(
-        path: '/goals',
-        builder: (context, state) => const GoalsScreen(),
-      ),
+      GoRoute(path: '/goals', builder: (context, state) => const GoalsScreen()),
       GoRoute(
         path: '/goals/:goalId',
         builder: (context, state) =>
@@ -316,9 +311,7 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => PaywallGate(
           feature: 'stocks',
           isUnlocked: _isStocksUnlocked,
-          child: StockDetailScreen(
-            symbol: state.pathParameters['symbol']!,
-          ),
+          child: StockDetailScreen(symbol: state.pathParameters['symbol']!),
         ),
       ),
       GoRoute(
