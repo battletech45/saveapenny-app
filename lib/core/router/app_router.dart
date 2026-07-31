@@ -17,6 +17,8 @@ import 'package:saveapenny/features/billing/presentation/widgets/paywall_gate.da
 import 'package:saveapenny/features/budgets/presentation/budgets_screen.dart';
 import 'package:saveapenny/features/categories/presentation/categories_screen.dart';
 import 'package:saveapenny/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:saveapenny/features/feedback/presentation/feedback_detail_screen.dart';
+import 'package:saveapenny/features/feedback/presentation/feedback_screen.dart';
 import 'package:saveapenny/features/goals/presentation/goal_detail_screen.dart';
 import 'package:saveapenny/features/goals/presentation/goals_screen.dart';
 import 'package:saveapenny/features/imports/presentation/imports_screen.dart';
@@ -235,6 +237,16 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/feedback',
+        builder: (context, state) => const FeedbackScreen(),
+      ),
+      GoRoute(
+        path: '/feedback/:feedbackId',
+        builder: (context, state) => FeedbackDetailScreen(
+          feedbackId: state.pathParameters['feedbackId']!,
+        ),
       ),
       GoRoute(
         path: '/transactions',

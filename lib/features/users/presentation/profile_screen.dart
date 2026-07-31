@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
 import 'package:saveapenny/features/billing/domain/plan.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/upgrade_card.dart';
+import 'package:saveapenny/features/feedback/presentation/widgets/feedback_form_sheet.dart';
 import 'package:saveapenny/features/users/application/users_controller.dart';
 import 'package:saveapenny/features/users/domain/user_profile.dart';
 import 'package:saveapenny/features/users/presentation/widgets/change_password_sheet.dart';
@@ -97,6 +99,38 @@ class ProfileScreen extends ConsumerWidget {
                     onPressed: () => _showChangePasswordSheet(context),
                     child: Text(l10n.profileChangePasswordCta),
                   ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          Text(
+                            l10n.feedbackProfileSectionTitle,
+                            style: context.textTheme.title,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.feedbackProfileSectionSubtitle,
+                            style: context.textTheme.body.copyWith(
+                              color: context.colors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          ElevatedButton(
+                            onPressed: () => _showFeedbackSheet(context),
+                            child: Text(l10n.feedbackSubmitCta),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          OutlinedButton(
+                            onPressed: () => context.push('/feedback'),
+                            child: Text(l10n.feedbackHistoryCta),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     l10n.profileChangePasswordHint,
@@ -133,6 +167,13 @@ class ProfileScreen extends ConsumerWidget {
     return showAppModalBottomSheet<void>(
       context: context,
       builder: (context) => const ChangePasswordSheet(),
+    );
+  }
+
+  Future<void> _showFeedbackSheet(BuildContext context) {
+    return showAppModalBottomSheet<void>(
+      context: context,
+      builder: (context) => const FeedbackFormSheet(sourceScreen: 'profile'),
     );
   }
 }

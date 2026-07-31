@@ -113,8 +113,8 @@ The client must handle these gracefully (hide/disable the feature, not crash).
 
 auth · users · accounts · categories · transactions (+ transfers) · budgets ·
 recurring transactions · reports (monthly summary, net worth) · imports (CSV
-preview/confirm) · ocr (receipt jobs) · notifications · insights ·
-goals (+ scenarios, simulation, what-if) · stocks · assistant · billing (entitlements, purchases).
+ preview/confirm) · ocr (receipt jobs) · notifications · feedback · insights ·
+ goals (+ scenarios, simulation, what-if) · stocks · assistant · billing (entitlements, purchases).
 
 > Admin: `GET /admin/metrics` returns a raw map, **not** the envelope. Don't parse
 > it through `ApiEnvelope`. (Unlikely to be used by the mobile client.)

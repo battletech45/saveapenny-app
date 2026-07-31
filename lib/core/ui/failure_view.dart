@@ -112,6 +112,7 @@ class FailureView extends StatelessWidget {
       ApiErrorCode.accountNotFound ||
       ApiErrorCode.categoryNotFound ||
       ApiErrorCode.transactionNotFound ||
+      ApiErrorCode.feedbackNotFound ||
       ApiErrorCode.goalNotFound ||
       ApiErrorCode.scenarioNotFound ||
       ApiErrorCode.linkedAccountNotFound ||
