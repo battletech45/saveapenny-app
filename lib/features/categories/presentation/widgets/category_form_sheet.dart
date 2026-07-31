@@ -6,6 +6,7 @@ import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
+import 'package:saveapenny/features/categories/presentation/widgets/category_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class CategoryFormSheet extends ConsumerStatefulWidget {
@@ -77,7 +78,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
               ),
               if (failure != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                _SheetFailureNotice(failure: failure),
+                CategorySheetFailureNotice(failure: failure),
               ],
               const SizedBox(height: AppSpacing.xxl),
               TextFormField(
@@ -101,7 +102,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                       .map(
                         (type) => DropdownMenuItem<CategoryType>(
                           value: type,
-                          child: Text(_typeLabel(l10n, type)),
+                          child: Text(categoryTypeLabel(l10n, type)),
                         ),
                       )
                       .toList(growable: false),
@@ -165,46 +166,4 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
 
     Navigator.of(context).pop();
   }
-}
-
-class _SheetFailureNotice extends StatelessWidget {
-  const _SheetFailureNotice({required this.failure});
-
-  final Failure failure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final message = switch (failure) {
-      NetworkFailure() => l10n.failureNetworkMessage,
-      UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-      RateLimitedFailure() => l10n.failureRateLimitedMessage,
-      UnknownFailure() => l10n.failureGenericMessage,
-      ApiFailure() => l10n.failureValidationFailedMessage,
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.finance.expenseSurface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.finance.expense),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          message,
-          style: context.textTheme.body.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-String _typeLabel(AppLocalizations l10n, CategoryType type) {
-  return switch (type) {
-    CategoryType.income => l10n.categoriesTypeIncome,
-    CategoryType.expense => l10n.categoriesTypeExpense,
-  };
 }

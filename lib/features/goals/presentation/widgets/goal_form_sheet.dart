@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
@@ -11,7 +10,9 @@ import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
 import 'package:saveapenny/features/goals/application/goals_controller.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
+import 'package:saveapenny/features/goals/presentation/widgets/goal_form_shared.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/goal_inputs_form.dart';
+import 'package:saveapenny/features/goals/presentation/widgets/goal_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class GoalFormSheet extends ConsumerStatefulWidget {
@@ -113,7 +114,7 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
               ),
               if (_submissionFailure != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                _SheetFailureNotice(failure: _submissionFailure!),
+                GoalSheetFailureNotice(failure: _submissionFailure!),
               ],
               const SizedBox(height: AppSpacing.xxl),
               DropdownButtonFormField<GoalType>(
@@ -168,13 +169,13 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
                 validator: (value) => _validateCurrency(l10n, value),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _ReadOnlyActionField(
+              GoalReadOnlyActionField(
                 label: l10n.goalsTargetDateLabel,
                 value: dateLabel,
                 actionLabel: l10n.commonContinue,
                 onPressed: _isSubmitting ? null : _pickTargetDate,
               ),
-              if (!_targetDate.isAfter(_today())) ...<Widget>[
+              if (!_targetDate.isAfter(goalToday())) ...<Widget>[
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   l10n.goalsInvalidDateError,
@@ -278,7 +279,7 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
   }
 
   Future<void> _pickTargetDate() async {
-    final today = _today();
+    final today = goalToday();
     final firstSelectableDate = today.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
@@ -302,7 +303,7 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    if (!_targetDate.isAfter(_today())) {
+    if (!_targetDate.isAfter(goalToday())) {
       setState(() {});
       return;
     }
@@ -365,118 +366,4 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
 
     Navigator.of(context).pop();
   }
-}
-
-class _SheetFailureNotice extends StatelessWidget {
-  const _SheetFailureNotice({required this.failure});
-
-  final Failure failure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final message = switch (failure) {
-      NetworkFailure() => l10n.failureNetworkMessage,
-      UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-      RateLimitedFailure() => l10n.failureRateLimitedMessage,
-      UnknownFailure(message: final msg) =>
-        msg != null && msg.isNotEmpty ? msg : l10n.failureGenericMessage,
-      ApiFailure(
-        code: final code,
-        message: final message,
-        details: final details,
-      ) =>
-        switch (code) {
-          ApiErrorCode.invalidGoalDate => l10n.goalsInvalidDateError,
-          ApiErrorCode.invalidGoalStatusTransition =>
-            l10n.goalsInvalidStatusTransitionError,
-          ApiErrorCode.invalidGoalType => l10n.goalsInvalidTypeError,
-          ApiErrorCode.goalNotFound ||
-          ApiErrorCode.linkedAccountNotFound ||
-          ApiErrorCode.scenarioNotFound => l10n.failureResourceNotFoundMessage,
-          ApiErrorCode.validationFailed =>
-            details.isNotEmpty
-                ? details.first
-                : l10n.failureValidationFailedMessage,
-          ApiErrorCode.goalProgressDisabled ||
-          ApiErrorCode.featureDisabled => l10n.failureFeatureDisabledMessage,
-          ApiErrorCode.serverError ||
-          ApiErrorCode.internalServerError ||
-          ApiErrorCode.serviceUnavailable => l10n.failureGenericMessage,
-          _ =>
-            message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
-        },
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.finance.expenseSurface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.finance.expense),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          message,
-          style: context.textTheme.body.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-DateTime _today() {
-  final now = DateTime.now();
-  return DateTime(now.year, now.month, now.day);
-}
-
-class _ReadOnlyActionField extends StatelessWidget {
-  const _ReadOnlyActionField({
-    required this.label,
-    required this.value,
-    required this.actionLabel,
-    required this.onPressed,
-  });
-
-  final String label;
-  final String value;
-  final String actionLabel;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label),
-      child: Row(
-        children: <Widget>[
-          Expanded(child: Text(value, style: context.textTheme.body)),
-          const SizedBox(width: AppSpacing.md),
-          OutlinedButton(
-            onPressed: onPressed,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(64, AppSpacing.giant),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            ),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-String goalTypeLabel(AppLocalizations l10n, GoalType type) {
-  return switch (type) {
-    GoalType.savings => l10n.goalsTypeSavings,
-    GoalType.debtPayoff => l10n.goalsTypeDebtPayoff,
-    GoalType.purchase => l10n.goalsTypePurchase,
-    GoalType.retirement => l10n.goalsTypeRetirement,
-    GoalType.incomeTarget => l10n.goalsTypeIncomeTarget,
-  };
-}
-
-T? readAsyncData<T>(AsyncValue<T> value) {
-  return value is AsyncData<T> ? value.value : null;
 }

@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
@@ -12,6 +13,7 @@ import 'package:saveapenny/features/dashboard/application/dashboard_controller.d
 import 'package:saveapenny/features/dashboard/presentation/widgets/account_row.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/attention_strip.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/cash_flow_summary_card.dart';
+import 'package:saveapenny/features/dashboard/presentation/widgets/dashboard_section_header.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/net_worth_hero.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/upcoming_bills_list.dart';
 import 'package:saveapenny/features/notifications/application/notifications_controller.dart';
@@ -37,7 +39,7 @@ class DashboardScreen extends ConsumerWidget {
             isLabelVisible: unreadCount > 0,
             label: Text('$unreadCount'),
             child: IconButton(
-              onPressed: () => GoRouter.of(context).go('/notifications'),
+              onPressed: () => unawaited(GoRouter.of(context).push('/notifications')),
               icon: const Icon(Icons.notifications_outlined),
               tooltip: l10n.notificationsHomeCardTitle,
             ),
@@ -72,20 +74,14 @@ class DashboardScreen extends ConsumerWidget {
                 ],
                 if (data.upcomingBills.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    l10n.dashboardUpcomingBillsTitle,
-                    style: context.textTheme.title,
+                  DashboardSectionHeader(
+                    label: l10n.dashboardUpcomingBillsTitle,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
                   UpcomingBillsList(bills: data.upcomingBills),
                 ],
                 if (data.accounts.isNotEmpty) ...<Widget>[
                   const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    l10n.dashboardAccountsTitle,
-                    style: context.textTheme.title,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
+                  DashboardSectionHeader(label: l10n.dashboardAccountsTitle),
                   Card(
                     child: Column(
                       children: <Widget>[

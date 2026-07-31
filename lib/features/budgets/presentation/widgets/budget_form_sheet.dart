@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/budgets/application/budgets_controller.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
+import 'package:saveapenny/features/budgets/presentation/widgets/budget_form_shared.dart';
+import 'package:saveapenny/features/budgets/presentation/widgets/budget_shared.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -91,7 +91,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
               ),
               if (_submissionFailure != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
-                _SheetFailureNotice(failure: _submissionFailure!),
+                BudgetSheetFailureNotice(failure: _submissionFailure!),
               ],
               const SizedBox(height: AppSpacing.xxl),
               DropdownButtonFormField<String>(
@@ -172,14 +172,14 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
                       },
               ),
               const SizedBox(height: AppSpacing.lg),
-              _ReadOnlyActionField(
+              BudgetReadOnlyActionField(
                 label: l10n.budgetsStartDateLabel,
                 value: startLabel,
                 actionLabel: l10n.commonContinue,
                 onPressed: _isSubmitting ? null : _pickStartDate,
               ),
               const SizedBox(height: AppSpacing.lg),
-              _ReadOnlyActionField(
+              BudgetReadOnlyActionField(
                 label: l10n.budgetsEndDateLabel,
                 value: endLabel,
                 actionLabel: l10n.commonContinue,
@@ -213,9 +213,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   }
 
   String _formatDate(BuildContext context, DateTime value) {
-    return DateFormat.yMMMd(
-      Localizations.localeOf(context).toLanguageTag(),
-    ).format(value);
+    return formatBudgetDate(context, value);
   }
 
   String? _validateRequiredSelection(AppLocalizations l10n, String? value) {
@@ -339,82 +337,6 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
       end: DateTime(anchor.year, 12, 31),
     ),
   };
-}
-
-class _SheetFailureNotice extends StatelessWidget {
-  const _SheetFailureNotice({required this.failure});
-
-  final Failure failure;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final message = switch (failure) {
-      NetworkFailure() => l10n.failureNetworkMessage,
-      UnauthenticatedFailure() => l10n.failureUnauthenticatedMessage,
-      RateLimitedFailure() => l10n.failureRateLimitedMessage,
-      UnknownFailure() => l10n.failureGenericMessage,
-      ApiFailure(code: final code) => switch (code) {
-        ApiErrorCode.budgetAlreadyExists => l10n.budgetsDuplicateError,
-        ApiErrorCode.invalidBudgetDateRange => l10n.budgetsDateRangeError,
-        ApiErrorCode.budgetNotFound => l10n.failureResourceNotFoundMessage,
-        _ when code.isFeatureDisabled => l10n.failureFeatureDisabledMessage,
-        _ => l10n.failureValidationFailedMessage,
-      },
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.finance.expenseSurface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.finance.expense),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(
-          message,
-          style: context.textTheme.body.copyWith(
-            color: context.colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReadOnlyActionField extends StatelessWidget {
-  const _ReadOnlyActionField({
-    required this.label,
-    required this.value,
-    required this.actionLabel,
-    required this.onPressed,
-  });
-
-  final String label;
-  final String value;
-  final String actionLabel;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(labelText: label),
-      child: Row(
-        children: <Widget>[
-          Expanded(child: Text(value, style: context.textTheme.body)),
-          const SizedBox(width: AppSpacing.md),
-          OutlinedButton(
-            onPressed: onPressed,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(64, AppSpacing.giant),
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            ),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 T? _readAsyncData<T>(AsyncValue<T> value) {

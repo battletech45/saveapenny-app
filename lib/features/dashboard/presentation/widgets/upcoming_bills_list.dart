@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +26,7 @@ class UpcomingBillsList extends StatelessWidget {
         children: <Widget>[
           for (final bill in bills)
             ListTile(
-              onTap: () => GoRouter.of(context).go('/recurring-transactions'),
+              onTap: () => unawaited(GoRouter.of(context).push('/recurring-transactions')),
               title: Text(
                 bill.name ?? l10n.recurringTransactionUnnamed,
                 style: context.textTheme.body,

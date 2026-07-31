@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/core/ui/app_shell.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/navigation_hub_screen.dart';
 import 'package:saveapenny/features/accounts/presentation/accounts_screen.dart';
 import 'package:saveapenny/features/assistant/presentation/assistant_screen.dart';
 import 'package:saveapenny/features/auth/presentation/login_screen.dart';
@@ -32,6 +33,7 @@ import 'package:saveapenny/features/stocks/presentation/stocks_screen.dart';
 import 'package:saveapenny/features/transactions/presentation/transactions_screen.dart';
 import 'package:saveapenny/features/upgrade/presentation/upgrade_screen.dart';
 import 'package:saveapenny/features/users/presentation/profile_screen.dart';
+import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 part 'app_router.g.dart';
 
@@ -94,72 +96,44 @@ GoRouter appRouter(Ref ref) {
                 path: '/home',
                 builder: (context, state) => const DashboardScreen(),
               ),
-              GoRoute(
-                path: '/notifications',
-                builder: (context, state) => const NotificationsScreen(),
-              ),
             ],
           ),
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: '/transactions',
-                builder: (context, state) => const TransactionsScreen(),
-              ),
-              GoRoute(
-                path: '/recurring-transactions',
-                builder: (context, state) =>
-                    const RecurringTransactionsScreen(),
-              ),
-              GoRoute(
-                path: '/imports',
-                builder: (context, state) => const PaywallGate(
-                  feature: 'csv_import',
-                  isUnlocked: _isCsvImportUnlocked,
-                  child: ImportsScreen(),
-                ),
-              ),
-              GoRoute(
-                path: '/ocr',
-                builder: (context, state) => const PaywallGate(
-                  feature: 'ocr',
-                  isUnlocked: _isOcrUnlocked,
-                  child: OcrScreen(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/budgets',
-                builder: (context, state) => const BudgetsScreen(),
-              ),
-              GoRoute(
-                path: '/goals',
-                builder: (context, state) => const GoalsScreen(),
-              ),
-              GoRoute(
-                path: '/goals/:goalId',
-                builder: (context, state) =>
-                    GoalDetailScreen(goalId: state.pathParameters['goalId']!),
-              ),
-              GoRoute(
-                path: '/insights',
-                builder: (context, state) => const PaywallGate(
-                  feature: 'insights',
-                  isUnlocked: _isInsightsUnlocked,
-                  child: InsightsScreen(),
-                ),
-              ),
-              GoRoute(
-                path: '/insights/:insightId',
-                builder: (context, state) => PaywallGate(
-                  feature: 'insights',
-                  isUnlocked: _isInsightsUnlocked,
-                  child: InsightDetailScreen(
-                    insightId: state.pathParameters['insightId']!,
-                  ),
+                path: '/money',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navTransactions,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.receipt_long_rounded,
+                      label: AppLocalizations.of(context).transactionsTitle,
+                      onTap: () => unawaited(
+                        GoRouter.of(context).push('/transactions'),
+                      ),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.repeat_rounded,
+                      label: AppLocalizations.of(
+                        context,
+                      ).recurringTransactionsTitle,
+                      onTap: () => unawaited(
+                        GoRouter.of(context).push('/recurring-transactions'),
+                      ),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.upload_file_rounded,
+                      label: AppLocalizations.of(context).importsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/imports')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.document_scanner_rounded,
+                      label: AppLocalizations.of(context).ocrTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/ocr')),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -167,54 +141,197 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: '/stocks',
-                builder: (context, state) => const PaywallGate(
-                  feature: 'stocks',
-                  isUnlocked: _isStocksUnlocked,
-                  child: StocksScreen(),
+                path: '/plan',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navPlan,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.pie_chart_outline_rounded,
+                      label: AppLocalizations.of(context).budgetsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/budgets')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.flag_rounded,
+                      label: AppLocalizations.of(context).goalsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/goals')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.lightbulb_outline_rounded,
+                      label: AppLocalizations.of(context).insightsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/insights')),
+                    ),
+                  ],
                 ),
-              ),
-              GoRoute(
-                path: '/stocks/:symbol',
-                builder: (context, state) => PaywallGate(
-                  feature: 'stocks',
-                  isUnlocked: _isStocksUnlocked,
-                  child: StockDetailScreen(
-                    symbol: state.pathParameters['symbol']!,
-                  ),
-                ),
-              ),
-              GoRoute(
-                path: '/reports',
-                builder: (context, state) => const ReportsScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: '/accounts',
-                builder: (context, state) => const AccountsScreen(),
-              ),
-              GoRoute(
-                path: '/categories',
-                builder: (context, state) => const CategoriesScreen(),
-              ),
-              GoRoute(
-                path: '/assistant',
-                builder: (context, state) => const PaywallGate(
-                  feature: 'assistant',
-                  isUnlocked: _isAssistantUnlocked,
-                  child: AssistantScreen(),
+                path: '/portfolio',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navPortfolio,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.trending_up_rounded,
+                      label: AppLocalizations.of(context).stocksTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/stocks')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.bar_chart_rounded,
+                      label: AppLocalizations.of(context).reportsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/reports')),
+                    ),
+                  ],
                 ),
               ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
               GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                path: '/more',
+                builder: (context, state) => NavigationHubScreen(
+                  title: AppLocalizations.of(context).navMore,
+                  items: <NavigationHubItem>[
+                    NavigationHubItem(
+                      icon: Icons.account_balance_outlined,
+                      label: AppLocalizations.of(context).accountsTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/accounts')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.category_outlined,
+                      label: AppLocalizations.of(context).categoriesTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/categories')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.auto_awesome_rounded,
+                      label: AppLocalizations.of(context).assistantTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/assistant')),
+                    ),
+                    NavigationHubItem(
+                      icon: Icons.person_outline_rounded,
+                      label: AppLocalizations.of(context).profileTitle,
+                      onTap: () =>
+                          unawaited(GoRouter.of(context).push('/profile')),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ],
+      ),
+
+      // Sub-routes defined at root level — push full-screen over the shell.
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/transactions',
+        builder: (context, state) => const TransactionsScreen(),
+      ),
+      GoRoute(
+        path: '/recurring-transactions',
+        builder: (context, state) => const RecurringTransactionsScreen(),
+      ),
+      GoRoute(
+        path: '/imports',
+        builder: (context, state) => const PaywallGate(
+          feature: 'csv_import',
+          isUnlocked: _isCsvImportUnlocked,
+          child: ImportsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/ocr',
+        builder: (context, state) => const PaywallGate(
+          feature: 'ocr',
+          isUnlocked: _isOcrUnlocked,
+          child: OcrScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/budgets',
+        builder: (context, state) => const BudgetsScreen(),
+      ),
+      GoRoute(
+        path: '/goals',
+        builder: (context, state) => const GoalsScreen(),
+      ),
+      GoRoute(
+        path: '/goals/:goalId',
+        builder: (context, state) =>
+            GoalDetailScreen(goalId: state.pathParameters['goalId']!),
+      ),
+      GoRoute(
+        path: '/insights',
+        builder: (context, state) => const PaywallGate(
+          feature: 'insights',
+          isUnlocked: _isInsightsUnlocked,
+          child: InsightsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/insights/:insightId',
+        builder: (context, state) => PaywallGate(
+          feature: 'insights',
+          isUnlocked: _isInsightsUnlocked,
+          child: InsightDetailScreen(
+            insightId: state.pathParameters['insightId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/stocks',
+        builder: (context, state) => const PaywallGate(
+          feature: 'stocks',
+          isUnlocked: _isStocksUnlocked,
+          child: StocksScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/stocks/:symbol',
+        builder: (context, state) => PaywallGate(
+          feature: 'stocks',
+          isUnlocked: _isStocksUnlocked,
+          child: StockDetailScreen(
+            symbol: state.pathParameters['symbol']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: '/accounts',
+        builder: (context, state) => const AccountsScreen(),
+      ),
+      GoRoute(
+        path: '/categories',
+        builder: (context, state) => const CategoriesScreen(),
+      ),
+      GoRoute(
+        path: '/assistant',
+        builder: (context, state) => const PaywallGate(
+          feature: 'assistant',
+          isUnlocked: _isAssistantUnlocked,
+          child: AssistantScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
     redirect: (context, state) {
