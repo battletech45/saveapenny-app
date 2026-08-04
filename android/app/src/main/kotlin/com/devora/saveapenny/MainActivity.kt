@@ -1,4 +1,4 @@
-package com.example.saveapenny
+package com.devora.saveapenny
 
 import io.flutter.embedding.android.FlutterActivity
 

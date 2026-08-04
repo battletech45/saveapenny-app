@@ -50,19 +50,18 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAfiqz1Z9H7ffDXUyQUgUheGq0mEf5Ks5E',
-    appId: '1:236642936869:android:c9c7fb12758418921d37cc',
-    messagingSenderId: '236642936869',
-    projectId: 'saveapenny',
-    storageBucket: 'saveapenny.firebasestorage.app',
+    apiKey: 'AIzaSyAvEEr1hWeQCq8V_RRrABjhoGU8aMprCf0',
+    appId: '1:491146764675:android:087adeb22bfcc7204b96b6',
+    messagingSenderId: '491146764675',
+    projectId: 'saveapenny-85a60',
+    storageBucket: 'saveapenny-85a60.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBGYkG3iottzshD9NxOUtl2_4-jmWewOWE',
-    appId: '1:236642936869:ios:c8e357b760d0a9a81d37cc',
-    messagingSenderId: '236642936869',
-    projectId: 'saveapenny',
-    storageBucket: 'saveapenny.firebasestorage.app',
-    iosBundleId: 'com.example.saveapenny',
+    apiKey: 'AIzaSyAQ1pdw_6ITniMxHMGY7M-lGLKBygqoIpo',
+    appId: '1:491146764675:ios:c734ee5b6ee470fa4b96b6',
+    messagingSenderId: '491146764675',
+    projectId: 'saveapenny-85a60',
+    storageBucket: 'saveapenny-85a60.firebasestorage.app',
+    iosBundleId: 'com.devora.saveapenny',
   );
 }
