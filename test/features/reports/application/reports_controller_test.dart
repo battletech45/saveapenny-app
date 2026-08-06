@@ -2,6 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/data/billing_repository.dart';
+import 'package:saveapenny/features/billing/domain/billing_repository.dart';
+import 'package:saveapenny/features/billing/domain/entitlement.dart';
+import 'package:saveapenny/features/billing/domain/feature_access.dart';
+import 'package:saveapenny/features/billing/domain/plan.dart';
 import 'package:saveapenny/features/reports/application/reports_controller.dart';
 import 'package:saveapenny/features/reports/data/reports_repository.dart';
 import 'package:saveapenny/features/reports/domain/cash_flow_point.dart';
@@ -55,6 +61,42 @@ class _FakeReportsRepository implements ReportsRepository {
   Future<NetWorthSnapshot> netWorthSnapshot({required DateTime snapshotDate}) {
     return onNetWorthSnapshot!(snapshotDate);
   }
+}
+
+class _FakeBillingRepository implements BillingRepository {
+  const _FakeBillingRepository(this.entitlement);
+
+  final Entitlement entitlement;
+
+  @override
+  Future<Entitlement> getEntitlement() async => entitlement;
+
+  @override
+  Future<Entitlement> sync() async => entitlement;
+}
+
+Entitlement _entitlement({required bool reportExportUnlocked}) {
+  return Entitlement(
+    plan: reportExportUnlocked ? Plan.plus : Plan.free,
+    status: EntitlementStatus.active,
+    isActive: reportExportUnlocked,
+    willRenew: reportExportUnlocked,
+    features: FeatureAccess(
+      assistant: false,
+      insights: false,
+      stocks: false,
+      ocr: false,
+      csvImport: false,
+      reportExport: reportExportUnlocked,
+      advancedRecurring: false,
+      goalWhatIf: false,
+    ),
+    limits: const PlanLimits(
+      activeBudgets: 1,
+      activeGoals: 1,
+      reportHistoryMonths: 3,
+    ),
+  );
 }
 
 void main() {
@@ -147,4 +189,47 @@ void main() {
       );
     },
   );
+
+  test('previousMonth respects the synced report history limit', () async {
+    final requestedMonths = <DateTime>[];
+    final container = ProviderContainer(
+      overrides: [
+        billingRepositoryProvider.overrideWith(
+          (ref) =>
+              _FakeBillingRepository(_entitlement(reportExportUnlocked: false)),
+        ),
+        reportsRepositoryProvider.overrideWith(
+          (ref) => _FakeReportsRepository(
+            onMonthlySummary: (from, to) async {
+              requestedMonths.add(DateTime.utc(from.year, from.month));
+              return MonthlySummary(
+                startDate: from,
+                endDate: to,
+                totalIncome: 3200,
+                totalExpense: 1800,
+                netSavings: 1400,
+              );
+            },
+            onCategorySpending: (from, to) async => const <CategorySpending>[],
+            onCashFlow: (from, to) async => const <CashFlowPoint>[],
+            onNetWorthSnapshot: (snapshotDate) async => NetWorthSnapshot(
+              snapshotDate: snapshotDate,
+              totalAssets: 5000,
+              totalLiabilities: 1200,
+              netWorth: 3800,
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(entitlementControllerProvider.future);
+    await container.read(reportsControllerProvider.future);
+    await container.read(reportsControllerProvider.notifier).previousMonth();
+    await container.read(reportsControllerProvider.notifier).previousMonth();
+    await container.read(reportsControllerProvider.notifier).previousMonth();
+
+    expect(requestedMonths, hasLength(3));
+  });
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/formatting/money_formatter.dart';
@@ -12,13 +11,20 @@ import 'package:saveapenny/features/reports/domain/net_worth_snapshot.dart';
 import 'package:saveapenny/features/reports/presentation/widgets/reports_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
-class ReportsMonthSwitcher extends ConsumerWidget {
-  const ReportsMonthSwitcher({super.key, required this.month});
+class ReportsMonthSwitcher extends StatelessWidget {
+  const ReportsMonthSwitcher({
+    super.key,
+    required this.month,
+    required this.onPrevious,
+    required this.onNext,
+  });
 
   final DateTime month;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final label = DateFormat.yMMMM(
       Localizations.localeOf(context).toLanguageTag(),
     ).format(month);
@@ -29,8 +35,7 @@ class ReportsMonthSwitcher extends ConsumerWidget {
         child: Row(
           children: <Widget>[
             IconButton(
-              onPressed: () =>
-                  ref.read(reportsControllerProvider.notifier).previousMonth(),
+              onPressed: onPrevious,
               icon: const Icon(Icons.chevron_left_rounded),
             ),
             Expanded(
@@ -41,8 +46,7 @@ class ReportsMonthSwitcher extends ConsumerWidget {
               ),
             ),
             IconButton(
-              onPressed: () =>
-                  ref.read(reportsControllerProvider.notifier).nextMonth(),
+              onPressed: onNext,
               icon: const Icon(Icons.chevron_right_rounded),
             ),
           ],

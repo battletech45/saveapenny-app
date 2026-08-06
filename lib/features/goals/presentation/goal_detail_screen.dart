@@ -8,6 +8,9 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/billing_shared.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
 import 'package:saveapenny/features/goals/application/goals_controller.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
@@ -27,6 +30,14 @@ class GoalDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final detailState = ref.watch(goalDetailControllerProvider(goalId));
+    final goalWhatIfUnlocked =
+        ref
+            .watch(entitlementControllerProvider)
+            .asData
+            ?.value
+            .features
+            .goalWhatIf ??
+        false;
 
     return Scaffold(
       appBar: AppBar(
@@ -133,12 +144,22 @@ class GoalDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       OutlinedButton(
-                        onPressed: () => _showScenarioSheet(context, goal.type),
-                        child: Text(l10n.goalsScenarioAddCta),
+                        onPressed: () => goalWhatIfUnlocked
+                            ? _showScenarioSheet(context, goal.type)
+                            : openUpgrade(context),
+                        child: Text(
+                          goalWhatIfUnlocked
+                              ? l10n.goalsScenarioAddCta
+                              : l10n.paywallUpgradeCta,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
+                  PlanLockedFeatureBanner(
+                    isUnlocked: goalWhatIfUnlocked,
+                    message: l10n.failurePlusRequiredMessage,
+                  ),
                   if (goal.scenarios.isEmpty)
                     GoalInlineEmptyState(
                       title: l10n.goalsScenariosEmptyTitle,

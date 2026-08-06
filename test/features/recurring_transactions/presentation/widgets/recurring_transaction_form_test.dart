@@ -249,6 +249,7 @@ Future<void> _pumpSheet(
   WidgetTester tester,
   ProviderContainer container, {
   RecurringTransaction? existing,
+  bool advancedRecurringUnlocked = true,
 }) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -257,7 +258,12 @@ Future<void> _pumpSheet(
         theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: RecurringTransactionFormSheet(existing: existing)),
+        home: Scaffold(
+          body: RecurringTransactionFormSheet(
+            existing: existing,
+            advancedRecurringUnlocked: advancedRecurringUnlocked,
+          ),
+        ),
       ),
     ),
   );
@@ -367,5 +373,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Next run date must be today or later.'), findsOneWidget);
+  });
+
+  testWidgets('form hides advanced fields when recurring automation is locked', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        accountsRepositoryProvider.overrideWith(
+          (ref) => _FakeAccountsRepository(accounts: <Account>[_account()]),
+        ),
+        categoriesRepositoryProvider.overrideWith(
+          (ref) => _FakeCategoriesRepository(
+            categories: <Category>[
+              _category(
+                id: 'c-1',
+                name: 'Groceries',
+                type: CategoryType.expense,
+              ),
+            ],
+          ),
+        ),
+        recurringTransactionsRepositoryProvider.overrideWith(
+          (ref) => _FakeRecurringTransactionsRepository(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await _pumpSheet(tester, container, advancedRecurringUnlocked: false);
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Automated recurring processing requires Plus. You can still track entries manually.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Start date'), findsNothing);
+    expect(find.text('End date'), findsNothing);
+    expect(find.text('Classification'), findsNothing);
   });
 }

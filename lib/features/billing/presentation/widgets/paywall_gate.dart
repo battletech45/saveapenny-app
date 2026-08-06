@@ -34,7 +34,7 @@ class PaywallGate extends ConsumerWidget {
         return PaywallPrompt(feature: feature);
       },
       loading: () => const LoadingView(),
-      error: (_, _) => child,
+      error: (_, _) => PaywallPrompt(feature: feature),
     );
   }
 }

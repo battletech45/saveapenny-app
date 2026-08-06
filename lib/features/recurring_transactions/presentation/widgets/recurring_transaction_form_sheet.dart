@@ -8,6 +8,7 @@ import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/recurring_transactions/application/recurring_transactions_controller.dart';
@@ -16,9 +17,14 @@ import 'package:saveapenny/features/recurring_transactions/presentation/widgets/
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class RecurringTransactionFormSheet extends ConsumerStatefulWidget {
-  const RecurringTransactionFormSheet({super.key, this.existing});
+  const RecurringTransactionFormSheet({
+    super.key,
+    this.existing,
+    required this.advancedRecurringUnlocked,
+  });
 
   final RecurringTransaction? existing;
+  final bool advancedRecurringUnlocked;
 
   @override
   ConsumerState<RecurringTransactionFormSheet> createState() =>
@@ -284,57 +290,65 @@ class _RecurringTransactionFormSheetState
                   labelText: l10n.recurringTransactionsDescriptionLabel,
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              RecurringOptionalDateField(
-                label: l10n.recurringTransactionsStartDateLabel,
-                value: _startDate == null
-                    ? l10n.recurringTransactionsNoDateValue
-                    : _formatDate(context, _startDate!),
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickStartDate,
-                onClear: _isSubmitting || _startDate == null
-                    ? null
-                    : () => setState(() => _startDate = null),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              RecurringOptionalDateField(
-                label: l10n.recurringTransactionsEndDateLabel,
-                value: _endDate == null
-                    ? l10n.recurringTransactionsNoDateValue
-                    : _formatDate(context, _endDate!),
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickEndDate,
-                onClear: _isSubmitting || _endDate == null
-                    ? null
-                    : () => setState(() => _endDate = null),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<RecurringClassification?>(
-                initialValue: _classification,
-                decoration: InputDecoration(
-                  labelText: l10n.recurringTransactionsClassificationLabel,
+              if (widget.advancedRecurringUnlocked) ...<Widget>[
+                const SizedBox(height: AppSpacing.lg),
+                RecurringOptionalDateField(
+                  label: l10n.recurringTransactionsStartDateLabel,
+                  value: _startDate == null
+                      ? l10n.recurringTransactionsNoDateValue
+                      : _formatDate(context, _startDate!),
+                  actionLabel: l10n.commonContinue,
+                  onPressed: _isSubmitting ? null : _pickStartDate,
+                  onClear: _isSubmitting || _startDate == null
+                      ? null
+                      : () => setState(() => _startDate = null),
                 ),
-                items: <DropdownMenuItem<RecurringClassification?>>[
-                  DropdownMenuItem<RecurringClassification?>(
-                    value: null,
-                    child: Text(l10n.recurringTransactionsClassificationNone),
+                const SizedBox(height: AppSpacing.lg),
+                RecurringOptionalDateField(
+                  label: l10n.recurringTransactionsEndDateLabel,
+                  value: _endDate == null
+                      ? l10n.recurringTransactionsNoDateValue
+                      : _formatDate(context, _endDate!),
+                  actionLabel: l10n.commonContinue,
+                  onPressed: _isSubmitting ? null : _pickEndDate,
+                  onClear: _isSubmitting || _endDate == null
+                      ? null
+                      : () => setState(() => _endDate = null),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                DropdownButtonFormField<RecurringClassification?>(
+                  initialValue: _classification,
+                  decoration: InputDecoration(
+                    labelText: l10n.recurringTransactionsClassificationLabel,
                   ),
-                  ...RecurringClassification.values.map(
-                    (value) => DropdownMenuItem<RecurringClassification?>(
-                      value: value,
-                      child: Text(recurringClassificationLabel(l10n, value)),
+                  items: <DropdownMenuItem<RecurringClassification?>>[
+                    DropdownMenuItem<RecurringClassification?>(
+                      value: null,
+                      child: Text(l10n.recurringTransactionsClassificationNone),
                     ),
-                  ),
-                ],
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _classification = value;
-                          _submissionFailure = null;
-                        });
-                      },
-              ),
+                    ...RecurringClassification.values.map(
+                      (value) => DropdownMenuItem<RecurringClassification?>(
+                        value: value,
+                        child: Text(recurringClassificationLabel(l10n, value)),
+                      ),
+                    ),
+                  ],
+                  onChanged: _isSubmitting
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _classification = value;
+                            _submissionFailure = null;
+                          });
+                        },
+                ),
+              ] else ...<Widget>[
+                const SizedBox(height: AppSpacing.lg),
+                PlanLockedFeatureBanner(
+                  isUnlocked: false,
+                  message: l10n.recurringTransactionsAdvancedLockedMessage,
+                ),
+              ],
               if (_endDate != null &&
                   _startDate != null &&
                   _startDate!.isAfter(_endDate!)) ...[

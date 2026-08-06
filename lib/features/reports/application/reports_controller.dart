@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/domain/entitlement.dart';
 import 'package:saveapenny/features/reports/data/reports_repository.dart';
 import 'package:saveapenny/features/reports/domain/cash_flow_point.dart';
 import 'package:saveapenny/features/reports/domain/category_spending.dart';
@@ -38,6 +40,12 @@ class ReportsController extends _$ReportsController {
   Future<void> previousMonth() async {
     final current = _readAsyncData(state)?.month ?? _currentMonth();
     final previous = DateTime.utc(current.year, current.month - 1);
+    if (!_canViewMonth(
+      previous,
+      ref.read(entitlementControllerProvider).value,
+    )) {
+      return;
+    }
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetch(previous));
   }
@@ -99,6 +107,29 @@ class ReportsController extends _$ReportsController {
 
   ReportsState? _readAsyncData(AsyncValue<ReportsState> value) {
     return value is AsyncData<ReportsState> ? value.value : null;
+  }
+
+  bool _canViewMonth(DateTime targetMonth, Entitlement? entitlement) {
+    if (entitlement == null) {
+      return false;
+    }
+
+    if (entitlement.features.reportExport) {
+      return true;
+    }
+
+    final historyMonths = entitlement.limits.reportHistoryMonths;
+    if (historyMonths <= 0) {
+      return false;
+    }
+
+    final currentMonth = _currentMonth();
+    final oldestAllowed = DateTime.utc(
+      currentMonth.year,
+      currentMonth.month - (historyMonths - 1),
+    );
+
+    return !targetMonth.isBefore(oldestAllowed);
   }
 }
 

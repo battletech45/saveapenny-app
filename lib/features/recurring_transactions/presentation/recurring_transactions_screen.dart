@@ -11,6 +11,7 @@ import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/presentation/widgets/billing_shared.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
@@ -44,16 +45,20 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     final advancedRecurringUnlocked =
         ref
             .watch(entitlementControllerProvider)
-            .value
-            ?.features
+            .asData
+            ?.value
+            .features
             .advancedRecurring ??
-        true;
+        false;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.recurringTransactionsTitle)),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'recurringTransactionsFab',
-        onPressed: () => _showFormSheet(context),
+        onPressed: () => _showFormSheet(
+          context,
+          advancedRecurringUnlocked: advancedRecurringUnlocked,
+        ),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.recurringTransactionsAddCta),
       ),
@@ -65,7 +70,10 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                 title: l10n.recurringTransactionsEmptyTitle,
                 message: l10n.recurringTransactionsEmptyMessage,
                 action: ElevatedButton(
-                  onPressed: () => _showFormSheet(context),
+                  onPressed: () => _showFormSheet(
+                    context,
+                    advancedRecurringUnlocked: advancedRecurringUnlocked,
+                  ),
                   child: Text(l10n.recurringTransactionsAddFirstCta),
                 ),
               );
@@ -82,7 +90,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                     isUnlocked: advancedRecurringUnlocked,
                     message: l10n.recurringTransactionsAdvancedLockedMessage,
                   ),
-                  if (data.upcoming.isNotEmpty) ...[
+                  if (advancedRecurringUnlocked &&
+                      data.upcoming.isNotEmpty) ...[
                     Text(
                       l10n.recurringTransactionsUpcomingTitle,
                       style: context.textTheme.title,
@@ -110,31 +119,42 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                         category: categoryById[item.categoryId],
                         onEdit: item.status == RecurringStatus.expired
                             ? null
-                            : () => _showFormSheet(context, existing: item),
-                        onHistory: () => _showHistorySheet(context, item.id),
-                        onPause: item.status == RecurringStatus.active
-                            ? () => _runAction(
+                            : () => _showFormSheet(
                                 context,
-                                ref,
-                                () => ref
-                                    .read(
-                                      recurringTransactionsControllerProvider
-                                          .notifier,
+                                existing: item,
+                                advancedRecurringUnlocked:
+                                    advancedRecurringUnlocked,
+                              ),
+                        onHistory: advancedRecurringUnlocked
+                            ? () => _showHistorySheet(context, item.id)
+                            : () => openUpgrade(context),
+                        onPause: item.status == RecurringStatus.active
+                            ? advancedRecurringUnlocked
+                                  ? () => _runAction(
+                                      context,
+                                      ref,
+                                      () => ref
+                                          .read(
+                                            recurringTransactionsControllerProvider
+                                                .notifier,
+                                          )
+                                          .pause(item.id),
                                     )
-                                    .pause(item.id),
-                              )
+                                  : () => openUpgrade(context)
                             : null,
                         onResume: item.status == RecurringStatus.paused
-                            ? () => _runAction(
-                                context,
-                                ref,
-                                () => ref
-                                    .read(
-                                      recurringTransactionsControllerProvider
-                                          .notifier,
+                            ? advancedRecurringUnlocked
+                                  ? () => _runAction(
+                                      context,
+                                      ref,
+                                      () => ref
+                                          .read(
+                                            recurringTransactionsControllerProvider
+                                                .notifier,
+                                          )
+                                          .resume(item.id),
                                     )
-                                    .resume(item.id),
-                              )
+                                  : () => openUpgrade(context)
                             : null,
                         onDelete: item.status == RecurringStatus.expired
                             ? null
@@ -170,10 +190,14 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   Future<void> _showFormSheet(
     BuildContext context, {
     RecurringTransaction? existing,
+    required bool advancedRecurringUnlocked,
   }) {
     return showAppModalBottomSheet<void>(
       context: context,
-      builder: (context) => RecurringTransactionFormSheet(existing: existing),
+      builder: (context) => RecurringTransactionFormSheet(
+        existing: existing,
+        advancedRecurringUnlocked: advancedRecurringUnlocked,
+      ),
     );
   }
 

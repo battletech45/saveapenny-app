@@ -9,6 +9,7 @@ import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
+import 'package:saveapenny/features/billing/domain/entitlement.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
 import 'package:saveapenny/features/reports/application/reports_controller.dart';
 import 'package:saveapenny/features/reports/presentation/widgets/reports_cards.dart';
@@ -26,7 +27,7 @@ class ReportsScreen extends ConsumerWidget {
         readReportsAsyncData(ref.watch(accountsControllerProvider)) ??
         const <Account>[];
     final currencyCode = accounts.isEmpty ? 'TRY' : accounts.first.currency;
-    final entitlement = ref.watch(entitlementControllerProvider).value;
+    final entitlement = ref.watch(entitlementControllerProvider).asData?.value;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.reportsTitle)),
@@ -43,12 +44,24 @@ class ReportsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
                   PlanLockedFeatureBanner(
-                    isUnlocked: entitlement?.features.reportExport ?? true,
+                    isUnlocked: entitlement?.features.reportExport ?? false,
                     message: l10n.reportsHistoryLimitedMessage(
                       entitlement?.limits.reportHistoryMonths ?? 3,
                     ),
                   ),
-                  ReportsMonthSwitcher(month: data.month),
+                  ReportsMonthSwitcher(
+                    month: data.month,
+                    onPrevious: _canViewPreviousMonth(data.month, entitlement)
+                        ? () => ref
+                              .read(reportsControllerProvider.notifier)
+                              .previousMonth()
+                        : null,
+                    onNext: _canViewNextMonth(data.month)
+                        ? () => ref
+                              .read(reportsControllerProvider.notifier)
+                              .nextMonth()
+                        : null,
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   ReportsSummaryCard(state: data, currencyCode: currencyCode),
                   const SizedBox(height: AppSpacing.lg),
@@ -115,5 +128,39 @@ class ReportsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  bool _canViewPreviousMonth(DateTime month, Entitlement? entitlement) {
+    if (entitlement == null) {
+      return false;
+    }
+
+    if (entitlement.features.reportExport) {
+      return true;
+    }
+
+    final historyMonths = entitlement.limits.reportHistoryMonths;
+    if (historyMonths <= 0) {
+      return false;
+    }
+
+    final currentMonth = DateTime.utc(
+      DateTime.now().year,
+      DateTime.now().month,
+    );
+    final previousMonth = DateTime.utc(month.year, month.month - 1);
+    final oldestAllowedMonth = currentMonth.month - historyMonths + 1;
+    final oldestAllowed = DateTime.utc(currentMonth.year, oldestAllowedMonth);
+
+    return !previousMonth.isBefore(oldestAllowed);
+  }
+
+  bool _canViewNextMonth(DateTime month) {
+    final currentMonth = DateTime.utc(
+      DateTime.now().year,
+      DateTime.now().month,
+    );
+    final nextMonth = DateTime.utc(month.year, month.month + 1);
+    return !nextMonth.isAfter(currentMonth);
   }
 }

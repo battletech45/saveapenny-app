@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/features/billing/data/billing_repository.dart';
 import 'package:saveapenny/features/billing/domain/billing_repository.dart';
@@ -12,15 +13,26 @@ import 'package:saveapenny/features/billing/presentation/widgets/paywall_gate.da
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class _FakeBillingRepository implements BillingRepository {
-  _FakeBillingRepository(this.entitlement);
+  _FakeBillingRepository({this.entitlement, this.error});
 
-  final Entitlement entitlement;
-
-  @override
-  Future<Entitlement> getEntitlement() async => entitlement;
+  final Entitlement? entitlement;
+  final Exception? error;
 
   @override
-  Future<Entitlement> sync() async => entitlement;
+  Future<Entitlement> getEntitlement() async {
+    if (error != null) {
+      throw error!;
+    }
+    return entitlement!;
+  }
+
+  @override
+  Future<Entitlement> sync() async {
+    if (error != null) {
+      throw error!;
+    }
+    return entitlement!;
+  }
 }
 
 Entitlement _entitlement({required bool assistantUnlocked}) {
@@ -56,7 +68,7 @@ Future<void> _pumpGate(
   final container = ProviderContainer(
     overrides: [
       billingRepositoryProvider.overrideWith(
-        (ref) => _FakeBillingRepository(entitlement),
+        (ref) => _FakeBillingRepository(entitlement: entitlement),
       ),
     ],
   );
@@ -99,5 +111,39 @@ void main() {
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
     expect(find.text(l10n.paywallLockedTitle), findsOneWidget);
     expect(find.text(l10n.paywallUpgradeCta), findsOneWidget);
+  });
+
+  testWidgets('renders the locked prompt when entitlement loading fails', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        billingRepositoryProvider.overrideWith(
+          (ref) => _FakeBillingRepository(error: const Failure.network()),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PaywallGate(
+            feature: 'assistant',
+            isUnlocked: (features) => features.assistant,
+            child: const Text('Assistant content'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text('Assistant content'), findsNothing);
+    expect(find.text(l10n.paywallLockedTitle), findsOneWidget);
   });
 }

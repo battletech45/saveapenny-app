@@ -6,6 +6,11 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/features/billing/data/billing_repository.dart';
+import 'package:saveapenny/features/billing/domain/billing_repository.dart';
+import 'package:saveapenny/features/billing/domain/entitlement.dart';
+import 'package:saveapenny/features/billing/domain/feature_access.dart';
+import 'package:saveapenny/features/billing/domain/plan.dart';
 import 'package:saveapenny/features/goals/data/goals_repository.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
 import 'package:saveapenny/features/goals/domain/goal_detail.dart';
@@ -133,6 +138,18 @@ class _FakeGoalsRepository implements GoalsRepository {
   }
 }
 
+class _FakeBillingRepository implements BillingRepository {
+  const _FakeBillingRepository(this.entitlement);
+
+  final Entitlement entitlement;
+
+  @override
+  Future<Entitlement> getEntitlement() async => entitlement;
+
+  @override
+  Future<Entitlement> sync() async => entitlement;
+}
+
 GoalDetail _goalDetail({GoalStatus status = GoalStatus.active}) {
   return GoalDetail(
     id: 'goal-1',
@@ -166,6 +183,30 @@ Future<void> _pumpScreen(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+Entitlement _entitlement({required bool goalWhatIfUnlocked}) {
+  return Entitlement(
+    plan: goalWhatIfUnlocked ? Plan.plus : Plan.free,
+    status: EntitlementStatus.active,
+    isActive: goalWhatIfUnlocked,
+    willRenew: goalWhatIfUnlocked,
+    features: FeatureAccess(
+      assistant: false,
+      insights: false,
+      stocks: false,
+      ocr: false,
+      csvImport: false,
+      reportExport: false,
+      advancedRecurring: false,
+      goalWhatIf: goalWhatIfUnlocked,
+    ),
+    limits: const PlanLimits(
+      activeBudgets: 1,
+      activeGoals: 1,
+      reportHistoryMonths: 3,
+    ),
+  );
 }
 
 void main() {
@@ -202,5 +243,29 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('goal detail routes scenario upsell through entitlement state', (
+    WidgetTester tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        billingRepositoryProvider.overrideWith(
+          (ref) =>
+              _FakeBillingRepository(_entitlement(goalWhatIfUnlocked: false)),
+        ),
+        goalsRepositoryProvider.overrideWith(
+          (ref) => _FakeGoalsRepository(detail: _goalDetail()),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await _pumpScreen(tester, container: container);
+    await tester.drag(find.byType(ListView), const Offset(0, -600));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Upgrade to Plus'), findsWidgets);
+    expect(find.text('Add scenario'), findsNothing);
   });
 }
