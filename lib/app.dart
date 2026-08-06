@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/billing/revenuecat_session_sync.dart';
 import 'package:saveapenny/core/push/push_notification_controller.dart';
 import 'package:saveapenny/core/router/app_router.dart';
+import 'package:saveapenny/core/settings/app_settings_controller.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -16,6 +17,7 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final settings = ref.watch(appSettingsControllerProvider);
 
     ref.listen(authSessionControllerProvider, (previous, next) {
       final sync = ref.read(revenueCatSessionSyncProvider.notifier);
@@ -36,7 +38,8 @@ class App extends ConsumerWidget {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: settings.resolvedThemeMode,
+      locale: settings.resolvedLocale,
       routerConfig: router,
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
         AppLocalizations.delegate,
