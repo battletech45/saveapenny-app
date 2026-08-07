@@ -30,16 +30,55 @@ class NotificationsController extends _$NotificationsController
     with LoadMoreGuard<NotificationsState> {
   static const int _pageSize = 20;
   static const Duration _undoWindow = Duration(seconds: 5);
+  static const Duration _pollInterval = Duration(seconds: 60);
 
   Timer? _undoTimer;
+  Timer? _pollTimer;
   (Notification, List<Notification>)? _pendingDelete;
 
   @override
   Future<NotificationsState> build() async {
+    ref.onDispose(_disposeTimers);
+    ref.onCancel(_stopPolling);
+    ref.onResume(_restartPolling);
+    _restartPolling();
+
     final unreadCount = await ref
         .read(notificationsRepositoryProvider)
         .unreadCount();
     return _fetchPage(page: 0, unreadCount: unreadCount);
+  }
+
+  void _restartPolling() {
+    _stopPolling();
+    _pollTimer = Timer.periodic(
+      _pollInterval,
+      (_) => unawaited(_pollUnreadCount()),
+    );
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  Future<void> _pollUnreadCount() async {
+    final current = _readAsyncData(state);
+    if (current == null) {
+      return;
+    }
+
+    try {
+      final unreadCount = await ref
+          .read(notificationsRepositoryProvider)
+          .unreadCount();
+      final latest = _readAsyncData(state);
+      if (latest != null && unreadCount != latest.unreadCount) {
+        state = AsyncData(latest.copyWith(unreadCount: unreadCount));
+      }
+    } on Failure {
+      // Transient failure: keep the last known count and retry next tick.
+    }
   }
 
   Future<void> refresh() async {
@@ -231,6 +270,13 @@ class NotificationsController extends _$NotificationsController
   }
 
   void _cancelPendingDelete() {
+    _undoTimer?.cancel();
+    _undoTimer = null;
+    _pendingDelete = null;
+  }
+
+  void _disposeTimers() {
+    _stopPolling();
     _undoTimer?.cancel();
     _undoTimer = null;
     _pendingDelete = null;

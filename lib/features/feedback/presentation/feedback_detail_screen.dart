@@ -51,9 +51,16 @@ class FeedbackDetailScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          feedbackTypeLabel(context, feedback.type),
-                          style: context.textTheme.headline,
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Text(
+                                feedbackTypeLabel(context, feedback.type),
+                                style: context.textTheme.headline,
+                              ),
+                            ),
+                            FeedbackStatusBadge(status: feedback.status),
+                          ],
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         ProfileInfoRow(

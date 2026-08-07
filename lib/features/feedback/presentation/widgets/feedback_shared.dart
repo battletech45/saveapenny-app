@@ -20,6 +20,40 @@ String feedbackTypeLabel(BuildContext context, FeedbackType type) {
   };
 }
 
+String feedbackStatusLabel(BuildContext context, FeedbackStatus status) {
+  final l10n = AppLocalizations.of(context);
+  return switch (status) {
+    FeedbackStatus.open => l10n.feedbackStatusOpen,
+    FeedbackStatus.inReview => l10n.feedbackStatusInReview,
+    FeedbackStatus.resolved => l10n.feedbackStatusResolved,
+    FeedbackStatus.rejected => l10n.feedbackStatusRejected,
+  };
+}
+
+(Color surface, Color foreground) feedbackStatusColors(
+  BuildContext context,
+  FeedbackStatus status,
+) {
+  return switch (status) {
+    FeedbackStatus.open => (
+      context.finance.info.withValues(alpha: 0.12),
+      context.finance.info,
+    ),
+    FeedbackStatus.inReview => (
+      context.finance.warningSurface,
+      context.finance.warning,
+    ),
+    FeedbackStatus.resolved => (
+      context.finance.incomeSurface,
+      context.finance.income,
+    ),
+    FeedbackStatus.rejected => (
+      context.finance.expenseSurface,
+      context.finance.expense,
+    ),
+  };
+}
+
 String feedbackFailureMessage(BuildContext context, Failure failure) {
   final l10n = AppLocalizations.of(context);
   return switch (failure) {
@@ -73,6 +107,37 @@ String formatFeedbackMetadata(Map<String, dynamic>? metadata) {
 
 T? readFeedbackAsyncData<T>(AsyncValue<T> value) {
   return value is AsyncData<T> ? value.value : null;
+}
+
+class FeedbackStatusBadge extends StatelessWidget {
+  const FeedbackStatusBadge({super.key, required this.status});
+
+  final FeedbackStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (surface, foreground) = feedbackStatusColors(context, status);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Text(
+          feedbackStatusLabel(context, status),
+          style: context.textTheme.label.copyWith(
+            color: foreground,
+            fontWeight: AppFontWeight.semibold,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class FeedbackFailureNotice extends StatelessWidget {

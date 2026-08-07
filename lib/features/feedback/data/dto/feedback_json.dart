@@ -16,3 +16,22 @@ String feedbackTypeToJson(FeedbackType value) {
     FeedbackType.bugReport => 'BUG_REPORT',
   };
 }
+
+FeedbackStatus feedbackStatusFromJson(String value) {
+  return switch (value.toUpperCase()) {
+    'OPEN' => FeedbackStatus.open,
+    'IN_REVIEW' => FeedbackStatus.inReview,
+    'RESOLVED' => FeedbackStatus.resolved,
+    'REJECTED' => FeedbackStatus.rejected,
+    _ => throw FormatException('Unsupported feedback status: $value'),
+  };
+}
+
+String feedbackStatusToJson(FeedbackStatus value) {
+  return switch (value) {
+    FeedbackStatus.open => 'OPEN',
+    FeedbackStatus.inReview => 'IN_REVIEW',
+    FeedbackStatus.resolved => 'RESOLVED',
+    FeedbackStatus.rejected => 'REJECTED',
+  };
+}

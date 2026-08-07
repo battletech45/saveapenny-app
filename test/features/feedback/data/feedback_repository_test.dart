@@ -38,6 +38,7 @@ void main() {
             'appVersion': '1.0.0',
             'screen': 'profile',
           },
+          'status': 'OPEN',
           'createdAt': '2026-07-31T10:00:00Z',
           'updatedAt': '2026-07-31T10:00:00Z',
         },
@@ -62,6 +63,7 @@ void main() {
     expect(feedback.type, FeedbackType.featureRequest);
     expect(feedback.rating, 5);
     expect(feedback.metadata?['screen'], 'profile');
+    expect(feedback.status, FeedbackStatus.open);
     expect(request.data['type'], 'FEATURE_REQUEST');
     expect(request.data['rating'], 5);
     expect(request.data['message'], 'Please add widgets.');
@@ -82,6 +84,7 @@ void main() {
               'rating': null,
               'message': 'Looks good.',
               'metadata': <String, dynamic>{'screen': 'profile'},
+              'status': 'IN_REVIEW',
               'createdAt': '2026-07-31T10:00:00Z',
               'updatedAt': '2026-07-31T10:00:00Z',
             },
@@ -104,6 +107,7 @@ void main() {
     expect(page.items, hasLength(1));
     expect(page.items.single.type, FeedbackType.general);
     expect(page.items.single.message, 'Looks good.');
+    expect(page.items.single.status, FeedbackStatus.inReview);
     expect(request.queryParameters['type'], 'GENERAL');
   });
 
@@ -120,6 +124,7 @@ void main() {
           'rating': 2,
           'message': 'The screen freezes.',
           'metadata': <String, dynamic>{'screen': 'dashboard'},
+          'status': 'REJECTED',
           'createdAt': '2026-07-31T10:00:00Z',
           'updatedAt': '2026-07-31T10:00:00Z',
         },
@@ -132,6 +137,7 @@ void main() {
 
     expect(feedback.type, FeedbackType.bugReport);
     expect(feedback.message, 'The screen freezes.');
+    expect(feedback.status, FeedbackStatus.rejected);
   });
 
   test('delete surfaces feedback-not-found failures', () async {

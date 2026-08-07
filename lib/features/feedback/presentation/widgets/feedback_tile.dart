@@ -26,7 +26,14 @@ class FeedbackTile extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.all(AppSpacing.md),
-        title: Text(feedbackTypeLabel(context, feedback.type)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Flexible(child: Text(feedbackTypeLabel(context, feedback.type))),
+            const SizedBox(width: AppSpacing.sm),
+            FeedbackStatusBadge(status: feedback.status),
+          ],
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

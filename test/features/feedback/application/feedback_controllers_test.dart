@@ -94,6 +94,7 @@ Feedback _feedback({
     rating: 4,
     message: 'Useful app.',
     metadata: const <String, dynamic>{'screen': 'profile'},
+    status: FeedbackStatus.open,
     createdAt: DateTime.parse('2026-07-31T10:00:00Z'),
     updatedAt: DateTime.parse('2026-07-31T10:00:00Z'),
   );

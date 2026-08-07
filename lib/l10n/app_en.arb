@@ -194,6 +194,11 @@
     }
   },
   "feedbackNoRating": "No rating",
+  "feedbackStatusLabel": "Status",
+  "feedbackStatusOpen": "Open",
+  "feedbackStatusInReview": "In review",
+  "feedbackStatusResolved": "Resolved",
+  "feedbackStatusRejected": "Rejected",
   "feedbackMessageLabel": "Message",
   "feedbackMessageHint": "Describe your experience, idea, or issue.",
   "feedbackMessageError": "Enter feedback up to 5000 characters.",
