@@ -16,6 +16,7 @@ import 'package:saveapenny/features/billing/domain/feature_access.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/paywall_gate.dart';
 import 'package:saveapenny/features/budgets/presentation/budgets_screen.dart';
 import 'package:saveapenny/features/categories/presentation/categories_screen.dart';
+import 'package:saveapenny/features/credit_cards/presentation/credit_card_detail_screen.dart';
 import 'package:saveapenny/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:saveapenny/features/feedback/presentation/feedback_detail_screen.dart';
 import 'package:saveapenny/features/feedback/presentation/feedback_screen.dart';
@@ -321,6 +322,12 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/accounts',
         builder: (context, state) => const AccountsScreen(),
+      ),
+      GoRoute(
+        path: '/accounts/:accountId/credit',
+        builder: (context, state) => CreditCardDetailScreen(
+          accountId: state.pathParameters['accountId']!,
+        ),
       ),
       GoRoute(
         path: '/categories',
