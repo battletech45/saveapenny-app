@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -176,5 +177,42 @@ void main() {
     final state = container.read(notificationsControllerProvider).value!;
     expect(state.items.single.read, false);
     expect(state.unreadCount, 1);
+  });
+
+  test('polls the unread count on an interval while the provider is alive', () {
+    fakeAsync((async) {
+      final notification = _notification(id: 'n-1');
+      var unreadCount = 1;
+
+      final container = ProviderContainer(
+        overrides: [
+          notificationsRepositoryProvider.overrideWith(
+            (ref) => _FakeNotificationsRepository(
+              onList: () async => _page(<Notification>[notification]),
+              onUnreadCount: () async => unreadCount,
+              onMarkRead: (_) async => notification,
+              onMarkAllRead: () async {},
+              onDelete: (_) async {},
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final subscription = container.listen(
+        notificationsControllerProvider,
+        (_, _) {},
+        fireImmediately: true,
+      );
+      addTearDown(subscription.close);
+
+      async.elapse(Duration.zero);
+
+      unreadCount = 5;
+      async.elapse(const Duration(seconds: 60));
+
+      final state = container.read(notificationsControllerProvider).value!;
+      expect(state.unreadCount, 5);
+    });
   });
 }
