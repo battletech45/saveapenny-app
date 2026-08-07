@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/imports/data/imports_repository.dart';
 import 'package:saveapenny/features/imports/domain/import_models.dart';
 
@@ -98,6 +99,8 @@ class ImportsController extends _$ImportsController {
 
       if (status.status == ImportJobStatus.running) {
         _startPolling(preview.importId);
+      } else if (status.status == ImportJobStatus.completed) {
+        await _syncAccounts();
       }
     } on Failure catch (error) {
       state = state.copyWith(step: ImportStep.previewReady, error: error);
@@ -141,6 +144,7 @@ class ImportsController extends _$ImportsController {
         _pollTimer?.cancel();
         if (status.status == ImportJobStatus.completed) {
           unawaited(ref.read(analyticsServiceProvider).logImportCompleted());
+          await _syncAccounts();
         }
       }
     } on Failure catch (error) {
@@ -149,6 +153,15 @@ class ImportsController extends _$ImportsController {
     } on Object catch (error) {
       _pollTimer?.cancel();
       state = state.copyWith(error: Failure.unknown(message: error.toString()));
+    }
+  }
+
+  Future<void> _syncAccounts() async {
+    try {
+      await ref.read(accountsControllerProvider.notifier).sync();
+    } on Object {
+      // Import state should stay successful even if the dependent account
+      // refresh misses one cycle.
     }
   }
 
