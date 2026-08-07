@@ -194,6 +194,11 @@
     }
   },
   "feedbackNoRating": "Puan yok",
+  "feedbackStatusLabel": "Durum",
+  "feedbackStatusOpen": "Açık",
+  "feedbackStatusInReview": "İnceleniyor",
+  "feedbackStatusResolved": "Çözüldü",
+  "feedbackStatusRejected": "Reddedildi",
   "feedbackMessageLabel": "Mesaj",
   "feedbackMessageHint": "Deneyiminizi, fikrinizi veya sorununuzu anlatın.",
   "feedbackMessageError": "En fazla 5000 karakterlik bir geri bildirim girin.",

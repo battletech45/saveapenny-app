@@ -123,6 +123,11 @@ class NotificationIcon extends StatelessWidget {
         context.finance.info,
         context.colors.textPrimary,
       ),
+      NotificationType.feedbackStatusUpdated => (
+        Icons.feedback_outlined,
+        context.finance.info,
+        context.colors.textPrimary,
+      ),
       NotificationType.system => (
         Icons.info_outline_rounded,
         context.colors.surfaceSubtle,

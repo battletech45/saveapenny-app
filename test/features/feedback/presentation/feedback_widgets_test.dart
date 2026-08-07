@@ -102,6 +102,7 @@ Feedback _feedback({required String id}) {
     rating: 4,
     message: 'Helpful app.',
     metadata: const <String, dynamic>{'screen': 'profile'},
+    status: FeedbackStatus.open,
     createdAt: DateTime.parse('2026-07-31T10:00:00Z'),
     updatedAt: DateTime.parse('2026-07-31T10:00:00Z'),
   );
@@ -264,5 +265,34 @@ void main() {
       find.text('Check your internet connection and try again.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('feedback screen shows the status badge for each item', (
+    WidgetTester tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [
+        feedbackRepositoryProvider.overrideWith(
+          (ref) => _FakeFeedbackRepository(
+            items: <Feedback>[
+              _feedback(id: 'f-1').copyWith(status: FeedbackStatus.resolved),
+            ],
+            onSubmit:
+                ({required type, rating, required message, metadata}) async =>
+                    _feedback(id: 'f-1'),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await _pumpWidget(
+      tester,
+      container: container,
+      child: const FeedbackScreen(),
+      wrapInScaffold: false,
+    );
+
+    expect(find.text('Resolved'), findsOneWidget);
   });
 }

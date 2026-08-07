@@ -47,6 +47,7 @@ NotificationType _notificationTypeFromWire(String value) {
       NotificationType.recurringTransactionCreated,
     'GOAL_OFF_TRACK' => NotificationType.goalOffTrack,
     'INSIGHT_GENERATED' => NotificationType.insightGenerated,
+    'FEEDBACK_STATUS_UPDATED' => NotificationType.feedbackStatusUpdated,
     'SYSTEM' => NotificationType.system,
     _ => throw FormatException('Unsupported notification type: $value'),
   };

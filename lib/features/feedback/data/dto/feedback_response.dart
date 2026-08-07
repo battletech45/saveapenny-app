@@ -16,6 +16,8 @@ abstract class FeedbackResponse with _$FeedbackResponse {
     int? rating,
     required String message,
     Map<String, dynamic>? metadata,
+    @JsonKey(fromJson: feedbackStatusFromJson, toJson: feedbackStatusToJson)
+    required FeedbackStatus status,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _FeedbackResponse;
@@ -33,6 +35,7 @@ extension FeedbackResponseX on FeedbackResponse {
       rating: rating,
       message: message,
       metadata: metadata,
+      status: status,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

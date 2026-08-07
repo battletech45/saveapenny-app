@@ -8,6 +8,7 @@ enum NotificationType {
   recurringTransactionCreated,
   goalOffTrack,
   insightGenerated,
+  feedbackStatusUpdated,
   system,
 }
 
