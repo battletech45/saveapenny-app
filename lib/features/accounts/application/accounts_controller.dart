@@ -41,6 +41,9 @@ class AccountsController extends _$AccountsController {
     required AccountType type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   }) async {
     final current = state is AsyncData<List<Account>>
         ? (state as AsyncData<List<Account>>).value
@@ -54,6 +57,9 @@ class AccountsController extends _$AccountsController {
             type: type,
             currency: currency,
             initialBalance: initialBalance,
+            creditLimit: creditLimit,
+            apr: apr,
+            statementDay: statementDay,
           );
       return <Account>[...current, created];
     });

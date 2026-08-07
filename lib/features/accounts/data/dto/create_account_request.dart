@@ -10,6 +10,9 @@ abstract class CreateAccountRequest with _$CreateAccountRequest {
     required String type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   }) = _CreateAccountRequest;
 
   factory CreateAccountRequest.fromJson(Map<String, dynamic> json) =>
