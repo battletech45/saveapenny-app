@@ -7,6 +7,8 @@ part 'accounts_controller.g.dart';
 
 @Riverpod(keepAlive: true)
 class AccountsController extends _$AccountsController {
+  Future<List<Account>>? _inFlightFetch;
+
   @override
   Future<List<Account>> build() {
     return ref.read(accountsRepositoryProvider).list();
@@ -14,9 +16,7 @@ class AccountsController extends _$AccountsController {
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ref.read(accountsRepositoryProvider).list(),
-    );
+    state = await AsyncValue.guard(_fetch);
   }
 
   Future<void> sync() async {
@@ -25,7 +25,7 @@ class AccountsController extends _$AccountsController {
         : null;
 
     try {
-      state = AsyncData(await ref.read(accountsRepositoryProvider).list());
+      state = AsyncData(await _fetch());
     } on Object catch (error, stackTrace) {
       if (current != null) {
         state = AsyncData(current);
@@ -34,6 +34,15 @@ class AccountsController extends _$AccountsController {
 
       state = AsyncError(error, stackTrace);
     }
+  }
+
+  // Coalesces concurrent refresh/sync callers onto a single in-flight
+  // request instead of each firing its own GET and racing on `state`.
+  Future<List<Account>> _fetch() {
+    return _inFlightFetch ??= ref
+        .read(accountsRepositoryProvider)
+        .list()
+        .whenComplete(() => _inFlightFetch = null);
   }
 
   Future<void> create({

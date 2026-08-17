@@ -308,6 +308,55 @@ void main() {
     },
   );
 
+  test(
+    'a slow status check does not overlap with the next poll tick',
+    () async {
+      var statusCallCount = 0;
+      var accountListCallCount = 0;
+
+      final container = ProviderContainer(
+        overrides: [
+          importsRepositoryProvider.overrideWith(
+            (ref) => _FakeImportsRepository(
+              onPreview: (_) async => _preview(),
+              onConfirm: (_) async =>
+                  _status(status: ImportJobStatus.running, importedRows: 0),
+              onStatus: (_) async {
+                statusCallCount += 1;
+                // Slower than the 2s poll interval: if Timer.periodic were
+                // still in use, a second tick would fire while this is
+                // in flight and re-enter _pollStatus.
+                await Future<void>.delayed(const Duration(seconds: 3));
+                return _status(status: ImportJobStatus.completed);
+              },
+            ),
+          ),
+          accountsRepositoryProvider.overrideWith(
+            (ref) => _FakeAccountsRepository(
+              onList: () async {
+                accountListCallCount += 1;
+                return <Account>[_account(id: 'a-1', balance: 400)];
+              },
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(accountsControllerProvider.future);
+      final baselineAccountListCalls = accountListCallCount;
+      await container
+          .read(importsControllerProvider.notifier)
+          .previewFile(filePath: 'test.csv');
+      await container.read(importsControllerProvider.notifier).confirmImport();
+      await Future<void>.delayed(const Duration(seconds: 6));
+
+      expect(statusCallCount, 1);
+      expect(accountListCallCount - baselineAccountListCalls, 1);
+      expect(container.read(importsControllerProvider).isCompleted, isTrue);
+    },
+  );
+
   test('reset returns to idle state', () async {
     final container = ProviderContainer(
       overrides: [
