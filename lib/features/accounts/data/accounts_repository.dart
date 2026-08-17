@@ -28,6 +28,9 @@ class AccountsRepositoryImpl implements AccountsRepository {
     required AccountType type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   }) async {
     final response = await _accountsApi.create(
       CreateAccountRequest(
@@ -35,6 +38,9 @@ class AccountsRepositoryImpl implements AccountsRepository {
         type: _accountTypeToWire(type),
         currency: currency,
         initialBalance: initialBalance,
+        creditLimit: creditLimit,
+        apr: apr,
+        statementDay: statementDay,
       ),
     );
 

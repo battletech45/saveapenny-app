@@ -13,24 +13,27 @@ class CashFlowSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: CashFlowTile(
-            label: l10n.dashboardMonthlyIncomeLabel,
-            amount: summary.totalIncome,
-            icon: Icons.arrow_upward_rounded,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Expanded(
+            child: CashFlowTile(
+              label: l10n.dashboardMonthlyIncomeLabel,
+              amount: summary.totalIncome,
+              icon: Icons.arrow_upward_rounded,
+            ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: CashFlowTile(
-            label: l10n.dashboardMonthlyExpenseLabel,
-            amount: -summary.totalExpense,
-            icon: Icons.arrow_downward_rounded,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: CashFlowTile(
+              label: l10n.dashboardMonthlyExpenseLabel,
+              amount: -summary.totalExpense,
+              icon: Icons.arrow_downward_rounded,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/analytics/analytics_service.dart';
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/imports/data/imports_repository.dart';
 import 'package:saveapenny/features/imports/domain/import_models.dart';
 
@@ -57,6 +58,7 @@ class ImportFlowState {
 @Riverpod(keepAlive: true)
 class ImportsController extends _$ImportsController {
   Timer? _pollTimer;
+  bool _isPolling = false;
 
   @override
   ImportFlowState build() {
@@ -98,6 +100,8 @@ class ImportsController extends _$ImportsController {
 
       if (status.status == ImportJobStatus.running) {
         _startPolling(preview.importId);
+      } else if (status.status == ImportJobStatus.completed) {
+        await _syncAccounts();
       }
     } on Failure catch (error) {
       state = state.copyWith(step: ImportStep.previewReady, error: error);
@@ -120,13 +124,15 @@ class ImportsController extends _$ImportsController {
 
   void _startPolling(String importId) {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) => _pollStatus(importId),
-    );
+    // A one-shot timer that only re-arms after the previous status check
+    // finishes, instead of Timer.periodic, which would tick again even if
+    // the prior check was still in flight and cause overlapping calls.
+    _pollTimer = Timer(const Duration(seconds: 2), () => _pollStatus(importId));
   }
 
   Future<void> _pollStatus(String importId) async {
+    if (_isPolling) return;
+    _isPolling = true;
     try {
       final status = await ref
           .read(importsRepositoryProvider)
@@ -134,13 +140,12 @@ class ImportsController extends _$ImportsController {
       state = ImportFlowState(step: _stepFromStatus(status), status: status);
 
       if (status.status == ImportJobStatus.running) {
-        if (_pollTimer?.isActive != true) {
-          _startPolling(importId);
-        }
+        _startPolling(importId);
       } else {
         _pollTimer?.cancel();
         if (status.status == ImportJobStatus.completed) {
           unawaited(ref.read(analyticsServiceProvider).logImportCompleted());
+          await _syncAccounts();
         }
       }
     } on Failure catch (error) {
@@ -149,6 +154,17 @@ class ImportsController extends _$ImportsController {
     } on Object catch (error) {
       _pollTimer?.cancel();
       state = state.copyWith(error: Failure.unknown(message: error.toString()));
+    } finally {
+      _isPolling = false;
+    }
+  }
+
+  Future<void> _syncAccounts() async {
+    try {
+      await ref.read(accountsControllerProvider.notifier).sync();
+    } on Object {
+      // Import state should stay successful even if the dependent account
+      // refresh misses one cycle.
     }
   }
 

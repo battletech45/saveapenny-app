@@ -8,6 +8,9 @@ abstract interface class AccountsRepository {
     required AccountType type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   });
 
   Future<Account> update({

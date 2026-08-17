@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
@@ -58,6 +59,9 @@ class AccountsScreen extends ConsumerWidget {
                     onEdit: () =>
                         _showAccountSheet(context, ref, existing: account),
                     onDelete: () => _confirmDelete(context, ref, account),
+                    onTap: () => GoRouter.of(
+                      context,
+                    ).push('/accounts/${account.id}/credit'),
                   );
                 },
               ),

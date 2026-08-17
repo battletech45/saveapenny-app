@@ -33,6 +33,9 @@ class _FakeAccountsRepository implements AccountsRepository {
     required AccountType type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   }) {
     throw UnimplementedError();
   }

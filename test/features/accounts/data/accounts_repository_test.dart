@@ -59,6 +59,63 @@ void main() {
     expect(accounts.first.type, AccountType.bank);
   });
 
+  test(
+    'create parses a fresh CREDIT account with no open statement yet',
+    () async {
+      // Backend only populates currentStatementBalance/minimumPaymentDue/
+      // statementDate/paymentDueDate/statementStatus once a statement
+      // exists; a just-created account has none yet, so these come back
+      // null even though creditLimit/apr/statementDay are always set.
+      adapter.enqueueJson(
+        path: '/accounts',
+        statusCode: 200,
+        body: <String, dynamic>{
+          'success': true,
+          'data': <String, dynamic>{
+            'id': 'a-2',
+            'name': 'New credit card',
+            'type': 'CREDIT',
+            'currency': 'TRY',
+            'balance': 0,
+            'initialBalance': 0,
+            'active': true,
+            'createdAt': '2026-06-09T12:00:00Z',
+            'updatedAt': '2026-06-09T12:00:00Z',
+            'creditCard': <String, dynamic>{
+              'creditLimit': 5000,
+              'apr': 24.99,
+              'statementDay': 15,
+              'gracePeriodDays': 21,
+              'availableCredit': 5000,
+              'currentStatementBalance': null,
+              'minimumPaymentDue': null,
+              'statementDate': null,
+              'paymentDueDate': null,
+              'statementStatus': null,
+            },
+          },
+          'error': null,
+          'timestamp': '2026-06-09T12:00:00Z',
+        },
+      );
+
+      final account = await repository.create(
+        name: 'New credit card',
+        type: AccountType.credit,
+        currency: 'TRY',
+        initialBalance: 0,
+        creditLimit: 5000,
+        apr: 24.99,
+        statementDay: 15,
+      );
+
+      expect(account.creditCard, isNotNull);
+      expect(account.creditCard!.availableCredit, 5000);
+      expect(account.creditCard!.statementDate, isNull);
+      expect(account.creditCard!.statementStatus, isNull);
+    },
+  );
+
   test('create surfaces validation failures', () async {
     adapter.enqueueJson(
       path: '/accounts',

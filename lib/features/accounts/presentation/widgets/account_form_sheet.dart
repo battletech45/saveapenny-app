@@ -7,6 +7,7 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/presentation/widgets/account_shared.dart';
+import 'package:saveapenny/features/credit_cards/application/credit_cards_controller.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class AccountFormSheet extends ConsumerStatefulWidget {
@@ -23,9 +24,16 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _currencyController;
   late final TextEditingController _initialBalanceController;
+  late final TextEditingController _creditLimitController;
+  late final TextEditingController _aprController;
+  late final TextEditingController _statementDayController;
   late AccountType _type;
+  bool _isSavingCreditDetails = false;
+  Failure? _creditDetailsFailure;
 
   bool get _isEditing => widget.existing != null;
+
+  bool get _isCredit => _type == AccountType.credit;
 
   @override
   void initState() {
@@ -37,6 +45,16 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
     _initialBalanceController = TextEditingController(
       text: widget.existing?.initialBalance.toString() ?? '0',
     );
+    final creditCard = widget.existing?.creditCard;
+    _creditLimitController = TextEditingController(
+      text: creditCard?.creditLimit.toString() ?? '',
+    );
+    _aprController = TextEditingController(
+      text: creditCard?.apr.toString() ?? '',
+    );
+    _statementDayController = TextEditingController(
+      text: creditCard?.statementDay.toString() ?? '',
+    );
     _type = widget.existing?.type ?? AccountType.bank;
   }
 
@@ -45,6 +63,9 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
     _nameController.dispose();
     _currencyController.dispose();
     _initialBalanceController.dispose();
+    _creditLimitController.dispose();
+    _aprController.dispose();
+    _statementDayController.dispose();
     super.dispose();
   }
 
@@ -52,10 +73,10 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final accountsState = ref.watch(accountsControllerProvider);
-    final isSubmitting = accountsState.isLoading;
-    final failure = accountsState.hasError
-        ? accountsState.error as Failure
-        : null;
+    final isSubmitting = accountsState.isLoading || _isSavingCreditDetails;
+    final failure =
+        _creditDetailsFailure ??
+        (accountsState.hasError ? accountsState.error as Failure : null);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -141,6 +162,45 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
                   validator: (value) => _validateAmount(l10n, value),
                 ),
               ],
+              if (_isCredit) ...<Widget>[
+                const SizedBox(height: AppSpacing.xxl),
+                Text(
+                  l10n.accountsCreditSettingsTitle,
+                  style: context.textTheme.title,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  controller: _creditLimitController,
+                  enabled: !isSubmitting,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.accountsCreditLimitLabel,
+                  ),
+                  validator: (value) => _validatePositiveAmount(l10n, value),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  controller: _aprController,
+                  enabled: !isSubmitting,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(labelText: l10n.accountsAprLabel),
+                  validator: (value) => _validateNonNegativeAmount(l10n, value),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  controller: _statementDayController,
+                  enabled: !isSubmitting,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: l10n.accountsStatementDayLabel,
+                  ),
+                  validator: (value) => _validateStatementDay(l10n, value),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xxl),
               ElevatedButton(
                 onPressed: isSubmitting ? null : _submit,
@@ -194,10 +254,56 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
     return null;
   }
 
+  String? _validatePositiveAmount(AppLocalizations l10n, String? value) {
+    final requiredError = _validateRequired(l10n, value);
+    if (requiredError != null) {
+      return requiredError;
+    }
+
+    final parsed = num.tryParse(value!.trim());
+    if (parsed == null || parsed <= 0) {
+      return l10n.accountsCreditLimitError;
+    }
+
+    return null;
+  }
+
+  String? _validateNonNegativeAmount(AppLocalizations l10n, String? value) {
+    final requiredError = _validateRequired(l10n, value);
+    if (requiredError != null) {
+      return requiredError;
+    }
+
+    final parsed = num.tryParse(value!.trim());
+    if (parsed == null || parsed < 0) {
+      return l10n.accountsAprError;
+    }
+
+    return null;
+  }
+
+  String? _validateStatementDay(AppLocalizations l10n, String? value) {
+    final requiredError = _validateRequired(l10n, value);
+    if (requiredError != null) {
+      return requiredError;
+    }
+
+    final parsed = int.tryParse(value!.trim());
+    if (parsed == null || parsed < 1 || parsed > 28) {
+      return l10n.accountsStatementDayError;
+    }
+
+    return null;
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    setState(() {
+      _creditDetailsFailure = null;
+    });
 
     final controller = ref.read(accountsControllerProvider.notifier);
     if (_isEditing) {
@@ -207,17 +313,68 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
         type: _type,
         currency: _currencyController.text.trim().toUpperCase(),
       );
+
+      final state = ref.read(accountsControllerProvider);
+      if (!mounted || state.hasError) {
+        return;
+      }
+
+      if (_isCredit) {
+        setState(() {
+          _isSavingCreditDetails = true;
+        });
+        try {
+          await ref
+              .read(
+                creditCardDetailControllerProvider(
+                  widget.existing!.id,
+                ).notifier,
+              )
+              .updateDetails(
+                creditLimit: num.parse(_creditLimitController.text.trim()),
+                apr: num.parse(_aprController.text.trim()),
+                statementDay: int.parse(_statementDayController.text.trim()),
+              );
+        } on Failure catch (failure) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _creditDetailsFailure = failure;
+            _isSavingCreditDetails = false;
+          });
+          return;
+        }
+
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _isSavingCreditDetails = false;
+        });
+      }
     } else {
       await controller.create(
         name: _nameController.text.trim(),
         type: _type,
         currency: _currencyController.text.trim().toUpperCase(),
         initialBalance: num.parse(_initialBalanceController.text.trim()),
+        creditLimit: _isCredit
+            ? num.parse(_creditLimitController.text.trim())
+            : null,
+        apr: _isCredit ? num.parse(_aprController.text.trim()) : null,
+        statementDay: _isCredit
+            ? int.parse(_statementDayController.text.trim())
+            : null,
       );
+
+      final state = ref.read(accountsControllerProvider);
+      if (!mounted || state.hasError) {
+        return;
+      }
     }
 
-    final state = ref.read(accountsControllerProvider);
-    if (!mounted || state.hasError) {
+    if (!mounted) {
       return;
     }
 

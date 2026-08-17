@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,6 +28,9 @@ class _FakeAccountsRepository implements AccountsRepository {
     required AccountType type,
     required String currency,
     required num initialBalance,
+    num? creditLimit,
+    num? apr,
+    int? statementDay,
   }) {
     return onCreate!(name, type, currency, initialBalance);
   }
@@ -124,4 +129,45 @@ void main() {
 
     expect(container.read(accountsControllerProvider).hasError, isTrue);
   });
+
+  test(
+    'concurrent sync calls are coalesced into a single repository request',
+    () async {
+      var listCallCount = 0;
+      final listCompleters = <Completer<List<Account>>>[];
+
+      final container = ProviderContainer(
+        overrides: [
+          accountsRepositoryProvider.overrideWith(
+            (ref) => _FakeAccountsRepository(
+              onList: () {
+                listCallCount += 1;
+                final completer = Completer<List<Account>>();
+                listCompleters.add(completer);
+                return completer.future;
+              },
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final initialBuild = container.read(accountsControllerProvider.future);
+      listCompleters.first.complete(const <Account>[]);
+      await initialBuild;
+      listCallCount = 0;
+
+      final notifier = container.read(accountsControllerProvider.notifier);
+      final first = notifier.sync();
+      final second = notifier.sync();
+
+      expect(listCallCount, 1);
+
+      listCompleters.last.complete(const <Account>[]);
+      await first;
+      await second;
+
+      expect(listCallCount, 1);
+    },
+  );
 }

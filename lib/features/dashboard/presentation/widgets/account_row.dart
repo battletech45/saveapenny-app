@@ -20,6 +20,7 @@ class AccountRow extends StatelessWidget {
       context: context,
       amount: account.balance,
       currencyCode: account.currency,
+      isDebt: account.type == AccountType.credit,
     );
 
     return ListTile(
