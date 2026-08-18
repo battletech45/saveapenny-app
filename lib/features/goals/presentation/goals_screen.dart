@@ -41,6 +41,7 @@ class GoalsScreen extends ConsumerWidget {
             data: (data) {
               if (data.items.isEmpty) {
                 return EmptyView(
+                  icon: Icons.flag_outlined,
                   title: l10n.goalsEmptyTitle,
                   message: l10n.goalsEmptyMessage,
                   action: ElevatedButton(

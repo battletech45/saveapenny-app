@@ -40,6 +40,7 @@ class AccountsScreen extends ConsumerWidget {
             data: (accounts) {
               if (accounts.isEmpty) {
                 return EmptyView(
+                  icon: Icons.account_balance_outlined,
                   title: l10n.accountsEmptyTitle,
                   message: l10n.accountsEmptyMessage,
                   action: ElevatedButton(
@@ -63,7 +64,9 @@ class AccountsScreen extends ConsumerWidget {
                       account: account,
                       onEdit: () =>
                           _showAccountSheet(context, ref, existing: account),
-                      onDelete: () => _confirmDelete(context, ref, account),
+                      confirmDelete: () =>
+                          _confirmDeleteDialog(context, account),
+                      onDelete: () => _deleteAccount(context, ref, account),
                       onTap: () => GoRouter.of(
                         context,
                       ).push('/accounts/${account.id}/credit'),
@@ -95,9 +98,8 @@ class AccountsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(
+  Future<bool> _confirmDeleteDialog(
     BuildContext context,
-    WidgetRef ref,
     Account account,
   ) async {
     final l10n = AppLocalizations.of(context);
@@ -120,11 +122,14 @@ class AccountsScreen extends ConsumerWidget {
         );
       },
     );
+    return confirmed == true;
+  }
 
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-
+  Future<void> _deleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+    Account account,
+  ) async {
     await ref
         .read(accountsControllerProvider.notifier)
         .deleteAccount(account.id);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/charts.dart';
 import 'package:saveapenny/features/goals/domain/goal_run.dart';
 import 'package:saveapenny/features/goals/domain/goal_scenario.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/goal_shared.dart';
@@ -116,6 +117,30 @@ class GoalRunCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
+            if (run.outputSeries != null) ...<Widget>[
+              Builder(
+                builder: (context) {
+                  final points = tryParseGoalSeries(run.outputSeries);
+                  if (points == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        l10n.goalsRunProjectionLabel,
+                        style: context.textTheme.label.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      LineTrendChart(points: points, height: 140),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                  );
+                },
+              ),
+            ],
             if (run.outputSummary != null) ...<Widget>[
               Text(
                 l10n.goalsRunSummaryLabel,

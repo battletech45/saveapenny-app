@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/charts.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
 import 'package:saveapenny/features/goals/domain/goal_run.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -27,6 +28,16 @@ String goalTypeLabel(AppLocalizations l10n, GoalType type) {
     GoalType.purchase => l10n.goalsTypePurchase,
     GoalType.retirement => l10n.goalsTypeRetirement,
     GoalType.incomeTarget => l10n.goalsTypeIncomeTarget,
+  };
+}
+
+IconData goalTypeIcon(GoalType type) {
+  return switch (type) {
+    GoalType.savings => Icons.savings_outlined,
+    GoalType.debtPayoff => Icons.credit_score_outlined,
+    GoalType.purchase => Icons.shopping_bag_outlined,
+    GoalType.retirement => Icons.beach_access_outlined,
+    GoalType.incomeTarget => Icons.trending_up_rounded,
   };
 }
 
@@ -84,6 +95,51 @@ String goalFailureMessage(BuildContext context, Failure failure) {
         _ => message.isNotEmpty ? message : l10n.failureValidationFailedMessage,
       },
   };
+}
+
+const List<String> _seriesValueKeys = <String>[
+  'value',
+  'amount',
+  'balance',
+  'projectedBalance',
+  'y',
+];
+
+/// Best-effort parse of `GoalRun.outputSeries` — an untyped `Object?` with no
+/// documented shape — into chart points. Only returns points when the shape
+/// is unambiguous (a flat numeric list, or a list of maps each carrying
+/// exactly one recognizable numeric field); returns null otherwise so the
+/// caller can fall back to the raw JSON view rather than rendering a chart
+/// built on a guess.
+List<TrendPoint>? tryParseGoalSeries(Object? value) {
+  if (value is! List || value.length < 2) {
+    return null;
+  }
+
+  if (value.every((element) => element is num)) {
+    return <TrendPoint>[
+      for (var i = 0; i < value.length; i++)
+        TrendPoint(i.toDouble(), (value[i] as num).toDouble()),
+    ];
+  }
+
+  if (value.every((element) => element is Map)) {
+    final points = <TrendPoint>[];
+    for (var i = 0; i < value.length; i++) {
+      final map = (value[i] as Map).cast<String, dynamic>();
+      final key = _seriesValueKeys.firstWhere(
+        (candidate) => map[candidate] is num,
+        orElse: () => '',
+      );
+      if (key.isEmpty) {
+        return null;
+      }
+      points.add(TrendPoint(i.toDouble(), (map[key] as num).toDouble()));
+    }
+    return points;
+  }
+
+  return null;
 }
 
 String prettyGoalJson(Object? value) {

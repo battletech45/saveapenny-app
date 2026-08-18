@@ -64,13 +64,53 @@ class GoalDetailScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(goal.title, style: context.textTheme.headline),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            goalTypeLabel(l10n, goal.type),
-                            style: context.textTheme.label.copyWith(
-                              color: context.colors.textSecondary,
-                            ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: goalStatusColor(
+                                    context,
+                                    goal.status,
+                                  ).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.pill,
+                                  ),
+                                ),
+                                child: SizedBox(
+                                  width: AppSpacing.giant,
+                                  height: AppSpacing.giant,
+                                  child: Center(
+                                    child: Icon(
+                                      goalTypeIcon(goal.type),
+                                      color: goalStatusColor(
+                                        context,
+                                        goal.status,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      goal.title,
+                                      style: context.textTheme.headline,
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      goalTypeLabel(l10n, goal.type),
+                                      style: context.textTheme.label.copyWith(
+                                        color: context.colors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           GoalDetailRow(

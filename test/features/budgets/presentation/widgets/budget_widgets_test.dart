@@ -329,9 +329,7 @@ void main() {
       child: const BudgetsScreen(),
     );
 
-    await tester.tap(find.byType(PopupMenuButton<String>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete').last);
+    await tester.drag(find.byType(Dismissible).first, const Offset(-500, 0));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
     await tester.pumpAndSettle();

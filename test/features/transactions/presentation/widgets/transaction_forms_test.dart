@@ -297,11 +297,9 @@ void main() {
       child: const TransactionFormSheet(),
     );
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-    await tester.pumpAndSettle();
-    expect(find.text('Groceries').last, findsOneWidget);
-    expect(find.text('Salary'), findsNothing);
-    await tester.tap(find.text('Groceries').last);
+    expect(find.widgetWithText(ChoiceChip, 'Groceries'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'Salary'), findsNothing);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Groceries'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(DropdownButtonFormField<TransactionType>));
@@ -309,10 +307,8 @@ void main() {
     await tester.tap(find.text('Income').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-    await tester.pumpAndSettle();
-    expect(find.text('Salary').last, findsOneWidget);
-    expect(find.text('Groceries'), findsNothing);
+    expect(find.widgetWithText(ChoiceChip, 'Salary'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'Groceries'), findsNothing);
   });
 
   testWidgets(
@@ -373,9 +369,7 @@ void main() {
       await tester.tap(find.text('Main bank').last);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Groceries').last);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Groceries'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).first, '24.5');

@@ -15,6 +15,8 @@ import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/presentation/widgets/budget_card.dart';
 import 'package:saveapenny/features/budgets/presentation/widgets/budget_form_sheet.dart';
 import 'package:saveapenny/features/budgets/presentation/widgets/budget_shared.dart';
+import 'package:saveapenny/features/categories/application/categories_controller.dart';
+import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class BudgetsScreen extends ConsumerWidget {
@@ -25,6 +27,11 @@ class BudgetsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final budgetsState = ref.watch(budgetsControllerProvider);
     final limits = ref.watch(entitlementControllerProvider).value?.limits;
+    final categories =
+        ref.watch(categoriesControllerProvider).value ?? const <Category>[];
+    final categoryById = <String, Category>{
+      for (final category in categories) category.id: category,
+    };
 
     return ScrollAwareFabVisibility(
       builder: (context, fabVisible) => Scaffold(
@@ -43,6 +50,7 @@ class BudgetsScreen extends ConsumerWidget {
             data: (data) {
               if (data.items.isEmpty) {
                 return EmptyView(
+                  icon: Icons.pie_chart_outline_rounded,
                   title: l10n.budgetsEmptyTitle,
                   message: l10n.budgetsEmptyMessage,
                   action: ElevatedButton(
@@ -66,10 +74,12 @@ class BudgetsScreen extends ConsumerWidget {
                     for (final item in data.items) ...<Widget>[
                       BudgetCard(
                         item: item,
+                        category: categoryById[item.budget.categoryId],
                         onEdit: () =>
                             _showBudgetSheet(context, existing: item.budget),
+                        confirmDelete: () => _confirmDeleteDialog(context),
                         onDelete: () =>
-                            _confirmDelete(context, ref, item.budget),
+                            _deleteBudget(context, ref, item.budget),
                       ),
                       const SizedBox(height: AppSpacing.md),
                     ],
@@ -103,11 +113,7 @@ class BudgetsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Budget budget,
-  ) async {
+  Future<bool> _confirmDeleteDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -128,11 +134,14 @@ class BudgetsScreen extends ConsumerWidget {
         );
       },
     );
+    return confirmed == true;
+  }
 
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-
+  Future<void> _deleteBudget(
+    BuildContext context,
+    WidgetRef ref,
+    Budget budget,
+  ) async {
     try {
       await ref
           .read(budgetsControllerProvider.notifier)

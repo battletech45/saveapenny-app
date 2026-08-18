@@ -9,6 +9,7 @@ import 'package:saveapenny/features/accounts/application/accounts_controller.dar
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
+import 'package:saveapenny/features/categories/domain/category_glyph.dart';
 import 'package:saveapenny/features/transactions/application/transactions_controller.dart';
 import 'package:saveapenny/features/transactions/domain/transaction.dart';
 import 'package:saveapenny/features/transactions/presentation/widgets/transaction_form_shared.dart';
@@ -170,7 +171,7 @@ class _TransactionFormSheetState extends ConsumerState<TransactionFormSheet> {
                 validator: (value) => validateRequiredSelection(l10n, value),
               ),
               const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<String>(
+              FormField<String>(
                 key: ValueKey<TransactionType>(_type),
                 initialValue:
                     filteredCategories.any(
@@ -178,36 +179,63 @@ class _TransactionFormSheetState extends ConsumerState<TransactionFormSheet> {
                     )
                     ? _categoryId
                     : null,
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsCategoryLabel,
-                ),
-                hint: filteredCategories.isEmpty
-                    ? Text(
-                        categoriesState.isLoading
-                            ? l10n.commonLoading
-                            : l10n.commonNotAvailable,
-                      )
-                    : null,
-                items: filteredCategories
-                    .map(
-                      (Category category) => DropdownMenuItem<String>(
-                        value: category.id,
-                        child: Text(category.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : filteredCategories.isEmpty
-                    ? null
-                    : (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _categoryId = value;
-                          _submissionFailure = null;
-                        });
-                      },
                 validator: (value) => validateRequiredSelection(l10n, value),
+                builder: (field) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        l10n.transactionsCategoryLabel,
+                        style: context.textTheme.label,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (filteredCategories.isEmpty)
+                        Text(
+                          categoriesState.isLoading
+                              ? l10n.commonLoading
+                              : l10n.commonNotAvailable,
+                          style: context.textTheme.body.copyWith(
+                            color: context.colors.textSecondary,
+                          ),
+                        )
+                      else
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: <Widget>[
+                            for (final category in filteredCategories)
+                              ChoiceChip(
+                                avatar: Icon(
+                                  parseCategoryIcon(category.icon),
+                                  size: 16,
+                                ),
+                                label: Text(category.name),
+                                selected: field.value == category.id,
+                                onSelected: _isSubmitting
+                                    ? null
+                                    : (_) {
+                                        FocusScope.of(context).unfocus();
+                                        field.didChange(category.id);
+                                        setState(() {
+                                          _categoryId = category.id;
+                                          _submissionFailure = null;
+                                        });
+                                      },
+                              ),
+                          ],
+                        ),
+                      if (field.hasError) ...<Widget>[
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          field.errorText!,
+                          style: context.textTheme.label.copyWith(
+                            color: context.finance.expense,
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.lg),
               TextFormField(

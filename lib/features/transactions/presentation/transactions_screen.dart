@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
@@ -66,6 +68,7 @@ class TransactionsScreen extends ConsumerWidget {
             data: (data) {
               if (data.items.isEmpty) {
                 return EmptyView(
+                  icon: Icons.receipt_long_outlined,
                   title: l10n.transactionsEmptyTitle,
                   message: l10n.transactionsEmptyMessage,
                   action: Column(
@@ -85,36 +88,60 @@ class TransactionsScreen extends ConsumerWidget {
                 );
               }
 
+              final rows = _groupByDate(context, data.items);
+
               return RefreshIndicator(
                 onRefresh: () =>
                     ref.read(transactionsControllerProvider.notifier).refresh(),
-                child: ListView.separated(
+                child: ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: data.items.length + (data.hasNext ? 1 : 0),
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(height: AppSpacing.sm),
+                  itemCount: rows.length + (data.hasNext ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == data.items.length) {
-                      return OutlinedButton(
-                        onPressed: () => ref
-                            .read(transactionsControllerProvider.notifier)
-                            .loadMore(),
-                        child: Text(l10n.transactionsLoadMoreCta),
+                    if (index == rows.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: OutlinedButton(
+                          onPressed: () => ref
+                              .read(transactionsControllerProvider.notifier)
+                              .loadMore(),
+                          child: Text(l10n.transactionsLoadMoreCta),
+                        ),
                       );
                     }
 
-                    final transaction = data.items[index];
-                    return TransactionTile(
-                      transaction: transaction,
-                      account: accountById[transaction.accountId],
-                      category: categoryById[transaction.categoryId],
-                      onEdit: transaction.type == TransactionType.transfer
-                          ? null
-                          : () => _showTransactionSheet(
-                              context,
-                              existing: transaction,
-                            ),
-                      onDelete: () => _confirmDelete(context, ref, transaction),
+                    final row = rows[index];
+                    if (row is String) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          top: index == 0 ? 0 : AppSpacing.lg,
+                          bottom: AppSpacing.sm,
+                        ),
+                        child: Text(
+                          row,
+                          style: context.textTheme.label.copyWith(
+                            color: context.colors.textSecondary,
+                          ),
+                        ),
+                      );
+                    }
+
+                    final transaction = row as Transaction;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: TransactionTile(
+                        transaction: transaction,
+                        account: accountById[transaction.accountId],
+                        category: categoryById[transaction.categoryId],
+                        onEdit: transaction.type == TransactionType.transfer
+                            ? null
+                            : () => _showTransactionSheet(
+                                context,
+                                existing: transaction,
+                              ),
+                        confirmDelete: () => _confirmDeleteDialog(context),
+                        onDelete: () =>
+                            _deleteTransaction(context, ref, transaction),
+                      ),
                     );
                   },
                 ),
@@ -130,6 +157,34 @@ class TransactionsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Interleaves date-section labels (Today / Yesterday / formatted date)
+  /// ahead of each run of same-day transactions. Assumes [items] is already
+  /// sorted newest-first, as the backend returns it.
+  List<Object> _groupByDate(BuildContext context, List<Transaction> items) {
+    final l10n = AppLocalizations.of(context);
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toLanguageTag(),
+    );
+    final today = DateUtils.dateOnly(DateTime.now());
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    final rows = <Object>[];
+    DateTime? lastDay;
+    for (final transaction in items) {
+      final day = DateUtils.dateOnly(transaction.transactionDate);
+      if (day != lastDay) {
+        rows.add(switch (day) {
+          _ when day == today => l10n.transactionsDateToday,
+          _ when day == yesterday => l10n.transactionsDateYesterday,
+          _ => dateFormat.format(day),
+        });
+        lastDay = day;
+      }
+      rows.add(transaction);
+    }
+    return rows;
   }
 
   Future<void> _showTransactionSheet(
@@ -149,11 +204,10 @@ class TransactionsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Transaction transaction,
-  ) async {
+  /// Shown by [SwipeActionRow.confirmDelete] *before* the swipe commits, so a
+  /// cancelled swipe animates back instead of leaving a dismissed
+  /// [Dismissible] still mounted in the tree.
+  Future<bool> _confirmDeleteDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -174,11 +228,14 @@ class TransactionsScreen extends ConsumerWidget {
         );
       },
     );
+    return confirmed == true;
+  }
 
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-
+  Future<void> _deleteTransaction(
+    BuildContext context,
+    WidgetRef ref,
+    Transaction transaction,
+  ) async {
     try {
       await ref
           .read(transactionsControllerProvider.notifier)
