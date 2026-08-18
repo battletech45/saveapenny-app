@@ -43,6 +43,8 @@ class ReportsMonthSwitcher extends StatelessWidget {
                 label,
                 style: context.textTheme.title,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             IconButton(
@@ -210,10 +212,26 @@ class ReportsNetWorthTrendTile extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: <Widget>[
-            Expanded(child: Text(label, style: context.textTheme.body)),
-            Text(
-              amount.text,
-              style: context.textTheme.money.copyWith(color: amount.color),
+            Expanded(
+              child: Text(
+                label,
+                style: context.textTheme.body,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  amount.text,
+                  style: context.textTheme.money.copyWith(
+                    color: amount.color,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -263,22 +281,35 @@ class ReportsCashFlowTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(dateLabel, style: context.textTheme.body),
+                  Text(
+                    dateLabel,
+                    style: context.textTheme.body,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '${l10n.reportsIncomeLabel}: ${income.text} · ${l10n.reportsExpenseLabel}: ${expense.text}',
                     style: context.textTheme.label.copyWith(
                       color: context.colors.textSecondary,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            Text(
-              net.text,
-              textAlign: TextAlign.right,
-              style: context.textTheme.money.copyWith(color: net.color),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  net.text,
+                  textAlign: TextAlign.right,
+                  style: context.textTheme.money.copyWith(color: net.color),
+                ),
+              ),
             ),
           ],
         ),
@@ -314,7 +345,12 @@ class ReportsCategorySpendingTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(item.categoryName, style: context.textTheme.body),
+                  Text(
+                    item.categoryName,
+                    style: context.textTheme.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '${item.usagePercentage.toStringAsFixed(1)}%',
@@ -326,10 +362,18 @@ class ReportsCategorySpendingTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            Text(
-              amount.text,
-              textAlign: TextAlign.right,
-              style: context.textTheme.money.copyWith(color: amount.color),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  amount.text,
+                  textAlign: TextAlign.right,
+                  style: context.textTheme.money.copyWith(
+                    color: amount.color,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

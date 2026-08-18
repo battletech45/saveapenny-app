@@ -33,17 +33,25 @@ class ReportsMoneyRow extends StatelessWidget {
           child: Text(
             label,
             style: emphasize ? context.textTheme.body : context.textTheme.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        Text(
-          formatted.text,
-          textAlign: TextAlign.right,
-          style:
-              (emphasize
-                      ? context.textTheme.displayMoney
-                      : context.textTheme.money)
-                  .copyWith(color: formatted.color),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              formatted.text,
+              textAlign: TextAlign.right,
+              style:
+                  (emphasize
+                          ? context.textTheme.displayMoney
+                          : context.textTheme.money)
+                      .copyWith(color: formatted.color),
+            ),
+          ),
         ),
       ],
     );
