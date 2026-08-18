@@ -5,11 +5,22 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class EmptyView extends StatelessWidget {
-  const EmptyView({super.key, this.title, this.message, this.action});
+  const EmptyView({
+    super.key,
+    this.title,
+    this.message,
+    this.action,
+    this.icon = Icons.inbox_outlined,
+  });
 
   final String? title;
   final String? message;
   final Widget? action;
+
+  /// Per-feature glyph — defaults to the generic inbox icon, but every
+  /// feature's empty state should pass something that reflects its content
+  /// (e.g. `Icons.receipt_long_outlined` for transactions).
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +37,7 @@ class EmptyView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Icon(
-                    Icons.inbox_outlined,
+                    icon,
                     color: context.colors.textTertiary,
                     size: AppSpacing.giant,
                   ),

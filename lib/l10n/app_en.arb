@@ -366,6 +366,8 @@
   "categoriesTypeLabel": "Category type",
   "categoriesTypeIncome": "Income",
   "categoriesTypeExpense": "Expense",
+  "categoriesIconLabel": "Icon",
+  "categoriesColorLabel": "Color",
   "budgetsTitle": "Budgets",
   "budgetsHomeCardTitle": "Track budgets",
   "budgetsHomeCardSubtitle": "Set monthly or yearly category targets and monitor when spending reaches warning territory.",

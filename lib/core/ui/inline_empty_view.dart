@@ -9,11 +9,13 @@ class InlineEmptyView extends StatelessWidget {
     required this.title,
     required this.message,
     this.action,
+    this.icon,
   });
 
   final String title;
   final String message;
   final Widget? action;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,10 @@ class InlineEmptyView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            if (icon != null) ...<Widget>[
+              Icon(icon, color: context.colors.textTertiary, size: 28),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             Text(title, style: context.textTheme.body),
             const SizedBox(height: AppSpacing.xs),
             Text(

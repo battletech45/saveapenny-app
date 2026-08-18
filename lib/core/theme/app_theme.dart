@@ -136,6 +136,46 @@ class FinanceColors extends ThemeExtension<FinanceColors> {
   }
 }
 
+@immutable
+class ChartColors extends ThemeExtension<ChartColors> {
+  const ChartColors({
+    required this.categorical,
+    required this.gridline,
+    required this.axisLabel,
+  });
+
+  final List<Color> categorical;
+  final Color gridline;
+  final Color axisLabel;
+
+  Color forIndex(int index) => ChartPalette.forIndex(categorical, index);
+
+  @override
+  ChartColors copyWith({
+    List<Color>? categorical,
+    Color? gridline,
+    Color? axisLabel,
+  }) {
+    return ChartColors(
+      categorical: categorical ?? this.categorical,
+      gridline: gridline ?? this.gridline,
+      axisLabel: axisLabel ?? this.axisLabel,
+    );
+  }
+
+  @override
+  ChartColors lerp(ThemeExtension<ChartColors>? other, double t) {
+    if (other is! ChartColors) {
+      return this;
+    }
+    return ChartColors(
+      categorical: categorical,
+      gridline: Color.lerp(gridline, other.gridline, t) ?? gridline,
+      axisLabel: Color.lerp(axisLabel, other.axisLabel, t) ?? axisLabel,
+    );
+  }
+}
+
 abstract final class AppTheme {
   static ThemeData light() => _buildTheme(
     brightness: Brightness.light,
@@ -156,6 +196,11 @@ abstract final class AppTheme {
       warning: FinancePalette.lightWarning,
       warningSurface: FinancePalette.lightWarningSurface,
       info: FinancePalette.lightInfo,
+    ),
+    chart: const ChartColors(
+      categorical: ChartPalette.light,
+      gridline: NeutralPalette.lightBorder,
+      axisLabel: NeutralPalette.lightTextTertiary,
     ),
     primary: BrandPalette.lightPrimary,
     onPrimary: BrandPalette.lightOnPrimary,
@@ -183,6 +228,11 @@ abstract final class AppTheme {
       warningSurface: FinancePalette.darkWarningSurface,
       info: FinancePalette.darkInfo,
     ),
+    chart: const ChartColors(
+      categorical: ChartPalette.dark,
+      gridline: NeutralPalette.darkBorder,
+      axisLabel: NeutralPalette.darkTextTertiary,
+    ),
     primary: BrandPalette.darkPrimary,
     onPrimary: BrandPalette.darkOnPrimary,
     primaryContainer: BrandPalette.darkPrimaryContainer,
@@ -193,6 +243,7 @@ abstract final class AppTheme {
     required Brightness brightness,
     required AppColors colors,
     required FinanceColors finance,
+    required ChartColors chart,
     required Color primary,
     required Color onPrimary,
     required Color primaryContainer,
@@ -271,7 +322,7 @@ abstract final class AppTheme {
       canvasColor: colors.background,
       dividerColor: colors.border,
       textTheme: textTheme,
-      extensions: <ThemeExtension<dynamic>>[colors, finance],
+      extensions: <ThemeExtension<dynamic>>[colors, finance, chart],
       appBarTheme: AppBarTheme(
         backgroundColor: colors.background,
         foregroundColor: colors.textPrimary,
@@ -400,7 +451,27 @@ extension BuildContextThemeX on BuildContext {
 
   FinanceColors get finance => Theme.of(this).extension<FinanceColors>()!;
 
+  ChartColors get chart => Theme.of(this).extension<ChartColors>()!;
+
   TextTheme get textTheme => Theme.of(this).textTheme;
+}
+
+/// Premium upsell surface treatment, scoped to Upgrade/Billing components
+/// only. Everyday surfaces stay flat per the design system — this gradient
+/// exists solely to make paywall/upgrade UI read as visually distinct from a
+/// normal info banner.
+abstract final class PremiumSurface {
+  static LinearGradient gradient(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: <Color>[
+        scheme.primaryContainer,
+        Color.lerp(scheme.primaryContainer, scheme.primary, 0.35)!,
+      ],
+    );
+  }
 }
 
 extension AppTextThemeX on TextTheme {

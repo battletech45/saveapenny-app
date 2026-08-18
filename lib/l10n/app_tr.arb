@@ -366,6 +366,8 @@
   "categoriesTypeLabel": "Kategori türü",
   "categoriesTypeIncome": "Gelir",
   "categoriesTypeExpense": "Gider",
+  "categoriesIconLabel": "Simge",
+  "categoriesColorLabel": "Renk",
   "budgetsTitle": "Bütçeler",
   "budgetsHomeCardTitle": "Bütçeleri takip edin",
   "budgetsHomeCardSubtitle": "Aylık veya yıllık kategori hedefleri tanımlayın ve harcama uyarı bölgesine girdiğinde izleyin.",

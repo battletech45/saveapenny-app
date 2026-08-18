@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 abstract final class BrandPalette {
@@ -50,6 +48,36 @@ abstract final class FinancePalette {
   static const Color darkInfo = Color(0xFF7FB6DD);
 }
 
+/// Categorical color sequence for charts that break amounts down by category
+/// (spending by category, category-based bars). Distinct from
+/// [FinancePalette], which is reserved for income/expense/warning semantics.
+abstract final class ChartPalette {
+  static const List<Color> light = <Color>[
+    Color(0xFF3B5BC0),
+    Color(0xFF2E9E8F),
+    Color(0xFFB07A12),
+    Color(0xFF8A5FD1),
+    Color(0xFFC0574A),
+    Color(0xFF3E8ECF),
+    Color(0xFF6E8B3D),
+    Color(0xFFC0568E),
+  ];
+
+  static const List<Color> dark = <Color>[
+    Color(0xFF9FB1F5),
+    Color(0xFF6FD3C4),
+    Color(0xFFE0B65C),
+    Color(0xFFBBA1EA),
+    Color(0xFFEC8278),
+    Color(0xFF7FB6DD),
+    Color(0xFFA3C97B),
+    Color(0xFFE297C0),
+  ];
+
+  static Color forIndex(List<Color> palette, int index) =>
+      palette[index % palette.length];
+}
+
 abstract final class AppSpacing {
   static const double xs = 4;
   static const double sm = 8;
@@ -68,6 +96,18 @@ abstract final class AppRadius {
   static const double lg = 16;
   static const double xl = 24;
   static const double pill = 999;
+}
+
+/// Concrete shadow treatments for the design system's 3 elevation levels.
+/// Level 0 (hairline-only cards) intentionally has no shadow.
+abstract final class AppElevation {
+  static const List<BoxShadow> level1 = <BoxShadow>[
+    BoxShadow(color: Color(0x0F000000), offset: Offset(0, 2), blurRadius: 8),
+  ];
+
+  static const List<BoxShadow> level2 = <BoxShadow>[
+    BoxShadow(color: Color(0x1A000000), offset: Offset(0, 8), blurRadius: 24),
+  ];
 }
 
 abstract final class AppDuration {

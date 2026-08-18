@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
+import 'package:saveapenny/features/categories/domain/category_glyph.dart';
 import 'package:saveapenny/features/categories/presentation/widgets/category_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -98,9 +99,9 @@ class CategoryIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconData = _parseIcon(icon);
+    final iconData = parseCategoryIcon(icon);
     final bgColor = color != null
-        ? _parseColor(color!)
+        ? parseCategoryColor(color!)
         : context.colors.surfaceSubtle;
 
     return DecoratedBox(
@@ -114,33 +115,5 @@ class CategoryIcon extends StatelessWidget {
         child: Center(child: Icon(iconData, size: 20, color: bgColor)),
       ),
     );
-  }
-
-  IconData _parseIcon(String? iconName) {
-    return switch (iconName?.toLowerCase()) {
-      'shopping' => Icons.shopping_bag_outlined,
-      'food' || 'restaurant' => Icons.restaurant_outlined,
-      'transport' || 'car' => Icons.directions_car_outlined,
-      'home' || 'housing' => Icons.home_outlined,
-      'entertainment' => Icons.movie_outlined,
-      'health' || 'medical' => Icons.medical_services_outlined,
-      'education' => Icons.school_outlined,
-      'salary' || 'income' => Icons.trending_up_rounded,
-      'savings' || 'investment' => Icons.account_balance_outlined,
-      'bills' || 'utilities' => Icons.receipt_long_outlined,
-      'travel' => Icons.flight_outlined,
-      _ => Icons.category_outlined,
-    };
-  }
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.startsWith('#')) {
-      buffer.write('FF');
-      buffer.write(hex.substring(1));
-    } else {
-      buffer.write('FF$hex');
-    }
-    return Color(int.parse(buffer.toString(), radix: 16));
   }
 }
