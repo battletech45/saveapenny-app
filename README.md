@@ -6,9 +6,19 @@ feasibility) live on the backend; this app calls the API and presents results.
 
 ## Prerequisites
 
-- Flutter SDK `^3.12.2` (Dart bundled)
-- A running SaveAPenny backend (see its README — `docker compose up --build`)
-- iOS: Xcode + CocoaPods · Android: Android Studio / SDK
+- Flutter SDK `3.47.0` or newer on the stable channel. The app requires Dart
+  `^3.12.2` from `pubspec.yaml`; the verified local toolchain is Flutter
+  `3.47.0` with Dart `3.13.0`.
+- A running SaveAPenny backend for local development (see the backend README:
+  `docker compose up --build`).
+- iOS: recent Xcode with the iOS Simulator installed, CocoaPods, and a valid
+  Apple development setup for device builds.
+- Android: Android Studio, Android SDK/platform tools, and a recent emulator or
+  physical device.
+- Firebase configuration files for real device/push builds (`GoogleService-Info.plist`
+  for iOS and `google-services.json` for Android), provided outside git.
+- RevenueCat SDK keys supplied with `--dart-define` or
+  `--dart-define-from-file` (see below).
 
 ## Setup
 
