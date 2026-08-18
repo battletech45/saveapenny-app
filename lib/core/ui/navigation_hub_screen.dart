@@ -31,6 +31,7 @@ class NavigationHubScreen extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
         child: ListView.separated(
+          key: ValueKey(Theme.of(context).brightness),
           padding: const EdgeInsets.all(AppSpacing.lg),
           itemCount: items.length,
           separatorBuilder: (context, index) =>
