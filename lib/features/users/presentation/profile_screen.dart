@@ -9,6 +9,7 @@ import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
+import 'package:saveapenny/core/ui/initials_avatar.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/auth/application/auth_controller.dart';
 import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
@@ -76,16 +77,29 @@ class ProfileScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(
-                            profile.fullName,
-                            style: context.textTheme.headline,
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            profile.email,
-                            style: context.textTheme.body.copyWith(
-                              color: context.colors.textSecondary,
-                            ),
+                          Row(
+                            children: <Widget>[
+                              InitialsAvatar(name: profile.fullName, size: 64),
+                              const SizedBox(width: AppSpacing.lg),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      profile.fullName,
+                                      style: context.textTheme.headline,
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      profile.email,
+                                      style: context.textTheme.body.copyWith(
+                                        color: context.colors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: AppSpacing.xxl),
                           ProfileInfoRow(

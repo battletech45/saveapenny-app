@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/stat_pill.dart';
 import 'package:saveapenny/features/notifications/domain/notification.dart';
 
 class NotificationTile extends StatelessWidget {
@@ -18,6 +19,12 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metadata = notification.metadata;
+    final metadataEntries =
+        metadata?.entries
+            .where((entry) => _isScalar(entry.value))
+            .take(3)
+            .toList(growable: false) ??
+        const <MapEntry<String, dynamic>>[];
     final locale = Localizations.localeOf(context).toLanguageTag();
     final formattedDate = DateFormat.yMMMd(
       locale,
@@ -58,14 +65,27 @@ class NotificationTile extends StatelessWidget {
                     ),
                     if (metadata != null) ...<Widget>[
                       const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        metadata.toString(),
-                        style: context.textTheme.label.copyWith(
-                          color: context.colors.textTertiary,
+                      if (metadataEntries.isEmpty)
+                        Text(
+                          metadata.toString(),
+                          style: context.textTheme.label.copyWith(
+                            color: context.colors.textTertiary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      else
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: <Widget>[
+                            for (final entry in metadataEntries)
+                              StatPill(
+                                label: entry.key,
+                                value: entry.value?.toString() ?? '--',
+                              ),
+                          ],
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                     const SizedBox(height: AppSpacing.xs),
                     Text(
@@ -93,6 +113,10 @@ class NotificationTile extends StatelessWidget {
       ),
     );
   }
+}
+
+bool _isScalar(Object? value) {
+  return value == null || value is String || value is num || value is bool;
 }
 
 class NotificationIcon extends StatelessWidget {

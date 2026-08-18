@@ -15,9 +15,8 @@ class UpgradeCard extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
+        gradient: PremiumSurface.gradient(context),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -25,19 +24,26 @@ class UpgradeCard extends StatelessWidget {
           children: <Widget>[
             Icon(
               Icons.workspace_premium_rounded,
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(l10n.upgradeCardTitle, style: context.textTheme.title),
+                  Text(
+                    l10n.upgradeCardTitle,
+                    style: context.textTheme.title.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     l10n.upgradeCardMessage,
                     style: context.textTheme.body.copyWith(
-                      color: context.colors.textSecondary,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer.withValues(alpha: 0.78),
                     ),
                   ),
                 ],

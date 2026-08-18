@@ -22,9 +22,8 @@ class BillingUpgradeBanner extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: context.colors.surfaceSubtle,
+          gradient: PremiumSurface.gradient(context),
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: context.colors.border),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -38,7 +37,12 @@ class BillingUpgradeBanner extends StatelessWidget {
                       leading!,
                       const SizedBox(height: AppSpacing.xs),
                     ],
-                    Text(message, style: context.textTheme.body),
+                    Text(
+                      message,
+                      style: context.textTheme.body.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -6,6 +6,8 @@ import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
+import 'package:saveapenny/features/categories/domain/category_glyph.dart';
+import 'package:saveapenny/features/categories/presentation/widgets/category_glyph_picker.dart';
 import 'package:saveapenny/features/categories/presentation/widgets/category_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -22,6 +24,8 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late CategoryType _type;
+  late String _icon;
+  late String _color;
 
   bool get _isEditing => widget.existing != null;
 
@@ -30,6 +34,8 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     super.initState();
     _nameController = TextEditingController(text: widget.existing?.name ?? '');
     _type = widget.existing?.type ?? CategoryType.expense;
+    _icon = widget.existing?.icon ?? 'category';
+    _color = widget.existing?.color ?? categoryColorHexOptions.first;
   }
 
   @override
@@ -118,6 +124,17 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                 ),
               ],
               const SizedBox(height: AppSpacing.xxl),
+              CategoryGlyphPicker(
+                selectedIcon: _icon,
+                selectedColorHex: _color,
+                onIconChanged: isSubmitting
+                    ? (_) {}
+                    : (value) => setState(() => _icon = value),
+                onColorChanged: isSubmitting
+                    ? (_) {}
+                    : (value) => setState(() => _color = value),
+              ),
+              const SizedBox(height: AppSpacing.xxl),
               ElevatedButton(
                 onPressed: isSubmitting ? null : _submit,
                 child: Text(
@@ -154,9 +171,16 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
         categoryId: widget.existing!.id,
         name: _nameController.text.trim(),
         type: widget.existing!.type,
+        icon: _icon,
+        color: _color,
       );
     } else {
-      await controller.create(name: _nameController.text.trim(), type: _type);
+      await controller.create(
+        name: _nameController.text.trim(),
+        type: _type,
+        icon: _icon,
+        color: _color,
+      );
     }
 
     final state = ref.read(categoriesControllerProvider);

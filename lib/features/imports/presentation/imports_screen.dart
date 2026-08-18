@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/imports/application/imports_controller.dart';
 import 'package:saveapenny/features/imports/presentation/widgets/import_idle_view.dart';
 import 'package:saveapenny/features/imports/presentation/widgets/import_preview_view.dart';
+import 'package:saveapenny/features/imports/presentation/widgets/import_shared.dart';
 import 'package:saveapenny/features/imports/presentation/widgets/import_status_view.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -23,37 +25,52 @@ class ImportsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.importsTitle)),
       body: SafeArea(
         child: flowState.isIdle
-            ? ImportIdleView(
-                onPickFile: () => _pickAndPreview(context, ref),
-                error: flowState.error,
+            ? _ImportScaffold(
+                step: flowState.step,
+                child: ImportIdleView(
+                  onPickFile: () => _pickAndPreview(context, ref),
+                  error: flowState.error,
+                ),
               )
             : flowState.isConfirming && flowState.error != null
-            ? FailureView(
-                failure: flowState.error!,
-                onRetry: () => ref
-                    .read(importsControllerProvider.notifier)
-                    .retryStatusCheck(),
+            ? _ImportScaffold(
+                step: flowState.step,
+                child: FailureView(
+                  failure: flowState.error!,
+                  onRetry: () => ref
+                      .read(importsControllerProvider.notifier)
+                      .retryStatusCheck(),
+                ),
               )
             : flowState.isPreviewing || flowState.isConfirming
-            ? const LoadingView()
+            ? _ImportScaffold(step: flowState.step, child: const LoadingView())
             : flowState.isPreviewReady && flowState.preview != null
-            ? ImportPreviewView(
-                preview: flowState.preview!,
-                onConfirm: () => _confirm(context, ref),
-                onCancel: () =>
-                    ref.read(importsControllerProvider.notifier).reset(),
+            ? _ImportScaffold(
+                step: flowState.step,
+                child: ImportPreviewView(
+                  preview: flowState.preview!,
+                  onConfirm: () => _confirm(context, ref),
+                  onCancel: () =>
+                      ref.read(importsControllerProvider.notifier).reset(),
+                ),
               )
             : (flowState.isCompleted || flowState.isFailed) &&
                   flowState.status != null
-            ? ImportStatusView(
-                status: flowState.status!,
-                onDone: () =>
-                    ref.read(importsControllerProvider.notifier).reset(),
+            ? _ImportScaffold(
+                step: flowState.step,
+                child: ImportStatusView(
+                  status: flowState.status!,
+                  onDone: () =>
+                      ref.read(importsControllerProvider.notifier).reset(),
+                ),
               )
-            : FailureView(
-                failure: flowState.error ?? const Failure.unknown(),
-                onRetry: () async =>
-                    ref.read(importsControllerProvider.notifier).reset(),
+            : _ImportScaffold(
+                step: flowState.step,
+                child: FailureView(
+                  failure: flowState.error ?? const Failure.unknown(),
+                  onRetry: () async =>
+                      ref.read(importsControllerProvider.notifier).reset(),
+                ),
               ),
       ),
     );
@@ -100,5 +117,41 @@ class ImportsScreen extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
 
     await ref.read(importsControllerProvider.notifier).confirmImport();
+  }
+}
+
+class _ImportScaffold extends StatelessWidget {
+  const _ImportScaffold({required this.step, required this.child});
+
+  final ImportStep step;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: ImportStepStrip(
+            currentIndex: switch (step) {
+              ImportStep.idle || ImportStep.previewing => 0,
+              ImportStep.previewReady => 1,
+              ImportStep.confirming => 2,
+              ImportStep.completed || ImportStep.failed => 3,
+            },
+            labels: <String>[
+              l10n.importsPickFileCta,
+              l10n.importsPreviewTitle,
+              l10n.importsConfirmCta,
+              step == ImportStep.failed
+                  ? l10n.importsFailedTitle
+                  : l10n.importsCompletedTitle,
+            ],
+          ),
+        ),
+        Expanded(child: child),
+      ],
+    );
   }
 }

@@ -41,10 +41,19 @@ class _PaywallPromptState extends ConsumerState<PaywallPrompt> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Icon(
-                  Icons.lock_outline_rounded,
-                  size: AppSpacing.giant,
-                  color: context.colors.textSecondary,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: PremiumSurface.gradient(context),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Icon(
+                      Icons.lock_open_outlined,
+                      size: AppSpacing.giant,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(

@@ -39,6 +39,8 @@ class AuthFormShell extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   const SizedBox(height: AppSpacing.huge),
+                  const _AuthBrandMark(),
+                  const SizedBox(height: AppSpacing.huge),
                   Text(title, style: context.textTheme.headline),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
@@ -73,6 +75,32 @@ class AuthFormShell extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AuthBrandMark extends StatelessWidget {
+  const _AuthBrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text('SaveAPenny', style: context.textTheme.headline),
+          const SizedBox(height: AppSpacing.xs),
+          Container(
+            width: AppSpacing.huge,
+            height: 3,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+          ),
+        ],
       ),
     );
   }

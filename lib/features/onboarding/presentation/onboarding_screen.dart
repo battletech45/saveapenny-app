@@ -41,11 +41,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _controller,
                 onPageChanged: (i) => setState(() => _page = i),
                 children: <Widget>[
-                  for (final page in pages)
-                    OnboardingPage(
-                      icon: page.icon,
-                      headline: page.headline,
-                      body: page.body,
+                  for (var i = 0; i < pages.length; i++)
+                    AnimatedSwitcher(
+                      duration: AppDuration.base,
+                      child: OnboardingPage(
+                        key: ValueKey(i),
+                        icon: pages[i].icon,
+                        headline: pages[i].headline,
+                        body: pages[i].body,
+                      ),
                     ),
                 ],
               ),

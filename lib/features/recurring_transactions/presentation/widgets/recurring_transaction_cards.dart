@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/stat_pill.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/recurring_transactions/domain/recurring_transaction.dart';
@@ -65,6 +66,66 @@ class UpcomingRunCard extends StatelessWidget {
   }
 }
 
+class UpcomingRunsTimeline extends StatelessWidget {
+  const UpcomingRunsTimeline({super.key, required this.items});
+
+  final List<UpcomingRecurringTransaction> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: <Widget>[
+          for (final item in items.take(8)) ...<Widget>[
+            _UpcomingRunChip(item: item),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _UpcomingRunChip extends StatelessWidget {
+  const _UpcomingRunChip({required this.item});
+
+  final UpcomingRecurringTransaction item;
+
+  @override
+  Widget build(BuildContext context) {
+    final date = DateFormat.MMMd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(item.scheduledDate);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: context.colors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.event_repeat_outlined,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(date, style: context.textTheme.label),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class RecurringTransactionCard extends StatelessWidget {
   const RecurringTransactionCard({
     super.key,
@@ -97,7 +158,12 @@ class RecurringTransactionCard extends StatelessWidget {
         item.name ??
         category?.name ??
         recurringTransactionTypeLabel(l10n, item.type);
-    final statusColor = recurringStatusColor(context, item.status);
+    final statusTone = switch (item.status) {
+      RecurringStatus.active => StatPillTone.income,
+      RecurringStatus.paused => StatPillTone.warning,
+      RecurringStatus.expired => StatPillTone.neutral,
+      RecurringStatus.failed => StatPillTone.expense,
+    };
 
     return Card(
       child: Padding(
@@ -171,17 +237,19 @@ class RecurringTransactionCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: RecurringInfoPill(
+                  child: StatPill(
                     label: l10n.recurringTransactionsNextRunDateLabel,
                     value: nextRun,
+                    icon: Icons.event_repeat_outlined,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: RecurringInfoPill(
+                  child: StatPill(
                     label: l10n.recurringTransactionsStatusLabel,
                     value: recurringStatusLabel(l10n, item.status),
-                    valueColor: statusColor,
+                    icon: Icons.info_outline_rounded,
+                    tone: statusTone,
                   ),
                 ),
               ],
@@ -190,20 +258,21 @@ class RecurringTransactionCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: RecurringInfoPill(
+                  child: StatPill(
                     label: l10n.recurringTransactionsAmountLabel,
                     value: NumberFormat.decimalPatternDigits(
                       locale: Localizations.localeOf(context).toLanguageTag(),
                       decimalDigits: 2,
                     ).format(item.amount),
-                    valueColor: item.type == RecurringTransactionType.income
-                        ? context.finance.income
-                        : context.finance.expense,
+                    icon: Icons.payments_outlined,
+                    tone: item.type == RecurringTransactionType.income
+                        ? StatPillTone.income
+                        : StatPillTone.expense,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: RecurringInfoPill(
+                  child: StatPill(
                     label: l10n.recurringTransactionsClassificationLabel,
                     value: item.classification == null
                         ? l10n.recurringTransactionsClassificationNone
@@ -211,6 +280,7 @@ class RecurringTransactionCard extends StatelessWidget {
                             l10n,
                             item.classification!,
                           ),
+                    icon: Icons.sell_outlined,
                   ),
                 ),
               ],

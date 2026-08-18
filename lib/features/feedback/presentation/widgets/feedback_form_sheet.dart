@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/star_rating.dart';
 import 'package:saveapenny/features/feedback/application/submit_feedback_controller.dart';
 import 'package:saveapenny/features/feedback/domain/feedback.dart';
 import 'package:saveapenny/features/feedback/presentation/widgets/feedback_shared.dart';
@@ -93,31 +94,28 @@ class _FeedbackFormSheetState extends ConsumerState<FeedbackFormSheet> {
                       },
               ),
               const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<int?>(
-                initialValue: _selectedRating,
+              InputDecorator(
                 decoration: InputDecoration(
                   labelText: l10n.feedbackRatingLabel,
                 ),
-                items: <DropdownMenuItem<int?>>[
-                  DropdownMenuItem<int?>(
-                    value: null,
-                    child: Text(l10n.feedbackNoRating),
-                  ),
-                  ...List<DropdownMenuItem<int?>>.generate(
-                    5,
-                    (index) => DropdownMenuItem<int?>(
-                      value: index + 1,
-                      child: Text(l10n.feedbackRatingValue(index + 1)),
+                child: Row(
+                  children: <Widget>[
+                    StarRating(
+                      value: _selectedRating ?? 0,
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) => setState(() => _selectedRating = value),
                     ),
-                  ),
-                ],
-                onChanged: isSubmitting
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _selectedRating = value;
-                        });
-                      },
+                    const Spacer(),
+                    if (_selectedRating != null)
+                      TextButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () => setState(() => _selectedRating = null),
+                        child: Text(l10n.feedbackNoRating),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               TextFormField(

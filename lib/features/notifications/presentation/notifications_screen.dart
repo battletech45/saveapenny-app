@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/features/notifications/application/notifications_controller.dart';
+import 'package:saveapenny/features/notifications/domain/notification.dart';
 import 'package:saveapenny/features/notifications/presentation/widgets/notification_shared.dart';
 import 'package:saveapenny/features/notifications/presentation/widgets/notification_tile.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -51,47 +54,51 @@ class NotificationsScreen extends ConsumerWidget {
             return RefreshIndicator(
               onRefresh: () =>
                   ref.read(notificationsControllerProvider.notifier).refresh(),
-              child: ListView.builder(
+              child: ListView(
                 padding: const EdgeInsets.only(
                   left: AppSpacing.lg,
                   right: AppSpacing.lg,
                   top: AppSpacing.md,
                   bottom: AppSpacing.xxl,
                 ),
-                itemCount: data.items.length,
-                itemBuilder: (context, index) {
-                  final notification = data.items[index];
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Dismissible(
-                      key: ValueKey(notification.id),
-                      direction: DismissDirection.endToStart,
-                      background: const NotificationDismissBackground(),
-                      confirmDismiss: (_) async {
-                        return confirmNotificationDelete(
-                          context,
-                          ref,
-                          notification,
-                        );
-                      },
-                      child: NotificationTile(
-                        notification: notification,
-                        onTap: () {
-                          if (!notification.read) {
-                            unawaited(
-                              ref
-                                  .read(
-                                    notificationsControllerProvider.notifier,
-                                  )
-                                  .markRead(notification.id),
+                children: <Widget>[
+                  for (final group in _groupNotifications(data.items)) ...[
+                    _NotificationDateHeader(date: group.date),
+                    const SizedBox(height: AppSpacing.sm),
+                    for (final notification in group.items)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Dismissible(
+                          key: ValueKey(notification.id),
+                          direction: DismissDirection.endToStart,
+                          background: const NotificationDismissBackground(),
+                          confirmDismiss: (_) async {
+                            return confirmNotificationDelete(
+                              context,
+                              ref,
+                              notification,
                             );
-                          }
-                        },
+                          },
+                          child: NotificationTile(
+                            notification: notification,
+                            onTap: () {
+                              if (!notification.read) {
+                                unawaited(
+                                  ref
+                                      .read(
+                                        notificationsControllerProvider
+                                            .notifier,
+                                      )
+                                      .markRead(notification.id),
+                                );
+                              }
+                            },
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ],
               ),
             );
           },
@@ -102,6 +109,46 @@ class NotificationsScreen extends ConsumerWidget {
                 ref.read(notificationsControllerProvider.notifier).refresh(),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NotificationGroup {
+  const _NotificationGroup({required this.date, required this.items});
+
+  final DateTime date;
+  final List<Notification> items;
+}
+
+List<_NotificationGroup> _groupNotifications(List<Notification> items) {
+  final groups = <DateTime, List<Notification>>{};
+  for (final item in items) {
+    final date = DateTime(
+      item.createdAt.year,
+      item.createdAt.month,
+      item.createdAt.day,
+    );
+    groups.putIfAbsent(date, () => <Notification>[]).add(item);
+  }
+  return groups.entries
+      .map((entry) => _NotificationGroup(date: entry.key, items: entry.value))
+      .toList(growable: false);
+}
+
+class _NotificationDateHeader extends StatelessWidget {
+  const _NotificationDateHeader({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      DateFormat.yMMMd(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date),
+      style: context.textTheme.label.copyWith(
+        color: context.colors.textSecondary,
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
+import 'package:saveapenny/core/ui/swipe_action_row.dart';
 import 'package:saveapenny/features/feedback/application/feedback_list_controller.dart';
 import 'package:saveapenny/features/feedback/domain/feedback.dart';
 import 'package:saveapenny/features/feedback/presentation/widgets/feedback_form_sheet.dart';
@@ -91,10 +92,19 @@ class FeedbackScreen extends ConsumerWidget {
                     }
 
                     final feedback = data.items[itemIndex];
-                    return FeedbackTile(
-                      feedback: feedback,
-                      onTap: () => context.push('/feedback/${feedback.id}'),
-                      onDelete: () => _confirmDelete(context, ref, feedback.id),
+                    return SwipeActionRow(
+                      itemKey: ValueKey(feedback.id),
+                      onDelete: () {},
+                      confirmDelete: () async {
+                        await _confirmDelete(context, ref, feedback.id);
+                        return false;
+                      },
+                      child: FeedbackTile(
+                        feedback: feedback,
+                        onTap: () => context.push('/feedback/${feedback.id}'),
+                        onDelete: () =>
+                            _confirmDelete(context, ref, feedback.id),
+                      ),
                     );
                   },
                 ),

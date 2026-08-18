@@ -22,7 +22,7 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(icon, size: AppSpacing.giant, color: context.finance.info),
+          _OnboardingGlyph(icon: icon),
           const SizedBox(height: AppSpacing.huge),
           Text(
             headline,
@@ -37,6 +37,45 @@ class OnboardingPage extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OnboardingGlyph extends StatelessWidget {
+  const _OnboardingGlyph({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 152,
+      height: 152,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Container(
+            width: 152,
+            height: 152,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+          ),
+          Container(
+            width: 108,
+            height: 108,
+            decoration: BoxDecoration(
+              color: context.colors.surfaceSubtle,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(color: context.colors.border),
+            ),
+          ),
+          Icon(icon, size: AppSpacing.giant, color: context.finance.info),
         ],
       ),
     );

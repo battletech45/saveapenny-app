@@ -102,12 +102,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                         style: context.textTheme.title,
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      ...data.upcoming.map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: UpcomingRunCard(item: item),
-                        ),
-                      ),
+                      UpcomingRunsTimeline(items: data.upcoming),
                       const SizedBox(height: AppSpacing.xl),
                     ],
                     Text(

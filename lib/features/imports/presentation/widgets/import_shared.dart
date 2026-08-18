@@ -99,3 +99,66 @@ class ImportSummaryCard extends StatelessWidget {
     );
   }
 }
+
+class ImportStepStrip extends StatelessWidget {
+  const ImportStepStrip({
+    super.key,
+    required this.currentIndex,
+    required this.labels,
+  });
+
+  final int currentIndex;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: context.colors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: <Widget>[
+            for (var i = 0; i < labels.length; i++) ...<Widget>[
+              Expanded(
+                child: _ImportStepItem(
+                  label: labels[i],
+                  active: i <= currentIndex,
+                ),
+              ),
+              if (i != labels.length - 1)
+                Container(
+                  width: AppSpacing.md,
+                  height: 1,
+                  color: i < currentIndex
+                      ? Theme.of(context).colorScheme.primary
+                      : context.colors.border,
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImportStepItem extends StatelessWidget {
+  const _ImportStepItem({required this.label, required this.active});
+
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active
+        ? Theme.of(context).colorScheme.primary
+        : context.colors.textTertiary;
+    return Tooltip(
+      message: label,
+      child: Icon(Icons.circle, size: AppSpacing.sm, color: color),
+    );
+  }
+}

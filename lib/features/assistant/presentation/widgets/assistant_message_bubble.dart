@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/initials_avatar.dart';
 import 'package:saveapenny/features/assistant/domain/assistant_message.dart';
 
 class AssistantMessageBubble extends StatelessWidget {
@@ -25,7 +26,7 @@ class AssistantMessageBubble extends StatelessWidget {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(message.createdAt.toLocal());
 
-    return Column(
+    final bubble = Column(
       crossAxisAlignment: align,
       children: <Widget>[
         ConstrainedBox(
@@ -54,17 +55,58 @@ class AssistantMessageBubble extends StatelessWidget {
         ),
       ],
     );
+
+    return Row(
+      mainAxisAlignment: isUser
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (!isUser) ...<Widget>[
+          const InitialsAvatar(name: 'SaveAPenny', size: 32),
+          const SizedBox(width: AppSpacing.sm),
+        ],
+        Flexible(child: bubble),
+        if (isUser) ...<Widget>[
+          const SizedBox(width: AppSpacing.sm),
+          const InitialsAvatar(name: 'User', size: 32),
+        ],
+      ],
+    );
   }
 }
 
-class AssistantTypingBubble extends StatelessWidget {
+class AssistantTypingBubble extends StatefulWidget {
   const AssistantTypingBubble({super.key});
 
   @override
+  State<AssistantTypingBubble> createState() => _AssistantTypingBubbleState();
+}
+
+class _AssistantTypingBubbleState extends State<AssistantTypingBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: AppDuration.slow)
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        const InitialsAvatar(name: 'SaveAPenny', size: 32),
+        const SizedBox(width: AppSpacing.sm),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 160),
           child: DecoratedBox(
@@ -73,17 +115,49 @@ class AssistantTypingBubble extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(color: context.colors.border),
             ),
-            child: const Padding(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              child: SizedBox(
-                width: AppSpacing.xxl,
-                height: AppSpacing.xxl,
-                child: CircularProgressIndicator(strokeWidth: 2),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      for (var i = 0; i < 3; i++) ...<Widget>[
+                        _TypingDot(
+                          active: ((_controller.value * 3).floor() % 3) == i,
+                        ),
+                        if (i != 2) const SizedBox(width: AppSpacing.xs),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TypingDot extends StatelessWidget {
+  const _TypingDot({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: AppDuration.fast,
+      width: active ? AppSpacing.sm : AppSpacing.xs,
+      height: active ? AppSpacing.sm : AppSpacing.xs,
+      decoration: BoxDecoration(
+        color: active
+            ? Theme.of(context).colorScheme.primary
+            : context.colors.textTertiary,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

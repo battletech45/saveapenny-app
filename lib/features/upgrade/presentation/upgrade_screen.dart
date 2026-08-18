@@ -57,14 +57,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
             return ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: <Widget>[
-                Text(l10n.upgradeHeading, style: context.textTheme.title),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.upgradeSubtitle,
-                  style: context.textTheme.body.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                ),
+                const _UpgradeHero(),
                 const SizedBox(height: AppSpacing.xxl),
                 for (final package in packages) ...<Widget>[
                   UpgradePackageCard(
@@ -81,6 +74,8 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                     child: Text(l10n.upgradeRestoreCta),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.lg),
+                const _UpgradeFeatureComparison(),
               ],
             );
           },
@@ -138,5 +133,97 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
       };
     }
     return l10n.upgradePurchaseFailedMessage;
+  }
+}
+
+class _UpgradeHero extends StatelessWidget {
+  const _UpgradeHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: PremiumSurface.gradient(context),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(
+              Icons.workspace_premium_outlined,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              l10n.upgradeHeading,
+              style: context.textTheme.headline.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.upgradeSubtitle,
+              style: context.textTheme.body.copyWith(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimaryContainer.withValues(alpha: 0.78),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UpgradeFeatureComparison extends StatelessWidget {
+  const _UpgradeFeatureComparison();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final features = <({IconData icon, String label})>[
+      (icon: Icons.smart_toy_outlined, label: l10n.assistantTitle),
+      (icon: Icons.lightbulb_outline_rounded, label: l10n.insightsTitle),
+      (icon: Icons.show_chart_rounded, label: l10n.stocksTitle),
+      (icon: Icons.document_scanner_outlined, label: l10n.ocrTitle),
+      (icon: Icons.upload_file_outlined, label: l10n.importsTitle),
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          children: <Widget>[
+            for (final feature in features) ...<Widget>[
+              Row(
+                children: <Widget>[
+                  Icon(
+                    feature.icon,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(feature.label, style: context.textTheme.body),
+                  ),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: context.finance.income,
+                  ),
+                ],
+              ),
+              if (feature != features.last) ...<Widget>[
+                const SizedBox(height: AppSpacing.md),
+                Divider(color: context.colors.border, height: 1),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

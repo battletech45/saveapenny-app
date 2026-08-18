@@ -25,12 +25,23 @@ class UpgradePackageCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.colors.border),
+        border: Border.all(
+          color: package.packageType == PackageType.annual
+              ? Theme.of(context).colorScheme.primary
+              : context.colors.border,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
           children: <Widget>[
+            if (package.packageType == PackageType.annual) ...<Widget>[
+              Icon(
+                Icons.workspace_premium_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: AppSpacing.md),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,6 +54,15 @@ class UpgradePackageCard extends StatelessWidget {
                       color: context.colors.textSecondary,
                     ),
                   ),
+                  if (product.description.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      product.description,
+                      style: context.textTheme.label.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
