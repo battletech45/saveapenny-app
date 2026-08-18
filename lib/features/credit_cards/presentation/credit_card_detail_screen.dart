@@ -12,6 +12,7 @@ import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/inline_empty_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/presentation/widgets/account_shared.dart';
@@ -36,59 +37,68 @@ class CreditCardDetailScreen extends ConsumerWidget {
 
     final account = _findAccount(readAsyncData(accountsState), accountId);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => GoRouter.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
+    return ScrollAwareFabVisibility(
+      builder: (context, fabVisible) => Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () => GoRouter.of(context).pop(),
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+          title: Text(l10n.creditCardDetailTitle),
         ),
-        title: Text(l10n.creditCardDetailTitle),
-      ),
-      floatingActionButton: account == null
-          ? null
-          : FloatingActionButton.extended(
-              heroTag: 'creditCardPaymentFab',
-              onPressed: () => _showPaymentSheet(context, account),
-              icon: const Icon(Icons.payments_outlined),
-              label: Text(l10n.creditCardMakePaymentCta),
-            ),
-      body: SafeArea(
-        child: accountsState.isLoading && account == null
-            ? const LoadingView()
-            : account == null
-            ? FailureView(
-                failure: const Failure.unknown(),
-                onRetry: () =>
-                    ref.read(accountsControllerProvider.notifier).refresh(),
-              )
-            : RefreshIndicator(
-                onRefresh: () async {
-                  await ref
-                      .read(
-                        creditCardDetailControllerProvider(accountId).notifier,
-                      )
-                      .refresh();
-                  await ref.read(accountsControllerProvider.notifier).refresh();
-                },
-                child: statementsState.when(
-                  data: (data) => _CreditCardDetailBody(
-                    account: account,
-                    statements: data.statements,
-                    hasNext: data.hasNext,
-                  ),
-                  loading: () => const LoadingView(),
-                  error: (error, _) => FailureView(
-                    failure: error as Failure,
-                    onRetry: () => ref
+        floatingActionButton: account == null
+            ? null
+            : ScrollAwareFab(
+                visible: fabVisible,
+                child: FloatingActionButton.extended(
+                  heroTag: 'creditCardPaymentFab',
+                  onPressed: () => _showPaymentSheet(context, account),
+                  icon: const Icon(Icons.payments_outlined),
+                  label: Text(l10n.creditCardMakePaymentCta),
+                ),
+              ),
+        body: SafeArea(
+          child: accountsState.isLoading && account == null
+              ? const LoadingView()
+              : account == null
+              ? FailureView(
+                  failure: const Failure.unknown(),
+                  onRetry: () =>
+                      ref.read(accountsControllerProvider.notifier).refresh(),
+                )
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await ref
                         .read(
                           creditCardDetailControllerProvider(
                             accountId,
                           ).notifier,
                         )
-                        .refresh(),
+                        .refresh();
+                    await ref
+                        .read(accountsControllerProvider.notifier)
+                        .refresh();
+                  },
+                  child: statementsState.when(
+                    data: (data) => _CreditCardDetailBody(
+                      account: account,
+                      statements: data.statements,
+                      hasNext: data.hasNext,
+                    ),
+                    loading: () => const LoadingView(),
+                    error: (error, _) => FailureView(
+                      failure: error as Failure,
+                      onRetry: () => ref
+                          .read(
+                            creditCardDetailControllerProvider(
+                              accountId,
+                            ).notifier,
+                          )
+                          .refresh(),
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }

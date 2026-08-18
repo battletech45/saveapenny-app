@@ -9,6 +9,7 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
 import 'package:saveapenny/features/dashboard/application/dashboard_controller.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/account_row.dart';
 import 'package:saveapenny/features/dashboard/presentation/widgets/attention_strip.dart';
@@ -31,69 +32,74 @@ class DashboardScreen extends ConsumerWidget {
         ref.watch(notificationsControllerProvider).asData?.value.unreadCount ??
         0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.homeTitle),
-        actions: <Widget>[
-          Badge(
-            isLabelVisible: unreadCount > 0,
-            label: Text('$unreadCount'),
-            child: IconButton(
-              onPressed: () =>
-                  unawaited(GoRouter.of(context).push('/notifications')),
-              icon: const Icon(Icons.notifications_outlined),
-              tooltip: l10n.notificationsHomeCardTitle,
+    return ScrollAwareFabVisibility(
+      builder: (context, fabVisible) => Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.homeTitle),
+          actions: <Widget>[
+            Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text('$unreadCount'),
+              child: IconButton(
+                onPressed: () =>
+                    unawaited(GoRouter.of(context).push('/notifications')),
+                icon: const Icon(Icons.notifications_outlined),
+                tooltip: l10n.notificationsHomeCardTitle,
+              ),
             ),
+          ],
+        ),
+        floatingActionButton: ScrollAwareFab(
+          visible: fabVisible,
+          child: FloatingActionButton(
+            heroTag: 'dashboardFab',
+            onPressed: () => _showTransactionSheet(context),
+            child: const Icon(Icons.add_rounded),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'dashboardFab',
-        onPressed: () => _showTransactionSheet(context),
-        child: const Icon(Icons.add_rounded),
-      ),
-      body: SafeArea(
-        child: snapshot.when(
-          loading: () => const LoadingView(),
-          error: (error, _) => FailureView(
-            failure: error as Failure,
-            onRetry: () =>
-                ref.read(dashboardControllerProvider.notifier).refresh(),
-          ),
-          data: (data) => RefreshIndicator(
-            onRefresh: () =>
-                ref.read(dashboardControllerProvider.notifier).refresh(),
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: <Widget>[
-                NetWorthHero(netWorth: data.netWorth),
-                const SizedBox(height: AppSpacing.xl),
-                CashFlowSummaryCard(summary: data.monthlySummary),
-                if (data.atRiskBudgets.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: AppSpacing.lg),
-                  AttentionStrip(budgets: data.atRiskBudgets),
-                ],
-                if (data.upcomingBills.isNotEmpty) ...<Widget>[
+        ),
+        body: SafeArea(
+          child: snapshot.when(
+            loading: () => const LoadingView(),
+            error: (error, _) => FailureView(
+              failure: error as Failure,
+              onRetry: () =>
+                  ref.read(dashboardControllerProvider.notifier).refresh(),
+            ),
+            data: (data) => RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(dashboardControllerProvider.notifier).refresh(),
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                children: <Widget>[
+                  NetWorthHero(netWorth: data.netWorth),
                   const SizedBox(height: AppSpacing.xl),
-                  DashboardSectionHeader(
-                    label: l10n.dashboardUpcomingBillsTitle,
-                  ),
-                  UpcomingBillsList(bills: data.upcomingBills),
-                ],
-                if (data.accounts.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: AppSpacing.xl),
-                  DashboardSectionHeader(label: l10n.dashboardAccountsTitle),
-                  Card(
-                    child: Column(
-                      children: <Widget>[
-                        for (final account in data.accounts)
-                          AccountRow(account: account),
-                      ],
+                  CashFlowSummaryCard(summary: data.monthlySummary),
+                  if (data.atRiskBudgets.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: AppSpacing.lg),
+                    AttentionStrip(budgets: data.atRiskBudgets),
+                  ],
+                  if (data.upcomingBills.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: AppSpacing.xl),
+                    DashboardSectionHeader(
+                      label: l10n.dashboardUpcomingBillsTitle,
                     ),
-                  ),
+                    UpcomingBillsList(bills: data.upcomingBills),
+                  ],
+                  if (data.accounts.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: AppSpacing.xl),
+                    DashboardSectionHeader(label: l10n.dashboardAccountsTitle),
+                    Card(
+                      child: Column(
+                        children: <Widget>[
+                          for (final account in data.accounts)
+                            AccountRow(account: account),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.giant),
                 ],
-                const SizedBox(height: AppSpacing.giant),
-              ],
+              ),
             ),
           ),
         ),

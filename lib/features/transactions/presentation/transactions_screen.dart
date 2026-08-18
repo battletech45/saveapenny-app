@@ -7,6 +7,7 @@ import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
@@ -39,87 +40,92 @@ class TransactionsScreen extends ConsumerWidget {
       for (final category in categories) category.id: category,
     };
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.transactionsTitle),
-        actions: <Widget>[
-          IconButton(
-            onPressed: () => _showTransferSheet(context),
-            tooltip: l10n.transactionsTransferCta,
-            icon: const Icon(Icons.swap_horiz_rounded),
+    return ScrollAwareFabVisibility(
+      builder: (context, fabVisible) => Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.transactionsTitle),
+          actions: <Widget>[
+            IconButton(
+              onPressed: () => _showTransferSheet(context),
+              tooltip: l10n.transactionsTransferCta,
+              icon: const Icon(Icons.swap_horiz_rounded),
+            ),
+          ],
+        ),
+        floatingActionButton: ScrollAwareFab(
+          visible: fabVisible,
+          child: FloatingActionButton.extended(
+            heroTag: 'transactionsFab',
+            onPressed: () => _showTransactionSheet(context),
+            icon: const Icon(Icons.add_rounded),
+            label: Text(l10n.transactionsAddCta),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'transactionsFab',
-        onPressed: () => _showTransactionSheet(context),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.transactionsAddCta),
-      ),
-      body: SafeArea(
-        child: transactionsState.when(
-          data: (data) {
-            if (data.items.isEmpty) {
-              return EmptyView(
-                title: l10n.transactionsEmptyTitle,
-                message: l10n.transactionsEmptyMessage,
-                action: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    ElevatedButton(
-                      onPressed: () => _showTransactionSheet(context),
-                      child: Text(l10n.transactionsAddFirstCta),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextButton(
-                      onPressed: () => _showTransferSheet(context),
-                      child: Text(l10n.transactionsTransferCta),
-                    ),
-                  ],
+        ),
+        body: SafeArea(
+          child: transactionsState.when(
+            data: (data) {
+              if (data.items.isEmpty) {
+                return EmptyView(
+                  title: l10n.transactionsEmptyTitle,
+                  message: l10n.transactionsEmptyMessage,
+                  action: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      ElevatedButton(
+                        onPressed: () => _showTransactionSheet(context),
+                        child: Text(l10n.transactionsAddFirstCta),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextButton(
+                        onPressed: () => _showTransferSheet(context),
+                        child: Text(l10n.transactionsTransferCta),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () =>
+                    ref.read(transactionsControllerProvider.notifier).refresh(),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  itemCount: data.items.length + (data.hasNext ? 1 : 0),
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    if (index == data.items.length) {
+                      return OutlinedButton(
+                        onPressed: () => ref
+                            .read(transactionsControllerProvider.notifier)
+                            .loadMore(),
+                        child: Text(l10n.transactionsLoadMoreCta),
+                      );
+                    }
+
+                    final transaction = data.items[index];
+                    return TransactionTile(
+                      transaction: transaction,
+                      account: accountById[transaction.accountId],
+                      category: categoryById[transaction.categoryId],
+                      onEdit: transaction.type == TransactionType.transfer
+                          ? null
+                          : () => _showTransactionSheet(
+                              context,
+                              existing: transaction,
+                            ),
+                      onDelete: () => _confirmDelete(context, ref, transaction),
+                    );
+                  },
                 ),
               );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () =>
+            },
+            loading: () => const LoadingView(),
+            error: (error, _) => FailureView(
+              failure: error as Failure,
+              onRetry: () =>
                   ref.read(transactionsControllerProvider.notifier).refresh(),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: data.items.length + (data.hasNext ? 1 : 0),
-                separatorBuilder: (BuildContext context, int index) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (context, index) {
-                  if (index == data.items.length) {
-                    return OutlinedButton(
-                      onPressed: () => ref
-                          .read(transactionsControllerProvider.notifier)
-                          .loadMore(),
-                      child: Text(l10n.transactionsLoadMoreCta),
-                    );
-                  }
-
-                  final transaction = data.items[index];
-                  return TransactionTile(
-                    transaction: transaction,
-                    account: accountById[transaction.accountId],
-                    category: categoryById[transaction.categoryId],
-                    onEdit: transaction.type == TransactionType.transfer
-                        ? null
-                        : () => _showTransactionSheet(
-                            context,
-                            existing: transaction,
-                          ),
-                    onDelete: () => _confirmDelete(context, ref, transaction),
-                  );
-                },
-              ),
-            );
-          },
-          loading: () => const LoadingView(),
-          error: (error, _) => FailureView(
-            failure: error as Failure,
-            onRetry: () =>
-                ref.read(transactionsControllerProvider.notifier).refresh(),
+            ),
           ),
         ),
       ),

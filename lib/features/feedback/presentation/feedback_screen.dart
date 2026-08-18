@@ -8,6 +8,7 @@ import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
 import 'package:saveapenny/features/feedback/application/feedback_list_controller.dart';
 import 'package:saveapenny/features/feedback/domain/feedback.dart';
 import 'package:saveapenny/features/feedback/presentation/widgets/feedback_form_sheet.dart';
@@ -23,82 +24,88 @@ class FeedbackScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final feedbackState = ref.watch(feedbackListControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.feedbackTitle)),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'feedbackFab',
-        onPressed: () => _showFeedbackSheet(context),
-        icon: const Icon(Icons.feedback_outlined),
-        label: Text(l10n.feedbackSubmitCta),
-      ),
-      body: SafeArea(
-        child: feedbackState.when(
-          data: (data) {
-            if (data.items.isEmpty) {
+    return ScrollAwareFabVisibility(
+      builder: (context, fabVisible) => Scaffold(
+        appBar: AppBar(title: Text(l10n.feedbackTitle)),
+        floatingActionButton: ScrollAwareFab(
+          visible: fabVisible,
+          child: FloatingActionButton.extended(
+            heroTag: 'feedbackFab',
+            onPressed: () => _showFeedbackSheet(context),
+            icon: const Icon(Icons.feedback_outlined),
+            label: Text(l10n.feedbackSubmitCta),
+          ),
+        ),
+        body: SafeArea(
+          child: feedbackState.when(
+            data: (data) {
+              if (data.items.isEmpty) {
+                return RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(feedbackListControllerProvider.notifier)
+                      .refresh(),
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    children: <Widget>[
+                      _FeedbackFilterCard(
+                        currentFilter: data.typeFilter,
+                        onChanged: (type) => ref
+                            .read(feedbackListControllerProvider.notifier)
+                            .setTypeFilter(type),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      _FeedbackEmptyState(
+                        onSubmit: () => _showFeedbackSheet(context),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               return RefreshIndicator(
                 onRefresh: () =>
                     ref.read(feedbackListControllerProvider.notifier).refresh(),
-                child: ListView(
+                child: ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  children: <Widget>[
-                    _FeedbackFilterCard(
-                      currentFilter: data.typeFilter,
-                      onChanged: (type) => ref
-                          .read(feedbackListControllerProvider.notifier)
-                          .setTypeFilter(type),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _FeedbackEmptyState(
-                      onSubmit: () => _showFeedbackSheet(context),
-                    ),
-                  ],
+                  itemCount: data.items.length + (data.hasNext ? 2 : 1),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _FeedbackFilterCard(
+                        currentFilter: data.typeFilter,
+                        onChanged: (type) => ref
+                            .read(feedbackListControllerProvider.notifier)
+                            .setTypeFilter(type),
+                      );
+                    }
+
+                    final itemIndex = index - 1;
+                    if (itemIndex == data.items.length) {
+                      return OutlinedButton(
+                        onPressed: () => ref
+                            .read(feedbackListControllerProvider.notifier)
+                            .loadMore(),
+                        child: Text(l10n.feedbackLoadMoreCta),
+                      );
+                    }
+
+                    final feedback = data.items[itemIndex];
+                    return FeedbackTile(
+                      feedback: feedback,
+                      onTap: () => context.push('/feedback/${feedback.id}'),
+                      onDelete: () => _confirmDelete(context, ref, feedback.id),
+                    );
+                  },
                 ),
               );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () =>
+            },
+            loading: () => const LoadingView(),
+            error: (error, _) => FailureView(
+              failure: error as Failure,
+              onRetry: () =>
                   ref.read(feedbackListControllerProvider.notifier).refresh(),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: data.items.length + (data.hasNext ? 2 : 1),
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _FeedbackFilterCard(
-                      currentFilter: data.typeFilter,
-                      onChanged: (type) => ref
-                          .read(feedbackListControllerProvider.notifier)
-                          .setTypeFilter(type),
-                    );
-                  }
-
-                  final itemIndex = index - 1;
-                  if (itemIndex == data.items.length) {
-                    return OutlinedButton(
-                      onPressed: () => ref
-                          .read(feedbackListControllerProvider.notifier)
-                          .loadMore(),
-                      child: Text(l10n.feedbackLoadMoreCta),
-                    );
-                  }
-
-                  final feedback = data.items[itemIndex];
-                  return FeedbackTile(
-                    feedback: feedback,
-                    onTap: () => context.push('/feedback/${feedback.id}'),
-                    onDelete: () => _confirmDelete(context, ref, feedback.id),
-                  );
-                },
-              ),
-            );
-          },
-          loading: () => const LoadingView(),
-          error: (error, _) => FailureView(
-            failure: error as Failure,
-            onRetry: () =>
-                ref.read(feedbackListControllerProvider.notifier).refresh(),
+            ),
           ),
         ),
       ),
