@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/stat_pill.dart';
 import 'package:saveapenny/features/stocks/application/stock_financials_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_financial_statement.dart';
 import 'package:saveapenny/features/stocks/presentation/widgets/stock_detail_shared.dart';
@@ -177,20 +178,68 @@ class _StatementPreview extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              ...report.fields.entries
-                  .take(3)
-                  .map(
-                    (entry) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: InfoRow(label: entry.key, value: entry.value),
-                    ),
-                  ),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: <Widget>[
+                  ...report.fields.entries
+                      .take(3)
+                      .map(
+                        (entry) => StatPill(
+                          label: entry.key,
+                          value: entry.value,
+                          icon: _financialTrendIcon(statement, entry.key),
+                          tone: _financialTrendTone(statement, entry.key),
+                        ),
+                      ),
+                ],
+              ),
             ],
           ],
         ),
       ),
     );
   }
+}
+
+IconData _financialTrendIcon(StockFinancialStatement statement, String key) {
+  final trend = _financialTrend(statement, key);
+  if (trend > 0) {
+    return Icons.trending_up_rounded;
+  }
+  if (trend < 0) {
+    return Icons.trending_down_rounded;
+  }
+  return Icons.trending_flat_rounded;
+}
+
+StatPillTone _financialTrendTone(
+  StockFinancialStatement statement,
+  String key,
+) {
+  final trend = _financialTrend(statement, key);
+  if (trend > 0) {
+    return StatPillTone.income;
+  }
+  if (trend < 0) {
+    return StatPillTone.expense;
+  }
+  return StatPillTone.neutral;
+}
+
+num _financialTrend(StockFinancialStatement statement, String key) {
+  final reports = statement.annualReports.length >= 2
+      ? statement.annualReports
+      : statement.quarterlyReports;
+  if (reports.length < 2) {
+    return 0;
+  }
+  final current = num.tryParse(reports.first.fields[key] ?? '');
+  final previous = num.tryParse(reports[1].fields[key] ?? '');
+  if (current == null || previous == null) {
+    return 0;
+  }
+  return current - previous;
 }
 
 class _FinancialSelector extends StatelessWidget {

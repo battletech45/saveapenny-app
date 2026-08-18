@@ -12,10 +12,11 @@ import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/inline_empty_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
+import 'package:saveapenny/core/ui/progress_meter.dart';
 import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
+import 'package:saveapenny/core/ui/stat_pill.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
-import 'package:saveapenny/features/accounts/presentation/widgets/account_shared.dart';
 import 'package:saveapenny/features/credit_cards/application/credit_cards_controller.dart';
 import 'package:saveapenny/features/credit_cards/domain/credit_card_statement.dart';
 import 'package:saveapenny/features/credit_cards/presentation/widgets/credit_card_payment_sheet.dart';
@@ -156,7 +157,10 @@ class _CreditCardDetailBody extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: <Widget>[
           if (creditCard != null)
-            _CreditCardSummaryCard(creditCard: creditCard),
+            _CreditCardSummaryCard(
+              creditCard: creditCard,
+              currencyCode: account.currency,
+            ),
           const SizedBox(height: AppSpacing.xxl),
           Text(l10n.creditCardStatementsTitle, style: context.textTheme.title),
           const SizedBox(height: AppSpacing.lg),
@@ -179,13 +183,44 @@ class _CreditCardDetailBody extends ConsumerWidget {
 }
 
 class _CreditCardSummaryCard extends StatelessWidget {
-  const _CreditCardSummaryCard({required this.creditCard});
+  const _CreditCardSummaryCard({
+    required this.creditCard,
+    required this.currencyCode,
+  });
 
   final CreditCardSummary creditCard;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final balance = creditCard.currentStatementBalance ?? 0;
+    final utilization = creditCard.creditLimit == 0
+        ? 0.0
+        : (balance / creditCard.creditLimit).toDouble();
+    final utilizationColor = _utilizationColor(context, utilization);
+    final limit = MoneyFormatter.format(
+      context: context,
+      amount: creditCard.creditLimit,
+      currencyCode: currencyCode,
+    );
+    final statementBalance = creditCard.currentStatementBalance == null
+        ? l10n.accountsPaymentDueNoneValue
+        : MoneyFormatter.format(
+            context: context,
+            amount: creditCard.currentStatementBalance!,
+            currencyCode: currencyCode,
+            isDebt: true,
+          ).text;
+    final minimumDue = creditCard.minimumPaymentDue == null
+        ? l10n.accountsPaymentDueNoneValue
+        : MoneyFormatter.format(
+            context: context,
+            amount: creditCard.minimumPaymentDue!,
+            currencyCode: currencyCode,
+            isDebt: true,
+          ).text;
+    final dueTone = _dueTone(creditCard.paymentDueDate);
 
     return Card(
       child: Padding(
@@ -193,41 +228,103 @@ class _CreditCardSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _SummaryRow(
-              label: l10n.creditCardSummaryLimitLabel,
-              value: creditCard.creditLimit.toString(),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    l10n.creditCardSummaryBalanceLabel,
+                    style: context.textTheme.title,
+                  ),
+                ),
+                Text(
+                  '${(utilization * 100).toStringAsFixed(0)}%',
+                  style: context.textTheme.money.copyWith(
+                    color: utilizationColor,
+                  ),
+                ),
+              ],
             ),
-            _SummaryRow(
-              label: l10n.creditCardSummaryAprLabel,
-              value: '${creditCard.apr}%',
-            ),
-            _SummaryRow(
-              label: l10n.creditCardSummaryStatementDayLabel,
-              value: creditCard.statementDay.toString(),
-            ),
-            _SummaryRow(
-              label: l10n.creditCardSummaryBalanceLabel,
-              value:
-                  creditCard.currentStatementBalance?.toString() ??
-                  l10n.accountsPaymentDueNoneValue,
-            ),
-            _SummaryRow(
-              label: l10n.creditCardSummaryMinimumDueLabel,
-              value:
-                  creditCard.minimumPaymentDue?.toString() ??
-                  l10n.accountsPaymentDueNoneValue,
-            ),
-            _SummaryRow(
-              label: l10n.creditCardSummaryDueDateLabel,
-              value: creditCard.paymentDueDate == null
-                  ? l10n.accountsPaymentDueNoneValue
-                  : formatCreditCardDate(context, creditCard.paymentDueDate!),
+            const SizedBox(height: AppSpacing.md),
+            ProgressMeter(value: utilization, color: utilizationColor),
+            const SizedBox(height: AppSpacing.lg),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: <Widget>[
+                StatPill(
+                  label: l10n.creditCardSummaryLimitLabel,
+                  value: limit.text,
+                  icon: Icons.credit_card_rounded,
+                ),
+                StatPill(
+                  label: l10n.creditCardSummaryBalanceLabel,
+                  value: statementBalance,
+                  icon: Icons.account_balance_wallet_outlined,
+                  tone: balance > 0
+                      ? StatPillTone.expense
+                      : StatPillTone.neutral,
+                ),
+                StatPill(
+                  label: l10n.creditCardSummaryMinimumDueLabel,
+                  value: minimumDue,
+                  icon: Icons.payments_outlined,
+                  tone: dueTone,
+                ),
+                StatPill(
+                  label: l10n.creditCardSummaryDueDateLabel,
+                  value: creditCard.paymentDueDate == null
+                      ? l10n.accountsPaymentDueNoneValue
+                      : formatCreditCardDate(
+                          context,
+                          creditCard.paymentDueDate!,
+                        ),
+                  icon: Icons.event_outlined,
+                  tone: dueTone,
+                ),
+                StatPill(
+                  label: l10n.creditCardSummaryAprLabel,
+                  value: '${creditCard.apr}%',
+                  icon: Icons.percent_rounded,
+                ),
+                StatPill(
+                  label: l10n.creditCardSummaryStatementDayLabel,
+                  value: creditCard.statementDay.toString(),
+                  icon: Icons.calendar_month_outlined,
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+}
+
+Color _utilizationColor(BuildContext context, double utilization) {
+  if (utilization >= 0.9) {
+    return context.finance.expense;
+  }
+  if (utilization >= 0.7) {
+    return context.finance.warning;
+  }
+  return Theme.of(context).colorScheme.primary;
+}
+
+StatPillTone _dueTone(DateTime? dueDate) {
+  if (dueDate == null) {
+    return StatPillTone.neutral;
+  }
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final due = DateTime(dueDate.year, dueDate.month, dueDate.day);
+  final days = due.difference(today).inDays;
+  if (days < 0) {
+    return StatPillTone.expense;
+  }
+  if (days <= 7) {
+    return StatPillTone.warning;
+  }
+  return StatPillTone.neutral;
 }
 
 class _SummaryRow extends StatelessWidget {
@@ -285,7 +382,7 @@ class _StatementTile extends StatelessWidget {
                   formatCreditCardDate(context, statement.statementDate),
                   style: context.textTheme.body,
                 ),
-                AccountInfoPill(
+                StatPill(
                   label: l10n.accountsStatusLabel,
                   value: statementStatusLabel(l10n, statement.status),
                 ),

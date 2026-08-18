@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/charts.dart';
 import 'package:saveapenny/features/insights/domain/insight.dart';
 import 'package:saveapenny/features/insights/presentation/widgets/insight_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -14,6 +15,8 @@ class InsightDetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final metadataPills = parseInsightMetadataPills(insight.metadata);
+    final sparklinePoints = parseInsightSparklinePoints(insight);
 
     return Card(
       child: Padding(
@@ -21,7 +24,13 @@ class InsightDetailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            InsightSeverityBadge(severity: insight.severity),
+            Row(
+              children: <Widget>[
+                InsightTypeIcon(type: insight.type),
+                const SizedBox(width: AppSpacing.sm),
+                InsightSeverityBadge(severity: insight.severity),
+              ],
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(insight.title, style: context.textTheme.headline),
             const SizedBox(height: AppSpacing.sm),
@@ -40,6 +49,14 @@ class InsightDetailCard extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(insight.detail!, style: context.textTheme.body),
+            ],
+            if (sparklinePoints.isNotEmpty) ...<Widget>[
+              const SizedBox(height: AppSpacing.xl),
+              SparklineChart(
+                points: sparklinePoints,
+                height: 72,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ],
             const SizedBox(height: AppSpacing.xl),
             InsightDetailInfoRow(
@@ -66,10 +83,13 @@ class InsightDetailCard extends StatelessWidget {
             if (insight.metadata != null &&
                 insight.metadata!.isNotEmpty) ...<Widget>[
               const SizedBox(height: AppSpacing.sm),
-              InsightDetailInfoRow(
-                label: l10n.insightsMetadataLabel,
-                value: insight.metadata!,
-              ),
+              if (metadataPills.isEmpty)
+                InsightDetailInfoRow(
+                  label: l10n.insightsMetadataLabel,
+                  value: insight.metadata!,
+                )
+              else
+                InsightMetadataPills(pills: metadataPills),
             ],
             if (insight.categoryId != null) ...<Widget>[
               const SizedBox(height: AppSpacing.sm),

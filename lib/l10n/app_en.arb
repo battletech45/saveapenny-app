@@ -674,6 +674,22 @@
   "reportsNetWorthTitle": "Net worth",
   "reportsNetWorthSubtitle": "Assets, liabilities, and a six-month net worth snapshot trail for the selected month.",
   "reportsTrendTitle": "Recent snapshots",
+  "reportsNetWorthChangeUp": "+{percent}% vs last snapshot",
+  "@reportsNetWorthChangeUp": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsNetWorthChangeDown": "-{percent}% vs last snapshot",
+  "@reportsNetWorthChangeDown": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "reportsCashFlowTitle": "Daily cash flow",
   "reportsCashFlowEmptyTitle": "No cash flow yet",
   "reportsCashFlowEmptyMessage": "This month does not have income or expense entries to chart yet.",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/charts.dart';
 import 'package:saveapenny/features/insights/domain/insight.dart';
 import 'package:saveapenny/features/insights/presentation/widgets/insight_shared.dart';
 
@@ -14,6 +15,8 @@ class InsightTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formattedDate = formatInsightDateTime(context, insight.generatedAt);
+    final metadataPills = parseInsightMetadataPills(insight.metadata);
+    final sparklinePoints = parseInsightSparklinePoints(insight);
 
     return Card(
       child: InkWell(
@@ -27,16 +30,23 @@ class InsightTile extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  InsightSeverityBadge(severity: insight.severity),
+                  InsightTypeIcon(type: insight.type),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: Text(
-                      insight.title,
-                      style: context.textTheme.body.copyWith(
-                        fontWeight: insight.read
-                            ? AppFontWeight.regular
-                            : AppFontWeight.semibold,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          insight.title,
+                          style: context.textTheme.body.copyWith(
+                            fontWeight: insight.read
+                                ? AppFontWeight.regular
+                                : AppFontWeight.semibold,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        InsightSeverityBadge(severity: insight.severity),
+                      ],
                     ),
                   ),
                   if (!insight.read)
@@ -63,15 +73,25 @@ class InsightTile extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Text(insight.detail!, style: context.textTheme.label),
               ],
+              if (sparklinePoints.isNotEmpty) ...<Widget>[
+                const SizedBox(height: AppSpacing.md),
+                SparklineChart(
+                  points: sparklinePoints,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
               if (insight.metadata != null &&
                   insight.metadata!.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppSpacing.sm),
-                Text(
-                  insight.metadata!,
-                  style: context.textTheme.label.copyWith(
-                    color: context.colors.textTertiary,
-                  ),
-                ),
+                if (metadataPills.isEmpty)
+                  Text(
+                    insight.metadata!,
+                    style: context.textTheme.label.copyWith(
+                      color: context.colors.textTertiary,
+                    ),
+                  )
+                else
+                  InsightMetadataPills(pills: metadataPills),
               ],
               const SizedBox(height: AppSpacing.md),
               Wrap(

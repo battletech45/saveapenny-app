@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
@@ -11,6 +10,8 @@ import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/billing/application/entitlement_controller.dart';
 import 'package:saveapenny/features/billing/domain/entitlement.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
+import 'package:saveapenny/features/categories/application/categories_controller.dart';
+import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/reports/application/reports_controller.dart';
 import 'package:saveapenny/features/reports/presentation/widgets/reports_cards.dart';
 import 'package:saveapenny/features/reports/presentation/widgets/reports_shared.dart';
@@ -26,6 +27,9 @@ class ReportsScreen extends ConsumerWidget {
     final accounts =
         readReportsAsyncData(ref.watch(accountsControllerProvider)) ??
         const <Account>[];
+    final categories =
+        readReportsAsyncData(ref.watch(categoriesControllerProvider)) ??
+        const <Category>[];
     final currencyCode = accounts.isEmpty ? 'TRY' : accounts.first.currency;
     final entitlement = ref.watch(entitlementControllerProvider).asData?.value;
 
@@ -51,6 +55,7 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                   ReportsMonthSwitcher(
                     month: data.month,
+                    delta: ReportsNetWorthDeltaBadge(trend: data.netWorthTrend),
                     onPrevious: _canViewPreviousMonth(data.month, entitlement)
                         ? () => ref
                               .read(reportsControllerProvider.notifier)
@@ -67,46 +72,27 @@ class ReportsScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                   ReportsNetWorthCard(state: data, currencyCode: currencyCode),
                   const SizedBox(height: AppSpacing.xxl),
-                  Text(
-                    l10n.reportsCashFlowTitle,
-                    style: context.textTheme.title,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
                   if (data.cashFlow.isEmpty)
                     ReportsInlineEmptyState(
                       title: l10n.reportsCashFlowEmptyTitle,
                       message: l10n.reportsCashFlowEmptyMessage,
                     )
                   else
-                    ...data.cashFlow.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: ReportsCashFlowTile(
-                          item: item,
-                          currencyCode: currencyCode,
-                        ),
-                      ),
+                    ReportsCashFlowChartCard(
+                      items: data.cashFlow,
+                      currencyCode: currencyCode,
                     ),
                   const SizedBox(height: AppSpacing.xxl),
-                  Text(
-                    l10n.reportsCategorySpendingTitle,
-                    style: context.textTheme.title,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
                   if (data.categorySpending.isEmpty)
                     ReportsInlineEmptyState(
                       title: l10n.reportsCategorySpendingEmptyTitle,
                       message: l10n.reportsCategorySpendingEmptyMessage,
                     )
                   else
-                    ...data.categorySpending.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: ReportsCategorySpendingTile(
-                          item: item,
-                          currencyCode: currencyCode,
-                        ),
-                      ),
+                    ReportsCategorySpendingCard(
+                      items: data.categorySpending,
+                      categories: categories,
+                      currencyCode: currencyCode,
                     ),
                   if (!hasActivity) ...<Widget>[
                     const SizedBox(height: AppSpacing.xxl),

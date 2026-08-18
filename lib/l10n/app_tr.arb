@@ -674,6 +674,8 @@
   "reportsNetWorthTitle": "Net değer",
   "reportsNetWorthSubtitle": "Seçilen ay için varlıklar, yükümlülükler ve altı aylık net değer görünümleri.",
   "reportsTrendTitle": "Son görünümler",
+  "reportsNetWorthChangeUp": "Son görünüme göre +%{percent}",
+  "reportsNetWorthChangeDown": "Son görünüme göre -%{percent}",
   "reportsCashFlowTitle": "Günlük nakit akışı",
   "reportsCashFlowEmptyTitle": "Henüz nakit akışı yok",
   "reportsCashFlowEmptyMessage": "Bu ay için henüz gelir veya gider kaydı bulunmuyor.",

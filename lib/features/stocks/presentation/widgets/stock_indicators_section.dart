@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/stat_pill.dart';
 import 'package:saveapenny/features/stocks/application/stock_indicators_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_technical_indicator.dart';
 import 'package:saveapenny/features/stocks/presentation/widgets/stock_detail_shared.dart';
@@ -125,6 +126,8 @@ class _IndicatorsCard extends StatelessWidget {
             _IndicatorPill(
               label: _indicatorLabel(l10n, selected),
               value: _latestValue(indicator),
+              icon: _trendIcon(indicator),
+              tone: _trendTone(indicator),
             ),
           ],
         ),
@@ -139,39 +142,55 @@ class _IndicatorsCard extends StatelessWidget {
     }
     return indicator.dataPoints.first.value!.toStringAsFixed(2);
   }
+
+  IconData _trendIcon(StockTechnicalIndicator indicator) {
+    final trend = _latestTrend(indicator);
+    if (trend > 0) {
+      return Icons.trending_up_rounded;
+    }
+    if (trend < 0) {
+      return Icons.trending_down_rounded;
+    }
+    return Icons.trending_flat_rounded;
+  }
+
+  StatPillTone _trendTone(StockTechnicalIndicator indicator) {
+    final trend = _latestTrend(indicator);
+    if (trend > 0) {
+      return StatPillTone.income;
+    }
+    if (trend < 0) {
+      return StatPillTone.expense;
+    }
+    return StatPillTone.neutral;
+  }
+
+  num _latestTrend(StockTechnicalIndicator indicator) {
+    if (indicator.dataPoints.length < 2 ||
+        indicator.dataPoints.first.value == null ||
+        indicator.dataPoints[1].value == null) {
+      return 0;
+    }
+    return indicator.dataPoints.first.value! - indicator.dataPoints[1].value!;
+  }
 }
 
 class _IndicatorPill extends StatelessWidget {
-  const _IndicatorPill({required this.label, required this.value});
+  const _IndicatorPill({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.tone,
+  });
 
   final String label;
   final String value;
+  final IconData icon;
+  final StatPillTone tone;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              label,
-              style: context.textTheme.label.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(value, style: context.textTheme.body),
-          ],
-        ),
-      ),
-    );
+    return StatPill(label: label, value: value, icon: icon, tone: tone);
   }
 }
 
