@@ -15,6 +15,8 @@ class NavigationHubItem {
   final VoidCallback onTap;
 }
 
+/// The landing screen for the Money/Plan/Portfolio/More bottom-nav tabs — a
+/// card grid of destinations, each with its own tinted icon tile.
 class NavigationHubScreen extends StatelessWidget {
   const NavigationHubScreen({
     super.key,
@@ -30,24 +32,55 @@ class NavigationHubScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
-        child: ListView.separated(
+        child: GridView.builder(
           key: ValueKey(Theme.of(context).brightness),
           padding: const EdgeInsets.all(AppSpacing.lg),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
+            childAspectRatio: 1.15,
+          ),
           itemCount: items.length,
-          separatorBuilder: (context, index) =>
-              const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) {
             final item = items[index];
+            final color = ChartPalette.forIndex(
+              Theme.of(context).brightness == Brightness.dark
+                  ? ChartPalette.dark
+                  : ChartPalette.light,
+              index,
+            );
 
             return Card(
-              child: ListTile(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 onTap: item.onTap,
-                leading: Icon(
-                  item.icon,
-                  color: Theme.of(context).colorScheme.primary,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          child: Icon(item.icon, color: color),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        item.label,
+                        style: context.textTheme.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                title: Text(item.label, style: context.textTheme.body),
-                trailing: const Icon(Icons.chevron_right_rounded),
               ),
             );
           },

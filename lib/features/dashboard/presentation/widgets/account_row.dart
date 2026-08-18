@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/formatting/money_formatter.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
@@ -23,14 +24,13 @@ class AccountRow extends StatelessWidget {
       isDebt: account.type == AccountType.credit,
     );
 
+    final typeColor = _colorFor(context, account.type);
+
     return ListTile(
       onTap: () => unawaited(GoRouter.of(context).push('/accounts')),
       leading: CircleAvatar(
-        backgroundColor: context.colors.surfaceSubtle,
-        child: Icon(
-          _iconFor(account.type),
-          color: context.colors.textSecondary,
-        ),
+        backgroundColor: typeColor.withValues(alpha: 0.15),
+        child: Icon(_iconFor(account.type), color: typeColor),
       ),
       title: Text(account.name, style: context.textTheme.body),
       subtitle: Text(
@@ -44,6 +44,19 @@ class AccountRow extends StatelessWidget {
         style: context.textTheme.money.copyWith(color: formatted.color),
       ),
     );
+  }
+
+  Color _colorFor(BuildContext context, AccountType type) {
+    final palette = Theme.of(context).brightness == Brightness.dark
+        ? ChartPalette.dark
+        : ChartPalette.light;
+    return switch (type) {
+      AccountType.cash => palette[2],
+      AccountType.bank => palette[0],
+      AccountType.credit => palette[4],
+      AccountType.savings => palette[1],
+      AccountType.investment => palette[3],
+    };
   }
 
   IconData _iconFor(AccountType type) {

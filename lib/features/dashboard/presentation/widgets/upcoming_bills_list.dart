@@ -29,6 +29,21 @@ class UpcomingBillsList extends StatelessWidget {
               onTap: () => unawaited(
                 GoRouter.of(context).push('/recurring-transactions'),
               ),
+              leading: Builder(
+                builder: (context) {
+                  final daysUntil = bill.scheduledDate
+                      .difference(DateTime.now())
+                      .inDays;
+                  final urgent = daysUntil <= 3;
+                  final color = urgent
+                      ? context.finance.warning
+                      : context.finance.info;
+                  return CircleAvatar(
+                    backgroundColor: color.withValues(alpha: 0.15),
+                    child: Icon(Icons.event_repeat_rounded, color: color),
+                  );
+                },
+              ),
               title: Text(
                 bill.name ?? l10n.recurringTransactionUnnamed,
                 style: context.textTheme.body,

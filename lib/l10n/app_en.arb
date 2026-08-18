@@ -108,6 +108,8 @@
   "creditCardPaymentSourceRequiredError": "Choose an account to pay from.",
   "creditCardPaymentSubmitCta": "Pay",
   "dashboardNetWorthLabel": "Net worth",
+  "dashboardAssetsLabel": "Assets",
+  "dashboardLiabilitiesLabel": "Liabilities",
   "dashboardMonthlyIncomeLabel": "Income this month",
   "dashboardMonthlyExpenseLabel": "Expenses this month",
   "dashboardUpcomingBillsTitle": "Upcoming",
