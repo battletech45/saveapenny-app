@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/cache_staleness_label.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
@@ -72,6 +73,11 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: <Widget>[
                   NetWorthHero(netWorth: data.netWorth),
+                  CacheStalenessLabel(
+                    lastSyncedAt: ref
+                        .watch(dashboardLastSyncedAtProvider)
+                        .value,
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   CashFlowSummaryCard(summary: data.monthlySummary),
                   if (data.atRiskBudgets.isNotEmpty) ...<Widget>[

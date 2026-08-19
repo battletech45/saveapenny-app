@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/features/accounts/data/accounts_repository.dart';
 import 'package:saveapenny/features/budgets/data/budgets_repository.dart';
@@ -8,6 +9,7 @@ import 'package:saveapenny/features/budgets/domain/budget_status.dart';
 import 'package:saveapenny/features/budgets/domain/budgets_repository.dart';
 import 'package:saveapenny/features/dashboard/domain/dashboard_snapshot.dart';
 import 'package:saveapenny/features/recurring_transactions/data/recurring_transactions_repository.dart';
+import 'package:saveapenny/features/recurring_transactions/domain/upcoming_recurring_transaction.dart';
 import 'package:saveapenny/features/reports/data/reports_repository.dart';
 
 part 'dashboard_controller.g.dart';
@@ -40,12 +42,27 @@ class DashboardController extends _$DashboardController {
       to: now,
     );
     final accountsFuture = accounts.list();
-    final budgetsPageFuture = budgets.list(
-      period: BudgetPeriod.monthly,
-      size: _atRiskBudgetSampleSize,
-    );
-    final upcomingBillsFuture = recurring.upcoming(limit: _upcomingBillsLimit);
+    // Budgets/recurring aren't cached yet (docs/adr/0003-offline-read-cache.md
+    // Phase 3), so a genuine offline failure here would otherwise take down
+    // the whole dashboard even though the hero data above loaded fine. These
+    // are secondary strips, not headline numbers — degrade to empty instead.
+    //
+    // These futures are created now but not awaited until after
+    // netWorth/monthlySummary/accounts below (to run everything in
+    // parallel), which leaves a window where a rejection has no listener
+    // yet — Dart's zone would report that as an unhandled error even though
+    // it's about to be awaited. `.ignore()` marks it as deliberately
+    // observed-later; the real await below still sees the real value/error.
+    final budgetsPageFuture = _orEmptyBudgetsPage(
+      budgets.list(period: BudgetPeriod.monthly, size: _atRiskBudgetSampleSize),
+    )..ignore();
+    final upcomingBillsFuture = _orEmptyUpcomingBills(
+      recurring.upcoming(limit: _upcomingBillsLimit),
+    )..ignore();
 
+    // Net worth, monthly summary, and accounts are cached (see
+    // ReportsRepositoryImpl/AccountsRepositoryImpl) and so already degrade
+    // to a last-known value on Failure.network instead of throwing.
     final netWorth = await netWorthFuture;
     final monthlySummary = await monthlySummaryFuture;
     final accountList = await accountsFuture;
@@ -66,6 +83,40 @@ class DashboardController extends _$DashboardController {
     );
   }
 
+  Future<PaginatedData<Budget>> _orEmptyBudgetsPage(
+    Future<PaginatedData<Budget>> future,
+  ) async {
+    try {
+      return await future;
+    } on Failure catch (failure) {
+      if (failure is! NetworkFailure) {
+        rethrow;
+      }
+      return PaginatedData<Budget>(
+        items: const <Budget>[],
+        page: 0,
+        size: _atRiskBudgetSampleSize,
+        totalItems: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+      );
+    }
+  }
+
+  Future<List<UpcomingRecurringTransaction>> _orEmptyUpcomingBills(
+    Future<List<UpcomingRecurringTransaction>> future,
+  ) async {
+    try {
+      return await future;
+    } on Failure catch (failure) {
+      if (failure is! NetworkFailure) {
+        rethrow;
+      }
+      return const <UpcomingRecurringTransaction>[];
+    }
+  }
+
   Future<List<BudgetStatus>> _atRiskBudgets(
     BudgetsRepository budgets,
     PaginatedData<Budget> budgetsPage,
@@ -78,4 +129,14 @@ class DashboardController extends _$DashboardController {
         .where((status) => status.status != BudgetHealth.onTrack)
         .toList(growable: false);
   }
+}
+
+/// Re-evaluates whenever [dashboardControllerProvider]'s state changes.
+/// Reflects the net worth hero figure specifically — the headline metric —
+/// not the (uncached) budgets/recurring strips. See
+/// docs/adr/0003-offline-read-cache.md.
+@riverpod
+Future<DateTime?> dashboardLastSyncedAt(Ref ref) {
+  ref.watch(dashboardControllerProvider);
+  return ref.read(reportsRepositoryProvider).lastSyncedAt();
 }

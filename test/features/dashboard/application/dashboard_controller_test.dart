@@ -375,4 +375,110 @@ void main() {
       throwsA(isA<Failure>()),
     );
   });
+
+  test('a network failure loading budgets/recurring degrades to empty '
+      'instead of failing the whole dashboard', () async {
+    final container = ProviderContainer(
+      overrides: [
+        reportsRepositoryProvider.overrideWith(
+          (ref) => _FakeReportsRepository(
+            onNetWorth: ({required snapshotDate}) async => NetWorthSnapshot(
+              snapshotDate: snapshotDate,
+              totalAssets: 5000,
+              totalLiabilities: 500,
+              netWorth: 4500,
+            ),
+            onMonthlySummary: ({required from, required to}) async =>
+                MonthlySummary(
+                  startDate: from,
+                  endDate: to,
+                  totalIncome: 1200,
+                  totalExpense: 800,
+                  netSavings: 400,
+                ),
+          ),
+        ),
+        accountsRepositoryProvider.overrideWith(
+          (ref) => _FakeAccountsRepository(
+            onList: () async => <Account>[_account()],
+          ),
+        ),
+        budgetsRepositoryProvider.overrideWith(
+          (ref) => _FakeBudgetsRepository(
+            onList: () async {
+              throw const Failure.network();
+            },
+          ),
+        ),
+        recurringTransactionsRepositoryProvider.overrideWith(
+          (ref) => _FakeRecurringTransactionsRepository(
+            onUpcoming: ({limit = 10}) async {
+              throw const Failure.network();
+            },
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final snapshot = await container.read(dashboardControllerProvider.future);
+
+    expect(snapshot.netWorth.netWorth, 4500);
+    expect(snapshot.accounts, hasLength(1));
+    expect(snapshot.atRiskBudgets, isEmpty);
+    expect(snapshot.upcomingBills, isEmpty);
+  });
+
+  test(
+    'a non-network failure loading budgets still fails the dashboard',
+    () async {
+      final container = ProviderContainer(
+        retry: (retryCount, error) => null,
+        overrides: [
+          reportsRepositoryProvider.overrideWith(
+            (ref) => _FakeReportsRepository(
+              onNetWorth: ({required snapshotDate}) async => NetWorthSnapshot(
+                snapshotDate: snapshotDate,
+                totalAssets: 5000,
+                totalLiabilities: 500,
+                netWorth: 4500,
+              ),
+              onMonthlySummary: ({required from, required to}) async =>
+                  MonthlySummary(
+                    startDate: from,
+                    endDate: to,
+                    totalIncome: 1200,
+                    totalExpense: 800,
+                    netSavings: 400,
+                  ),
+            ),
+          ),
+          accountsRepositoryProvider.overrideWith(
+            (ref) => _FakeAccountsRepository(
+              onList: () async => <Account>[_account()],
+            ),
+          ),
+          budgetsRepositoryProvider.overrideWith(
+            (ref) => _FakeBudgetsRepository(
+              onList: () async {
+                throw const Failure.unauthenticated();
+              },
+            ),
+          ),
+          recurringTransactionsRepositoryProvider.overrideWith(
+            (ref) => _FakeRecurringTransactionsRepository(
+              onUpcoming: ({limit = 10}) async =>
+                  <UpcomingRecurringTransaction>[],
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await expectLater(
+        container.read(dashboardControllerProvider.future),
+        throwsA(isA<Failure>()),
+      );
+    },
+  );
 }
