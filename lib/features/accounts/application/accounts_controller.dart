@@ -112,3 +112,12 @@ class AccountsController extends _$AccountsController {
     });
   }
 }
+
+/// Re-evaluates whenever [accountsControllerProvider]'s state changes,
+/// which is exactly when a fresh `list()` call may have written through to
+/// the offline cache. Backs [CacheStalenessLabel] on the accounts screen.
+@riverpod
+Future<DateTime?> accountsLastSyncedAt(Ref ref) {
+  ref.watch(accountsControllerProvider);
+  return ref.read(accountsRepositoryProvider).lastSyncedAt();
+}

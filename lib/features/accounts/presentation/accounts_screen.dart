@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
+import 'package:saveapenny/core/network/connectivity_service.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/cache_staleness_label.dart';
 import 'package:saveapenny/core/ui/empty_view.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
@@ -22,6 +24,10 @@ class AccountsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final accountsState = ref.watch(accountsControllerProvider);
+
+    final lastSyncedAt = ref.watch(accountsLastSyncedAtProvider).value;
+    final isOnline = ref.watch(isOnlineProvider).value ?? true;
+    final showStaleness = !isOnline && lastSyncedAt != null;
 
     return ScrollAwareFabVisibility(
       builder: (context, fabVisible) => Scaffold(
@@ -50,29 +56,53 @@ class AccountsScreen extends ConsumerWidget {
                 );
               }
 
-              return RefreshIndicator(
-                onRefresh: () =>
-                    ref.read(accountsControllerProvider.notifier).refresh(),
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: accounts.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(height: AppSpacing.lg),
-                  itemBuilder: (context, index) {
-                    final account = accounts[index];
-                    return AccountCard(
-                      account: account,
-                      onEdit: () =>
-                          _showAccountSheet(context, ref, existing: account),
-                      confirmDelete: () =>
-                          _confirmDeleteDialog(context, account),
-                      onDelete: () => _deleteAccount(context, ref, account),
-                      onTap: () => GoRouter.of(
-                        context,
-                      ).push('/accounts/${account.id}/credit'),
-                    );
-                  },
-                ),
+              return Column(
+                children: <Widget>[
+                  if (showStaleness)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                        AppSpacing.lg,
+                        0,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: CacheStalenessLabel(lastSyncedAt: lastSyncedAt),
+                      ),
+                    ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => ref
+                          .read(accountsControllerProvider.notifier)
+                          .refresh(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: accounts.length,
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const SizedBox(height: AppSpacing.lg),
+                        itemBuilder: (context, index) {
+                          final account = accounts[index];
+                          return AccountCard(
+                            account: account,
+                            onEdit: () => _showAccountSheet(
+                              context,
+                              ref,
+                              existing: account,
+                            ),
+                            confirmDelete: () =>
+                                _confirmDeleteDialog(context, account),
+                            onDelete: () =>
+                                _deleteAccount(context, ref, account),
+                            onTap: () => GoRouter.of(
+                              context,
+                            ).push('/accounts/${account.id}/credit'),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
             loading: () => const LoadingView(),
