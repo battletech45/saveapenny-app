@@ -43,6 +43,7 @@ class AppDropdownField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FormField<T>(
+      key: ValueKey<T?>(value),
       initialValue: value,
       validator: validator,
       builder: (field) {
