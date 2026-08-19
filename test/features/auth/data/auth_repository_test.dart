@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -7,6 +9,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/dio_client.dart';
 import 'package:saveapenny/core/push/push_messaging_gateway.dart';
+import 'package:saveapenny/core/storage/cache_encryption_key_provider.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/features/auth/data/auth_api.dart';
 import 'package:saveapenny/features/auth/data/auth_repository.dart';
@@ -48,6 +52,9 @@ void main() {
   late Map<String, String> values;
   late TestHttpClientAdapter adapter;
   late _FakePushMessagingGateway pushMessagingGateway;
+  late CacheEncryptionKeyProvider cacheEncryptionKeyProvider;
+  late ResponseCacheStore responseCacheStore;
+  late Directory cacheDir;
   late AuthRepositoryImpl repository;
 
   setUp(() {
@@ -56,6 +63,20 @@ void main() {
     values = <String, String>{};
     adapter = TestHttpClientAdapter();
     pushMessagingGateway = _FakePushMessagingGateway();
+    // Shares the same mocked secure storage as tokenStore, so asserting
+    // `values` is empty after logout also proves the cache encryption key
+    // was wiped, not just the auth tokens.
+    cacheEncryptionKeyProvider = CacheEncryptionKeyProvider(storage: storage);
+    cacheDir = Directory.systemTemp.createTempSync('response_cache_test');
+    responseCacheStore = ResponseCacheStore(
+      cacheEncryptionKeyProvider,
+      directoryResolver: () async => cacheDir,
+    );
+    addTearDown(() {
+      if (cacheDir.existsSync()) {
+        cacheDir.deleteSync(recursive: true);
+      }
+    });
 
     when(() => storage.read(key: any(named: 'key'))).thenAnswer((
       invocation,
@@ -88,6 +109,8 @@ void main() {
       tokenStore,
       DeviceTokenApi(apiClient),
       pushMessagingGateway,
+      cacheEncryptionKeyProvider,
+      responseCacheStore,
     );
   });
 
@@ -166,6 +189,30 @@ void main() {
     await repository.logout();
 
     expect(values, isEmpty);
+  });
+
+  test('logout purges the offline cache and its encryption key', () async {
+    values['access_token'] = 'access-1';
+    values['refresh_token'] = 'refresh-1';
+    await responseCacheStore.write('accounts:list', <String, dynamic>{
+      'items': <dynamic>[],
+    });
+    adapter.enqueueJson(
+      path: '/auth/logout',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': null,
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    await repository.logout();
+
+    expect(await responseCacheStore.read('accounts:list'), isNull);
+    expect(cacheDir.existsSync(), isFalse);
+    expect(values['cache_encryption_key'], isNull);
   });
 
   test(

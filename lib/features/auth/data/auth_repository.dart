@@ -4,6 +4,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/push/push_messaging_gateway.dart';
+import 'package:saveapenny/core/storage/cache_encryption_key_provider.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/core/storage/secure_token_store.dart';
 import 'package:saveapenny/features/auth/data/auth_api.dart';
 import 'package:saveapenny/features/auth/data/dto/auth_token_response.dart';
@@ -23,12 +25,16 @@ class AuthRepositoryImpl implements AuthRepository {
     this._tokenStore,
     this._deviceTokenApi,
     this._pushMessagingGateway,
+    this._cacheEncryptionKeyProvider,
+    this._responseCacheStore,
   );
 
   final AuthApi _authApi;
   final SecureTokenStore _tokenStore;
   final DeviceTokenApi _deviceTokenApi;
   final PushMessagingGateway _pushMessagingGateway;
+  final CacheEncryptionKeyProvider _cacheEncryptionKeyProvider;
+  final ResponseCacheStore _responseCacheStore;
 
   @override
   Future<AuthSession> register({
@@ -89,13 +95,17 @@ class AuthRepositoryImpl implements AuthRepository {
     await _unregisterDeviceToken();
 
     final refreshToken = await _tokenStore.readRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty) {
-      await _tokenStore.clearTokens();
-      return;
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await _authApi.logout(LogoutRequest(refreshToken: refreshToken));
     }
 
-    await _authApi.logout(LogoutRequest(refreshToken: refreshToken));
     await _tokenStore.clearTokens();
+    // Purge the offline cache alongside the tokens: a shared/reused device
+    // must not let the next login read this user's cached financial data,
+    // and the ciphertext is unrecoverable once the key is gone regardless.
+    // See docs/adr/0003-offline-read-cache.md.
+    await _responseCacheStore.clearAll();
+    await _cacheEncryptionKeyProvider.delete();
   }
 
   Future<void> _unregisterDeviceToken() async {
@@ -121,5 +131,7 @@ AuthRepository authRepository(Ref ref) {
     ref.watch(secureTokenStoreProvider),
     ref.watch(deviceTokenApiProvider),
     ref.watch(pushMessagingGatewayProvider),
+    ref.watch(cacheEncryptionKeyProviderProvider),
+    ref.watch(responseCacheStoreProvider),
   );
 }
