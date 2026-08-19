@@ -17,8 +17,7 @@ feasibility) live on the backend; this app calls the API and presents results.
   physical device.
 - Firebase configuration files for real device/push builds (`GoogleService-Info.plist`
   for iOS and `google-services.json` for Android), provided outside git.
-- RevenueCat SDK keys supplied with `--dart-define` or
-  `--dart-define-from-file` (see below).
+- RevenueCat SDK keys supplied with `--dart-define-from-file` (see below).
 
 ## Setup
 
@@ -29,7 +28,7 @@ dart run build_runner build --delete-conflicting-outputs   # once code/annotatio
 
 ## Running
 
-The base URL is injected at build time via `--dart-define` (never hardcoded).
+The base URL is injected at build time via `--dart-define-from-file` (never hardcoded).
 Android and iOS take separate keys — `API_BASE_ANDROID_URL` /
 `API_BASE_IOS_URL` — because the emulator and simulator resolve `localhost`
 differently (the Android emulator is its own network namespace; the host is
