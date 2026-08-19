@@ -55,7 +55,12 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
               return Center(child: Text(l10n.upgradeNoOfferingsMessage));
             }
             return ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.giant,
+              ),
               children: <Widget>[
                 const _UpgradeHero(),
                 const SizedBox(height: AppSpacing.xxl),
@@ -67,7 +72,7 @@ class _UpgradeScreenState extends ConsumerState<UpgradeScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.sm),
                 Center(
                   child: TextButton(
                     onPressed: isBusy ? null : _restore,
@@ -146,34 +151,90 @@ class _UpgradeHero extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: PremiumSurface.gradient(context),
         borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.24),
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Stack(
           children: <Widget>[
-            Icon(
-              Icons.workspace_premium_outlined,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            const PositionedDirectional(
+              top: -AppSpacing.giant,
+              end: -AppSpacing.huge,
+              child: _PremiumHalo(size: AppSpacing.giant * 3, opacity: 0.16),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.upgradeHeading,
-              style: context.textTheme.headline.copyWith(
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+            const PositionedDirectional(
+              bottom: -AppSpacing.huge,
+              start: -AppSpacing.xxl,
+              child: _PremiumHalo(size: AppSpacing.giant * 2, opacity: 0.10),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.upgradeSubtitle,
-              style: context.textTheme.body.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onPrimaryContainer.withValues(alpha: 0.78),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xxl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer
+                            .withValues(alpha: 0.18),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  Text(
+                    l10n.upgradeHeading,
+                    style: context.textTheme.headline.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.upgradeSubtitle,
+                    style: context.textTheme.body.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer.withValues(alpha: 0.78),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PremiumHalo extends StatelessWidget {
+  const _PremiumHalo({required this.size, required this.opacity});
+
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(
+          context,
+        ).colorScheme.onPrimaryContainer.withValues(alpha: opacity),
       ),
     );
   }
@@ -193,9 +254,14 @@ class _UpgradeFeatureComparison extends StatelessWidget {
       (icon: Icons.upload_file_outlined, label: l10n.importsTitle),
     ];
 
-    return Card(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: context.colors.border),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           children: <Widget>[
             for (final feature in features) ...<Widget>[

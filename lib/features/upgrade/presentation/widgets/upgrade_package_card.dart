@@ -20,55 +20,96 @@ class UpgradePackageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = package.storeProduct;
+    final featured = package.packageType == PackageType.annual;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        gradient: featured ? PremiumSurface.gradient(context) : null,
+        color: featured ? null : context.colors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
-          color: package.packageType == PackageType.annual
+          color: featured
               ? Theme.of(context).colorScheme.primary
               : context.colors.border,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Row(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            if (package.packageType == PackageType.annual) ...<Widget>[
-              Icon(
-                Icons.workspace_premium_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: AppSpacing.md),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(product.title, style: context.textTheme.title),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    product.priceString,
-                    style: context.textTheme.body.copyWith(
-                      color: context.colors.textSecondary,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: featured
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                              .withValues(alpha: 0.12)
+                        : Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Icon(
+                      featured
+                          ? Icons.workspace_premium_rounded
+                          : Icons.lock_open_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
-                  if (product.description.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      product.description,
-                      style: context.textTheme.label.copyWith(
-                        color: context.colors.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        product.title,
+                        style: context.textTheme.title.copyWith(
+                          color: featured
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : context.colors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        product.priceString,
+                        style: context.textTheme.headline.copyWith(
+                          color: featured
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : context.colors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.md),
+            if (product.description.isNotEmpty) ...<Widget>[
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                product.description,
+                style: context.textTheme.body.copyWith(
+                  color: featured
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.onPrimaryContainer.withValues(alpha: 0.76)
+                      : context.colors.textSecondary,
+                ),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.xxl),
             ElevatedButton(
               onPressed: isBusy ? null : onSelected,
+              style: featured
+                  ? ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.onPrimaryContainer,
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                    )
+                  : null,
               child: isBusy
                   ? const SizedBox(
                       width: AppSpacing.lg,
@@ -77,6 +118,19 @@ class UpgradePackageCard extends StatelessWidget {
                     )
                   : Text(AppLocalizations.of(context).paywallUpgradeCta),
             ),
+            if (featured) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
+              Divider(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimaryContainer.withValues(alpha: 0.16),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Icon(
+                Icons.verified_rounded,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ],
           ],
         ),
       ),
