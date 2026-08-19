@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/stocks/application/stock_holdings_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding.dart';
 import 'package:saveapenny/features/stocks/presentation/widgets/stock_detail_shared.dart';
@@ -212,7 +213,7 @@ class _StockHoldingFormSheetState extends ConsumerState<StockHoldingFormSheet> {
   }
 
   Future<void> _pickPurchaseDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _purchaseDate,
       firstDate: DateTime(2000),

@@ -5,6 +5,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/transactions/domain/transaction.dart';
@@ -35,7 +36,7 @@ Future<DateTime?> showTransactionDatePicker(
   BuildContext context,
   DateTime initialDate,
 ) {
-  return showDatePicker(
+  return showAppDatePicker(
     context: context,
     initialDate: initialDate,
     firstDate: DateTime(2000),

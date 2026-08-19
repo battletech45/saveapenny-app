@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/budgets/application/budgets_controller.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/presentation/widgets/budget_form_shared.dart';
@@ -238,7 +239,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   }
 
   Future<void> _pickStartDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _startDate,
       firstDate: DateTime(2000),
@@ -254,7 +255,7 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
   }
 
   Future<void> _pickEndDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _endDate,
       firstDate: DateTime(2000),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
@@ -281,7 +282,7 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
   Future<void> _pickTargetDate() async {
     final today = goalToday();
     final firstSelectableDate = today.add(const Duration(days: 1));
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _targetDate.isAfter(today)
           ? _targetDate

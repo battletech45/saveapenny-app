@@ -6,6 +6,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/billing/presentation/widgets/plan_limit_banner.dart';
@@ -427,7 +428,7 @@ class _RecurringTransactionFormSheetState
   }
 
   Future<DateTime?> _pickDate({required DateTime initialDate}) {
-    return showDatePicker(
+    return showAppDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(2000),
