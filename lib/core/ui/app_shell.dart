@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/offline_banner.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 class AppShell extends StatelessWidget {
@@ -13,7 +14,12 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: <Widget>[
+          const OfflineBanner(),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(top: BorderSide(color: context.colors.border)),

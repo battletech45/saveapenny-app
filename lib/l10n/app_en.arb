@@ -11,6 +11,33 @@
   "commonSignOut": "Sign out",
   "commonLoading": "Loading...",
   "commonNotAvailable": "Not available",
+  "offlineBannerMessage": "You're offline. Showing the last saved data.",
+  "offlineActionDisabledMessage": "You're offline. Connect to save changes.",
+  "lastSyncedJustNow": "Updated just now",
+  "lastSyncedMinutes": "Updated {count}m ago",
+  "@lastSyncedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lastSyncedHours": "Updated {count}h ago",
+  "@lastSyncedHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lastSyncedDays": "Updated {count}d ago",
+  "@lastSyncedDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeTitle": "Home",
   "navHome": "Home",
   "navTransactions": "Activity",

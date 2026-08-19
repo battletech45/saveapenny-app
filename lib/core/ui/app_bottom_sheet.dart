@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:saveapenny/core/network/connectivity_service.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/l10n/generated/app_localizations.dart';
 
 Future<T?> showAppModalBottomSheet<T>({
   required BuildContext context,
@@ -144,7 +147,13 @@ class AppSheetHeader extends StatelessWidget {
   }
 }
 
-class AppSheetActionBar extends StatelessWidget {
+/// The primary action here is always a network mutation (create/update/
+/// delete/confirm) across every sheet that uses it, so this bar disables
+/// [onPrimaryPressed] and shows a hint while offline — rather than letting
+/// the user fill out a form and hit a network failure at the end. See
+/// docs/adr/0003-offline-read-cache.md Phase 4. The secondary action (e.g.
+/// "Cancel") is untouched — it never hits the network.
+class AppSheetActionBar extends ConsumerWidget {
   const AppSheetActionBar({
     required this.primaryLabel,
     required this.onPrimaryPressed,
@@ -159,7 +168,10 @@ class AppSheetActionBar extends StatelessWidget {
   final VoidCallback? onSecondaryPressed;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOnline = ref.watch(isOnlineProvider).value ?? true;
+    final l10n = AppLocalizations.of(context);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: context.colors.surface,
@@ -171,6 +183,16 @@ class AppSheetActionBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            if (!isOnline) ...<Widget>[
+              Text(
+                l10n.offlineActionDisabledMessage,
+                textAlign: TextAlign.center,
+                style: context.textTheme.label.copyWith(
+                  color: context.finance.warning,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             if (secondaryLabel != null) ...<Widget>[
               TextButton(
                 onPressed: onSecondaryPressed,
@@ -179,7 +201,7 @@ class AppSheetActionBar extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
             ],
             ElevatedButton(
-              onPressed: onPrimaryPressed,
+              onPressed: isOnline ? onPrimaryPressed : null,
               child: Text(primaryLabel),
             ),
           ],
