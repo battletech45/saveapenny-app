@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/core/ui/star_rating.dart';
 import 'package:saveapenny/features/feedback/application/submit_feedback_controller.dart';
 import 'package:saveapenny/features/feedback/domain/feedback.dart';
@@ -44,103 +45,83 @@ class _FeedbackFormSheetState extends ConsumerState<FeedbackFormSheet> {
     final isSubmitting = submitState.isLoading;
     final failure = submitState.hasError ? submitState.error as Failure : null;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: l10n.feedbackFormTitle,
+      subtitle: l10n.feedbackFormSubtitle,
+      failure: failure == null ? null : FeedbackFailureNotice(failure: failure),
+      actionBar: AppSheetActionBar(
+        primaryLabel: isSubmitting
+            ? l10n.commonLoading
+            : l10n.feedbackSubmitCta,
+        onPrimaryPressed: isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(l10n.feedbackFormTitle, style: context.textTheme.title),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.feedbackFormSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              if (failure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                FeedbackFailureNotice(failure: failure),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              DropdownButtonFormField<FeedbackType>(
-                initialValue: _selectedType,
-                decoration: InputDecoration(labelText: l10n.feedbackTypeLabel),
-                items: FeedbackType.values
-                    .map(
-                      (type) => DropdownMenuItem<FeedbackType>(
-                        value: type,
-                        child: Text(feedbackTypeLabel(context, type)),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: isSubmitting
-                    ? null
-                    : (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() {
-                          _selectedType = value;
-                        });
-                      },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              InputDecorator(
-                decoration: InputDecoration(
-                  labelText: l10n.feedbackRatingLabel,
-                ),
-                child: Row(
-                  children: <Widget>[
-                    StarRating(
-                      value: _selectedRating ?? 0,
-                      onChanged: isSubmitting
-                          ? null
-                          : (value) => setState(() => _selectedRating = value),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppDropdownField<FeedbackType>(
+              label: l10n.feedbackTypeLabel,
+              value: _selectedType,
+              options: FeedbackType.values
+                  .map(
+                    (type) => AppDropdownOption<FeedbackType>(
+                      value: type,
+                      label: feedbackTypeLabel(context, type),
                     ),
-                    const Spacer(),
-                    if (_selectedRating != null)
-                      TextButton(
-                        onPressed: isSubmitting
-                            ? null
-                            : () => setState(() => _selectedRating = null),
-                        child: Text(l10n.feedbackNoRating),
-                      ),
-                  ],
-                ),
+                  )
+                  .toList(growable: false),
+              onChanged: isSubmitting
+                  ? null
+                  : (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _selectedType = value;
+                      });
+                    },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            InputDecorator(
+              decoration: InputDecoration(labelText: l10n.feedbackRatingLabel),
+              child: Row(
+                children: <Widget>[
+                  StarRating(
+                    value: _selectedRating ?? 0,
+                    onChanged: isSubmitting
+                        ? null
+                        : (value) => setState(() => _selectedRating = value),
+                  ),
+                  const Spacer(),
+                  if (_selectedRating != null)
+                    TextButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () => setState(() => _selectedRating = null),
+                      child: Text(l10n.feedbackNoRating),
+                    ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _messageController,
-                enabled: !isSubmitting,
-                minLines: 5,
-                maxLines: 8,
-                maxLength: 5000,
-                textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  labelText: l10n.feedbackMessageLabel,
-                  hintText: l10n.feedbackMessageHint,
-                  alignLabelWithHint: true,
-                ),
-                validator: (value) => validateFeedbackMessage(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _messageController,
+              enabled: !isSubmitting,
+              minLines: 5,
+              maxLines: 8,
+              maxLength: 5000,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                labelText: l10n.feedbackMessageLabel,
+                hintText: l10n.feedbackMessageHint,
+                alignLabelWithHint: true,
               ),
-              const SizedBox(height: AppSpacing.lg),
-              ElevatedButton(
-                onPressed: isSubmitting ? null : _submit,
-                child: Text(
-                  isSubmitting ? l10n.commonLoading : l10n.feedbackSubmitCta,
-                ),
-              ),
-            ],
-          ),
+              validator: (value) => validateFeedbackMessage(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

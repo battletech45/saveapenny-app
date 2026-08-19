@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/app_date_picker.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/budgets/application/budgets_controller.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/presentation/widgets/budget_form_shared.dart';
@@ -63,151 +65,121 @@ class _BudgetFormSheetState extends ConsumerState<BudgetFormSheet> {
     final startLabel = _formatDate(context, _startDate);
     final endLabel = _formatDate(context, _endDate);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: _isEditing ? l10n.budgetsEditTitle : l10n.budgetsCreateTitle,
+      subtitle: _isEditing
+          ? l10n.budgetsEditSubtitle
+          : l10n.budgetsCreateSubtitle,
+      failure: _submissionFailure == null
+          ? null
+          : BudgetSheetFailureNotice(failure: _submissionFailure!),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : _isEditing
+            ? l10n.budgetsSaveCta
+            : l10n.budgetsCreateCta,
+        onPrimaryPressed: _isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                _isEditing ? l10n.budgetsEditTitle : l10n.budgetsCreateTitle,
-                style: context.textTheme.title,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppDropdownField<String>(
+              label: l10n.budgetsCategoryLabel,
+              value: _categoryId,
+              hint: categoriesState.isLoading
+                  ? l10n.commonLoading
+                  : l10n.commonNotAvailable,
+              options: categories
+                  .map(
+                    (Category category) => AppDropdownOption<String>(
+                      value: category.id,
+                      label: category.name,
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting
+                  ? null
+                  : categories.isEmpty
+                  ? null
+                  : (value) {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        _categoryId = value;
+                        _submissionFailure = null;
+                      });
+                    },
+              validator: (value) => _validateRequiredSelection(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _amountController,
+              enabled: !_isSubmitting,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                _isEditing
-                    ? l10n.budgetsEditSubtitle
-                    : l10n.budgetsCreateSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
+              decoration: InputDecoration(labelText: l10n.budgetsAmountLabel),
+              validator: (value) => _validateAmount(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppDropdownField<BudgetPeriod>(
+              label: l10n.budgetsPeriodLabel,
+              value: _period,
+              options: <AppDropdownOption<BudgetPeriod>>[
+                AppDropdownOption<BudgetPeriod>(
+                  value: BudgetPeriod.monthly,
+                  label: l10n.budgetsPeriodMonthly,
                 ),
-              ),
-              if (_submissionFailure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                BudgetSheetFailureNotice(failure: _submissionFailure!),
+                AppDropdownOption<BudgetPeriod>(
+                  value: BudgetPeriod.yearly,
+                  label: l10n.budgetsPeriodYearly,
+                ),
               ],
-              const SizedBox(height: AppSpacing.xxl),
-              DropdownButtonFormField<String>(
-                initialValue: _categoryId,
-                decoration: InputDecoration(
-                  labelText: l10n.budgetsCategoryLabel,
-                ),
-                hint: categories.isEmpty
-                    ? Text(
-                        categoriesState.isLoading
-                            ? l10n.commonLoading
-                            : l10n.commonNotAvailable,
-                      )
-                    : null,
-                items: categories
-                    .map(
-                      (Category category) => DropdownMenuItem<String>(
-                        value: category.id,
-                        child: Text(category.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : categories.isEmpty
-                    ? null
-                    : (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _categoryId = value;
-                          _submissionFailure = null;
-                        });
-                      },
-                validator: (value) => _validateRequiredSelection(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _amountController,
-                enabled: !_isSubmitting,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(labelText: l10n.budgetsAmountLabel),
-                validator: (value) => _validateAmount(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<BudgetPeriod>(
-                initialValue: _period,
-                decoration: InputDecoration(labelText: l10n.budgetsPeriodLabel),
-                items: <DropdownMenuItem<BudgetPeriod>>[
-                  DropdownMenuItem<BudgetPeriod>(
-                    value: BudgetPeriod.monthly,
-                    child: Text(l10n.budgetsPeriodMonthly),
-                  ),
-                  DropdownMenuItem<BudgetPeriod>(
-                    value: BudgetPeriod.yearly,
-                    child: Text(l10n.budgetsPeriodYearly),
-                  ),
-                ],
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        if (value == null) {
-                          return;
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      final nextRange = _rangeForPeriod(value, DateTime.now());
+                      setState(() {
+                        _period = value;
+                        if (!_isEditing) {
+                          _startDate = nextRange.start;
+                          _endDate = nextRange.end;
                         }
-                        final nextRange = _rangeForPeriod(
-                          value,
-                          DateTime.now(),
-                        );
-                        setState(() {
-                          _period = value;
-                          if (!_isEditing) {
-                            _startDate = nextRange.start;
-                            _endDate = nextRange.end;
-                          }
-                          _submissionFailure = null;
-                        });
-                      },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              BudgetReadOnlyActionField(
-                label: l10n.budgetsStartDateLabel,
-                value: startLabel,
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickStartDate,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              BudgetReadOnlyActionField(
-                label: l10n.budgetsEndDateLabel,
-                value: endLabel,
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickEndDate,
-              ),
-              if (_startDate.isAfter(_endDate)) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.budgetsDateRangeError,
-                  style: context.textTheme.label.copyWith(
-                    color: context.finance.expense,
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : _isEditing
-                      ? l10n.budgetsSaveCta
-                      : l10n.budgetsCreateCta,
+                        _submissionFailure = null;
+                      });
+                    },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            BudgetReadOnlyActionField(
+              label: l10n.budgetsStartDateLabel,
+              value: startLabel,
+              actionLabel: l10n.commonContinue,
+              onPressed: _isSubmitting ? null : _pickStartDate,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            BudgetReadOnlyActionField(
+              label: l10n.budgetsEndDateLabel,
+              value: endLabel,
+              actionLabel: l10n.commonContinue,
+              onPressed: _isSubmitting ? null : _pickEndDate,
+            ),
+            if (_startDate.isAfter(_endDate)) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                l10n.budgetsDateRangeError,
+                style: context.textTheme.label.copyWith(
+                  color: context.finance.expense,
                 ),
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

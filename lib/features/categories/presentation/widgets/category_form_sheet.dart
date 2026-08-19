@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
 import 'package:saveapenny/features/categories/domain/category.dart';
 import 'package:saveapenny/features/categories/domain/category_glyph.dart';
@@ -53,100 +54,73 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
         ? categoriesState.error as Failure
         : null;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: _isEditing ? l10n.categoriesEditTitle : l10n.categoriesCreateTitle,
+      subtitle: _isEditing
+          ? l10n.categoriesEditSubtitle
+          : l10n.categoriesCreateSubtitle,
+      failure: failure == null
+          ? null
+          : CategorySheetFailureNotice(failure: failure),
+      actionBar: AppSheetActionBar(
+        primaryLabel: isSubmitting
+            ? l10n.commonLoading
+            : _isEditing
+            ? l10n.categoriesSaveCta
+            : l10n.categoriesCreateCta,
+        onPrimaryPressed: isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                _isEditing
-                    ? l10n.categoriesEditTitle
-                    : l10n.categoriesCreateTitle,
-                style: context.textTheme.title,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                _isEditing
-                    ? l10n.categoriesEditSubtitle
-                    : l10n.categoriesCreateSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              if (failure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                CategorySheetFailureNotice(failure: failure),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              TextFormField(
-                controller: _nameController,
-                enabled: !isSubmitting,
-                textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  labelText: l10n.categoriesNameLabel,
-                ),
-                validator: (value) => _validateRequired(l10n, value),
-              ),
-              if (!_isEditing) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                DropdownButtonFormField<CategoryType>(
-                  key: ValueKey<CategoryType>(_type),
-                  initialValue: _type,
-                  decoration: InputDecoration(
-                    labelText: l10n.categoriesTypeLabel,
-                  ),
-                  items: CategoryType.values
-                      .map(
-                        (type) => DropdownMenuItem<CategoryType>(
-                          value: type,
-                          child: Text(categoryTypeLabel(l10n, type)),
-                        ),
-                      )
-                      .toList(growable: false),
-                  onChanged: isSubmitting
-                      ? null
-                      : (value) {
-                          if (value != null) {
-                            setState(() {
-                              _type = value;
-                            });
-                          }
-                        },
-                ),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              CategoryGlyphPicker(
-                selectedIcon: _icon,
-                selectedColorHex: _color,
-                onIconChanged: isSubmitting
-                    ? (_) {}
-                    : (value) => setState(() => _icon = value),
-                onColorChanged: isSubmitting
-                    ? (_) {}
-                    : (value) => setState(() => _color = value),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: isSubmitting ? null : _submit,
-                child: Text(
-                  isSubmitting
-                      ? l10n.commonLoading
-                      : _isEditing
-                      ? l10n.categoriesSaveCta
-                      : l10n.categoriesCreateCta,
-                ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              controller: _nameController,
+              enabled: !isSubmitting,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(labelText: l10n.categoriesNameLabel),
+              validator: (value) => _validateRequired(l10n, value),
+            ),
+            if (!_isEditing) ...<Widget>[
+              const SizedBox(height: AppSpacing.lg),
+              AppDropdownField<CategoryType>(
+                key: ValueKey<CategoryType>(_type),
+                label: l10n.categoriesTypeLabel,
+                value: _type,
+                options: CategoryType.values
+                    .map(
+                      (type) => AppDropdownOption<CategoryType>(
+                        value: type,
+                        label: categoryTypeLabel(l10n, type),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: isSubmitting
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          setState(() {
+                            _type = value;
+                          });
+                        }
+                      },
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.xxl),
+            CategoryGlyphPicker(
+              selectedIcon: _icon,
+              selectedColorHex: _color,
+              onIconChanged: isSubmitting
+                  ? (_) {}
+                  : (value) => setState(() => _icon = value),
+              onColorChanged: isSubmitting
+                  ? (_) {}
+                  : (value) => setState(() => _color = value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

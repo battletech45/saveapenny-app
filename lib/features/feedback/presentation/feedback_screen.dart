@@ -6,6 +6,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
 import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/core/ui/failure_view.dart';
 import 'package:saveapenny/core/ui/loading_view.dart';
 import 'package:saveapenny/core/ui/scroll_aware_fab.dart';
@@ -207,18 +208,18 @@ class _FeedbackFilterCard extends StatelessWidget {
           children: <Widget>[
             Text(l10n.feedbackFilterTitle, style: context.textTheme.title),
             const SizedBox(height: AppSpacing.sm),
-            DropdownButtonFormField<FeedbackType?>(
-              initialValue: currentFilter,
-              decoration: InputDecoration(labelText: l10n.feedbackFilterLabel),
-              items: <DropdownMenuItem<FeedbackType?>>[
-                DropdownMenuItem<FeedbackType?>(
+            AppDropdownField<FeedbackType?>(
+              label: l10n.feedbackFilterLabel,
+              value: currentFilter,
+              options: <AppDropdownOption<FeedbackType?>>[
+                AppDropdownOption<FeedbackType?>(
                   value: null,
-                  child: Text(l10n.feedbackFilterAllTypes),
+                  label: l10n.feedbackFilterAllTypes,
                 ),
                 ...FeedbackType.values.map(
-                  (type) => DropdownMenuItem<FeedbackType?>(
+                  (type) => AppDropdownOption<FeedbackType?>(
                     value: type,
-                    child: Text(feedbackTypeLabel(context, type)),
+                    label: feedbackTypeLabel(context, type),
                   ),
                 ),
               ],

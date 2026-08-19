@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/categories/application/categories_controller.dart';
@@ -64,194 +66,167 @@ class _TransferFormSheetState extends ConsumerState<TransferFormSheet> {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_transactionDate);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: l10n.transactionsTransferTitle,
+      subtitle: l10n.transactionsTransferSubtitle,
+      failure: _submissionFailure == null
+          ? null
+          : TransactionsSheetFailureNotice(failure: _submissionFailure!),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : l10n.transactionsTransferCreateCta,
+        onPrimaryPressed: _isSubmitting
+            ? null
+            : () => _submit(selectedFromAccount),
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppDropdownField<String>(
+              label: l10n.transactionsFromLabel,
+              value: _fromAccountId,
+              hint: l10n.commonNotAvailable,
+              options: accounts
+                  .map(
+                    (Account account) => AppDropdownOption<String>(
+                      value: account.id,
+                      label: account.name,
+                      subtitle: account.currency,
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        _fromAccountId = value;
+                        if (_toAccountId == value) {
+                          _toAccountId = null;
+                        }
+                        _submissionFailure = null;
+                      });
+                    },
+              validator: (value) => validateRequiredSelection(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppDropdownField<String>(
+              key: ValueKey<String?>(_fromAccountId),
+              label: l10n.transactionsToLabel,
+              value: _toAccountId,
+              hint: l10n.commonNotAvailable,
+              options: accounts
+                  .where((Account account) => account.id != _fromAccountId)
+                  .map(
+                    (Account account) => AppDropdownOption<String>(
+                      value: account.id,
+                      label: account.name,
+                      subtitle: account.currency,
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        _toAccountId = value;
+                        _submissionFailure = null;
+                      });
+                    },
+              validator: (value) => validateRequiredSelection(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppDropdownField<String>(
+              label: l10n.transactionsCategoryLabel,
+              value: _categoryId,
+              hint: categoriesState.isLoading
+                  ? l10n.commonLoading
+                  : l10n.commonNotAvailable,
+              options: categories
+                  .map(
+                    (Category category) => AppDropdownOption<String>(
+                      value: category.id,
+                      label: category.name,
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting
+                  ? null
+                  : categories.isEmpty
+                  ? null
+                  : (value) {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        _categoryId = value;
+                        _submissionFailure = null;
+                      });
+                    },
+              validator: (value) => validateRequiredSelection(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _amountController,
+              focusNode: _amountFocusNode,
+              enabled: !_isSubmitting,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              textInputAction: TextInputAction.next,
+              onTapOutside: (_) => _amountFocusNode.unfocus(),
+              onFieldSubmitted: (_) => _descriptionFocusNode.requestFocus(),
+              decoration: InputDecoration(
+                labelText: l10n.transactionsAmountLabel,
+              ),
+              validator: (value) => validateAmount(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TransactionsReadOnlyField(
+              label: l10n.transactionsCurrencyLabel,
+              value: withFallback(
+                resolveTransferCurrency(
+                  fromAccount: selectedFromAccount,
+                  toAccount: selectedToAccount,
+                ),
+                l10n.commonNotAvailable,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TransactionsReadOnlyActionField(
+              label: l10n.transactionsDateLabel,
+              value: dateLabel,
+              actionLabel: l10n.commonContinue,
+              onPressed: _isSubmitting ? null : _pickDate,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _descriptionController,
+              focusNode: _descriptionFocusNode,
+              enabled: !_isSubmitting,
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              onTapOutside: (_) => _descriptionFocusNode.unfocus(),
+              onFieldSubmitted: (_) => _descriptionFocusNode.unfocus(),
+              decoration: InputDecoration(
+                labelText: l10n.transactionsDescriptionLabel,
+              ),
+            ),
+            if (_fromAccountId != null &&
+                _fromAccountId == _toAccountId) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
               Text(
-                l10n.transactionsTransferTitle,
-                style: context.textTheme.title,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.transactionsTransferSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              if (_submissionFailure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                TransactionsSheetFailureNotice(failure: _submissionFailure!),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              DropdownButtonFormField<String>(
-                initialValue: _fromAccountId,
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsFromLabel,
-                ),
-                items: accounts
-                    .map(
-                      (Account account) => DropdownMenuItem<String>(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _fromAccountId = value;
-                          if (_toAccountId == value) {
-                            _toAccountId = null;
-                          }
-                          _submissionFailure = null;
-                        });
-                      },
-                validator: (value) => validateRequiredSelection(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<String>(
-                key: ValueKey<String?>(_fromAccountId),
-                initialValue: _toAccountId,
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsToLabel,
-                ),
-                items: accounts
-                    .where((Account account) => account.id != _fromAccountId)
-                    .map(
-                      (Account account) => DropdownMenuItem<String>(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _toAccountId = value;
-                          _submissionFailure = null;
-                        });
-                      },
-                validator: (value) => validateRequiredSelection(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<String>(
-                initialValue: _categoryId,
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsCategoryLabel,
-                ),
-                hint: categories.isEmpty
-                    ? Text(
-                        categoriesState.isLoading
-                            ? l10n.commonLoading
-                            : l10n.commonNotAvailable,
-                      )
-                    : null,
-                items: categories
-                    .map(
-                      (Category category) => DropdownMenuItem<String>(
-                        value: category.id,
-                        child: Text(category.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : categories.isEmpty
-                    ? null
-                    : (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _categoryId = value;
-                          _submissionFailure = null;
-                        });
-                      },
-                validator: (value) => validateRequiredSelection(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _amountController,
-                focusNode: _amountFocusNode,
-                enabled: !_isSubmitting,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                textInputAction: TextInputAction.next,
-                onTapOutside: (_) => _amountFocusNode.unfocus(),
-                onFieldSubmitted: (_) => _descriptionFocusNode.requestFocus(),
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsAmountLabel,
-                ),
-                validator: (value) => validateAmount(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TransactionsReadOnlyField(
-                label: l10n.transactionsCurrencyLabel,
-                value: withFallback(
-                  resolveTransferCurrency(
-                    fromAccount: selectedFromAccount,
-                    toAccount: selectedToAccount,
-                  ),
-                  l10n.commonNotAvailable,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TransactionsReadOnlyActionField(
-                label: l10n.transactionsDateLabel,
-                value: dateLabel,
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickDate,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _descriptionController,
-                focusNode: _descriptionFocusNode,
-                enabled: !_isSubmitting,
-                maxLines: 3,
-                textInputAction: TextInputAction.done,
-                onTapOutside: (_) => _descriptionFocusNode.unfocus(),
-                onFieldSubmitted: (_) => _descriptionFocusNode.unfocus(),
-                decoration: InputDecoration(
-                  labelText: l10n.transactionsDescriptionLabel,
-                ),
-              ),
-              if (_fromAccountId != null &&
-                  _fromAccountId == _toAccountId) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.transactionsTransferSameAccountError,
-                  style: context.textTheme.label.copyWith(
-                    color: context.finance.expense,
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting
-                    ? null
-                    : () => _submit(selectedFromAccount),
-                child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : l10n.transactionsTransferCreateCta,
+                l10n.transactionsTransferSameAccountError,
+                style: context.textTheme.label.copyWith(
+                  color: context.finance.expense,
                 ),
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

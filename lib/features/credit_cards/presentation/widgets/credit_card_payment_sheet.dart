@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/credit_cards/application/credit_cards_controller.dart';
@@ -62,124 +64,108 @@ class _CreditCardPaymentSheetState
       accountsState.asData?.value ?? const <Account>[],
     );
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
-      ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                l10n.creditCardPaymentSheetTitle,
-                style: context.textTheme.title,
+    return AppSheetScaffold(
+      title: l10n.creditCardPaymentSheetTitle,
+      failure: _failure == null
+          ? null
+          : DecoratedBox(
+              decoration: BoxDecoration(
+                color: context.finance.expenseSurface,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: context.finance.expense),
               ),
-              if (_failure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: context.finance.expenseSurface,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: context.finance.expense),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Text(
-                      creditCardFailureMessage(context, _failure!),
-                      style: context.textTheme.body.copyWith(
-                        color: context.colors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              DropdownButtonFormField<String>(
-                initialValue: _sourceAccountId,
-                decoration: InputDecoration(
-                  labelText: l10n.creditCardPaymentSourceAccountLabel,
-                ),
-                items: sourceAccounts
-                    .map(
-                      (account) => DropdownMenuItem<String>(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) => setState(() => _sourceAccountId = value),
-                validator: (value) => value == null
-                    ? l10n.creditCardPaymentSourceRequiredError
-                    : null,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                l10n.creditCardPaymentTypeLabel,
-                style: context.textTheme.label.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              SegmentedButton<CreditCardPaymentType>(
-                segments: <ButtonSegment<CreditCardPaymentType>>[
-                  ButtonSegment<CreditCardPaymentType>(
-                    value: CreditCardPaymentType.minimumDue,
-                    label: Text(l10n.creditCardPaymentTypeMinimumDue),
-                  ),
-                  ButtonSegment<CreditCardPaymentType>(
-                    value: CreditCardPaymentType.fullBalance,
-                    label: Text(l10n.creditCardPaymentTypeFullBalance),
-                  ),
-                  ButtonSegment<CreditCardPaymentType>(
-                    value: CreditCardPaymentType.custom,
-                    label: Text(l10n.creditCardPaymentTypeCustom),
-                  ),
-                ],
-                selected: <CreditCardPaymentType>{_paymentType},
-                onSelectionChanged: _isSubmitting
-                    ? null
-                    : (selection) =>
-                          setState(() => _paymentType = selection.first),
-              ),
-              if (_paymentType == CreditCardPaymentType.custom) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                TextFormField(
-                  controller: _amountController,
-                  enabled: !_isSubmitting,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: l10n.creditCardPaymentAmountLabel,
-                  ),
-                  validator: (value) {
-                    final parsed = num.tryParse((value ?? '').trim());
-                    if (parsed == null || parsed <= 0) {
-                      return l10n.creditCardPaymentAmountError;
-                    }
-                    return null;
-                  },
-                ),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : l10n.creditCardPaymentSubmitCta,
+                  creditCardFailureMessage(context, _failure!),
+                  style: context.textTheme.body.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
                 ),
+              ),
+            ),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : l10n.creditCardPaymentSubmitCta,
+        onPrimaryPressed: _isSubmitting ? null : _submit,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppDropdownField<String>(
+              label: l10n.creditCardPaymentSourceAccountLabel,
+              value: _sourceAccountId,
+              options: sourceAccounts
+                  .map(
+                    (account) => AppDropdownOption<String>(
+                      value: account.id,
+                      label: account.name,
+                      subtitle: account.currency,
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) => setState(() => _sourceAccountId = value),
+              validator: (value) => value == null
+                  ? l10n.creditCardPaymentSourceRequiredError
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              l10n.creditCardPaymentTypeLabel,
+              style: context.textTheme.label.copyWith(
+                color: context.colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SegmentedButton<CreditCardPaymentType>(
+              segments: <ButtonSegment<CreditCardPaymentType>>[
+                ButtonSegment<CreditCardPaymentType>(
+                  value: CreditCardPaymentType.minimumDue,
+                  label: Text(l10n.creditCardPaymentTypeMinimumDue),
+                ),
+                ButtonSegment<CreditCardPaymentType>(
+                  value: CreditCardPaymentType.fullBalance,
+                  label: Text(l10n.creditCardPaymentTypeFullBalance),
+                ),
+                ButtonSegment<CreditCardPaymentType>(
+                  value: CreditCardPaymentType.custom,
+                  label: Text(l10n.creditCardPaymentTypeCustom),
+                ),
+              ],
+              selected: <CreditCardPaymentType>{_paymentType},
+              onSelectionChanged: _isSubmitting
+                  ? null
+                  : (selection) =>
+                        setState(() => _paymentType = selection.first),
+            ),
+            if (_paymentType == CreditCardPaymentType.custom) ...<Widget>[
+              const SizedBox(height: AppSpacing.lg),
+              TextFormField(
+                controller: _amountController,
+                enabled: !_isSubmitting,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: l10n.creditCardPaymentAmountLabel,
+                ),
+                validator: (value) {
+                  final parsed = num.tryParse((value ?? '').trim());
+                  if (parsed == null || parsed <= 0) {
+                    return l10n.creditCardPaymentAmountError;
+                  }
+                  return null;
+                },
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

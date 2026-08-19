@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/insights/domain/insight.dart';
 import 'package:saveapenny/features/insights/presentation/widgets/insight_shared.dart';
 import 'package:saveapenny/l10n/generated/app_localizations.dart';
@@ -59,38 +60,36 @@ class InsightFilterCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            DropdownButtonFormField<InsightType?>(
-              initialValue: selectedType,
-              decoration: InputDecoration(labelText: l10n.insightsTypeLabel),
-              items: <DropdownMenuItem<InsightType?>>[
-                DropdownMenuItem<InsightType?>(
+            AppDropdownField<InsightType?>(
+              label: l10n.insightsTypeLabel,
+              value: selectedType,
+              options: <AppDropdownOption<InsightType?>>[
+                AppDropdownOption<InsightType?>(
                   value: null,
-                  child: Text(l10n.insightsFilterAllTypes),
+                  label: l10n.insightsFilterAllTypes,
                 ),
                 ...InsightType.values.map(
-                  (type) => DropdownMenuItem<InsightType?>(
+                  (type) => AppDropdownOption<InsightType?>(
                     value: type,
-                    child: Text(insightTypeLabel(context, type)),
+                    label: insightTypeLabel(context, type),
                   ),
                 ),
               ],
               onChanged: onTypeChanged,
             ),
             const SizedBox(height: AppSpacing.md),
-            DropdownButtonFormField<InsightSeverity?>(
-              initialValue: selectedSeverity,
-              decoration: InputDecoration(
-                labelText: l10n.insightsSeverityLabel,
-              ),
-              items: <DropdownMenuItem<InsightSeverity?>>[
-                DropdownMenuItem<InsightSeverity?>(
+            AppDropdownField<InsightSeverity?>(
+              label: l10n.insightsSeverityLabel,
+              value: selectedSeverity,
+              options: <AppDropdownOption<InsightSeverity?>>[
+                AppDropdownOption<InsightSeverity?>(
                   value: null,
-                  child: Text(l10n.insightsFilterAllSeverities),
+                  label: l10n.insightsFilterAllSeverities,
                 ),
                 ...InsightSeverity.values.map(
-                  (severity) => DropdownMenuItem<InsightSeverity?>(
+                  (severity) => AppDropdownOption<InsightSeverity?>(
                     value: severity,
-                    child: Text(insightSeverityLabel(context, severity)),
+                    label: insightSeverityLabel(context, severity),
                   ),
                 ),
               ],

@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/app_date_picker.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/application/accounts_controller.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
@@ -88,161 +90,139 @@ class _GoalFormSheetState extends ConsumerState<GoalFormSheet> {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_targetDate);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: _isEditing ? l10n.goalsEditTitle : l10n.goalsCreateTitle,
+      subtitle: _isEditing ? l10n.goalsEditSubtitle : l10n.goalsCreateSubtitle,
+      failure: _submissionFailure == null
+          ? null
+          : GoalSheetFailureNotice(failure: _submissionFailure!),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : _isEditing
+            ? l10n.goalsSaveCta
+            : l10n.goalsCreateCta,
+        onPrimaryPressed: _isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                _isEditing ? l10n.goalsEditTitle : l10n.goalsCreateTitle,
-                style: context.textTheme.title,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                _isEditing ? l10n.goalsEditSubtitle : l10n.goalsCreateSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              if (_submissionFailure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                GoalSheetFailureNotice(failure: _submissionFailure!),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              DropdownButtonFormField<GoalType>(
-                initialValue: _type,
-                decoration: InputDecoration(labelText: l10n.goalsTypeLabel),
-                items: GoalType.values
-                    .map(
-                      (type) => DropdownMenuItem<GoalType>(
-                        value: type,
-                        child: Text(goalTypeLabel(l10n, type)),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _isSubmitting || _isEditing
-                    ? null
-                    : (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() {
-                          _type = value;
-                          _inputsData.applyDefaultsFor(value);
-                          _submissionFailure = null;
-                        });
-                      },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _titleController,
-                enabled: !_isSubmitting,
-                decoration: InputDecoration(labelText: l10n.goalsTitleLabel),
-                validator: (value) => _validateTitle(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _targetAmountController,
-                enabled: !_isSubmitting,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.goalsTargetAmountLabel,
-                ),
-                validator: (value) => _validateTargetAmount(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _currencyController,
-                enabled: !_isSubmitting,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(labelText: l10n.goalsCurrencyLabel),
-                validator: (value) => _validateCurrency(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              GoalReadOnlyActionField(
-                label: l10n.goalsTargetDateLabel,
-                value: dateLabel,
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickTargetDate,
-              ),
-              if (!_targetDate.isAfter(goalToday())) ...<Widget>[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l10n.goalsInvalidDateError,
-                  style: context.textTheme.label.copyWith(
-                    color: context.finance.expense,
-                  ),
-                ),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              DropdownButtonFormField<String?>(
-                initialValue: _linkedAccountId,
-                decoration: InputDecoration(
-                  labelText: l10n.goalsLinkedAccountLabel,
-                ),
-                items: <DropdownMenuItem<String?>>[
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(l10n.goalsNoLinkedAccount),
-                  ),
-                  if (!hasLinkedAccountInItems && _linkedAccountId != null)
-                    DropdownMenuItem<String?>(
-                      value: _linkedAccountId,
-                      child: Text(_linkedAccountId!),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            AppDropdownField<GoalType>(
+              label: l10n.goalsTypeLabel,
+              value: _type,
+              options: GoalType.values
+                  .map(
+                    (type) => AppDropdownOption<GoalType>(
+                      value: type,
+                      label: goalTypeLabel(l10n, type),
                     ),
-                  ...accounts.map(
-                    (account) => DropdownMenuItem<String?>(
-                      value: account.id,
-                      child: Text(account.name),
-                    ),
-                  ),
-                ],
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _linkedAccountId = value;
-                          _submissionFailure = null;
-                        });
-                      },
+                  )
+                  .toList(growable: false),
+              onChanged: _isSubmitting || _isEditing
+                  ? null
+                  : (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _type = value;
+                        _inputsData.applyDefaultsFor(value);
+                        _submissionFailure = null;
+                      });
+                    },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _titleController,
+              enabled: !_isSubmitting,
+              decoration: InputDecoration(labelText: l10n.goalsTitleLabel),
+              validator: (value) => _validateTitle(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _targetAmountController,
+              enabled: !_isSubmitting,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(height: AppSpacing.lg),
+              decoration: InputDecoration(
+                labelText: l10n.goalsTargetAmountLabel,
+              ),
+              validator: (value) => _validateTargetAmount(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _currencyController,
+              enabled: !_isSubmitting,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(labelText: l10n.goalsCurrencyLabel),
+              validator: (value) => _validateCurrency(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            GoalReadOnlyActionField(
+              label: l10n.goalsTargetDateLabel,
+              value: dateLabel,
+              actionLabel: l10n.commonContinue,
+              onPressed: _isSubmitting ? null : _pickTargetDate,
+            ),
+            if (!_targetDate.isAfter(goalToday())) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
               Text(
-                l10n.goalsInputsLabel,
+                l10n.goalsInvalidDateError,
                 style: context.textTheme.label.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              GoalInputsFields(
-                type: _type,
-                data: _inputsData,
-                enabled: !_isSubmitting,
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : _isEditing
-                      ? l10n.goalsSaveCta
-                      : l10n.goalsCreateCta,
+                  color: context.finance.expense,
                 ),
               ),
             ],
-          ),
+            const SizedBox(height: AppSpacing.lg),
+            AppDropdownField<String?>(
+              label: l10n.goalsLinkedAccountLabel,
+              value: _linkedAccountId,
+              options: <AppDropdownOption<String?>>[
+                AppDropdownOption<String?>(
+                  value: null,
+                  label: l10n.goalsNoLinkedAccount,
+                ),
+                if (!hasLinkedAccountInItems && _linkedAccountId != null)
+                  AppDropdownOption<String?>(
+                    value: _linkedAccountId,
+                    label: _linkedAccountId!,
+                  ),
+                ...accounts.map(
+                  (account) => AppDropdownOption<String?>(
+                    value: account.id,
+                    label: account.name,
+                    subtitle: account.currency,
+                  ),
+                ),
+              ],
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _linkedAccountId = value;
+                        _submissionFailure = null;
+                      });
+                    },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              l10n.goalsInputsLabel,
+              style: context.textTheme.label.copyWith(
+                color: context.colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            GoalInputsFields(
+              type: _type,
+              data: _inputsData,
+              enabled: !_isSubmitting,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );
