@@ -48,8 +48,12 @@ core/
              api_error_code.dart       # backend error-code enum (source of truth)
              dio_client.dart           # configured Dio + interceptors
              auth_interceptor.dart     # token attach + proactive/reactive refresh
+             connectivity_service.dart # isOnlineProvider (connectivity_plus)
   error/     failure.dart              # typed Failure hierarchy + Dio mapping
   storage/   secure_token_store.dart   # flutter_secure_storage wrapper
+             cache_encryption_key_provider.dart  # AES key for the offline cache
+             response_cache_store.dart # encrypted read-only cache (ADR 0003)
+             cached_fetch.dart         # read-through/write-through helper
   router/    app_router.dart           # GoRouter + auth redirect
   theme/     app_theme.dart, tokens.dart  # minimal design tokens
   l10n/      (generated AppLocalizations)
@@ -95,6 +99,14 @@ No `Result`/`Either` type in this codebase.
 This keeps control flow idiomatic with Riverpod's `AsyncValue` and avoids
 double-wrapping (`AsyncValue<Result<T>>`). The canonical snippet lives in
 `CLAUDE.md` §7 — copy it for every new feature.
+
+### Offline read cache (LOCKED scope — see `docs/adr/0003-offline-read-cache.md`)
+
+Some repository GETs fall back to an encrypted on-device cache on
+`Failure.network`, so the app shows last-known data instead of a blank error
+when offline. Read-only, opt-in per method, no background refresh, no offline
+mutation queue. The canonical snippet and per-repository rules live in
+`CLAUDE.md` §7 — copy it when a new feature's reads are worth caching.
 
 ### Money
 Never `double`. Parse to `String`/`num` and format with `intl`

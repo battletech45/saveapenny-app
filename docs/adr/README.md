@@ -19,3 +19,4 @@ reversal-resistant guard get a file here.
 |---|-------|--------|
 | [0001](0001-repositories-throw-failures.md) | Repositories throw `Failure` into `AsyncValue` | Accepted |
 | [0002](0002-handwritten-api-envelope.md) | Hand-written generic `ApiEnvelope` | Accepted |
+| [0003](0003-offline-read-cache.md) | Encrypted read-only cache, no offline mutations | Accepted |

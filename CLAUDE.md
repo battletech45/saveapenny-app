@@ -46,6 +46,7 @@ results.
 | HTTP | `dio` | One configured `Dio` instance via the client in `core/network`. Never `new Dio()` ad hoc. |
 | Routing | `go_router` | One router config. Route guards via the auth state. No `Navigator.push` for top-level navigation. |
 | Secure storage | `flutter_secure_storage` | Tokens and nothing-else-sensitive. |
+| Offline cache | `connectivity_plus`, `cryptography` | Read-only, encrypted, event-driven cache (`core/storage/response_cache_store.dart`) for GET responses. See §7 and `docs/adr/0003-offline-read-cache.md`. |
 | Formatting | `intl` | All dates, currency, numbers. Backend dates are ISO-8601; currencies ISO-4217. |
 | i18n | `flutter_localizations` + ARB | TR/EN. |
 
@@ -146,6 +147,50 @@ loading: () => const LoadingView(),
 error: (err, _) => FailureView(err as Failure), // localized via err.code
 );
 ```
+
+### Offline read cache (see `docs/adr/0003-offline-read-cache.md`)
+
+Read-heavy repository methods (list/detail GETs, not every call) may fall back to
+an encrypted on-device cache when they fail with `Failure.network`, so a cold app
+launch with no connection shows the last-known data instead of a blank error.
+This is **opt-in per method**, not a blanket rule — only wrap a call if a stale
+value is actually useful to show (account balances: yes; a live stock quote: no).
+
+```dart
+// data/<feature>_repository.dart
+Future<List<Thing>> list() async {
+  final items = await cachedFetch<List<ThingResponse>>(
+    cache: _cache,
+    key: 'things:list',
+    call: () async => (await _thingsApi.list()).items,
+    toJson: (items) => <String, dynamic>{
+      'items': items.map((item) => item.toJson()).toList(),
+    },
+    fromJson: (json) => (json['items']! as List<dynamic>)
+        .map((item) => ThingResponse.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false),
+  );
+  return items.map((item) => item.toDomain()).toList(growable: false);
+}
+```
+
+Rules:
+- Cache DTOs (`toJson`/`fromJson`), never domain models — domain classes don't
+  carry JSON codecs by design (§6).
+- Key by the calendar period the data represents when the call takes a
+  date/time param that's effectively always "now" (see `ReportsRepositoryImpl`)
+  — an exact-timestamp key would write but never read back.
+  For paginated lists, cache only the first, unfiltered page — never a
+  filtered/searched view, never `page > 0`.
+- After a successful mutation, invalidate the affected key(s)
+  (`ResponseCacheStore.invalidate`/`invalidatePrefix`) rather than trying to
+  patch the cached value in place.
+- On logout, the auth repository purges the whole cache and rotates its
+  encryption key — don't add a cache that bypasses that (no writing outside
+  `ResponseCacheStore`).
+- No TTL, no background refresh. Staleness is surfaced to the user
+  (`CacheStalenessLabel` + `lastSyncedAt()`), never hidden behind a silent
+  auto-refresh or a guessed expiry.
 
 ## 8. Navigation
 

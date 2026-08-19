@@ -40,6 +40,7 @@ handled gracefully): `ASSISTANT_DISABLED`, `STOCK_DISABLED`,
 | Billing | entitlement + purchase flow via RevenueCat (`purchases_flutter`), paywall gating on premium features |
 | Push | device token registration with the backend; `firebase_messaging` wired |
 | Crash reporting & analytics | `firebase_crashlytics`, `firebase_analytics` dependencies wired |
+| Offline read cache | Encrypted, event-driven read-through cache for Accounts, Dashboard hero (net worth/monthly summary), Reports monthly summary, Budgets (list + status), Categories, Recurring transactions (list + upcoming), Transactions (default unfiltered first page). Offline banner, per-screen staleness label, and offline-aware mutation UX (`AppSheetActionBar` disables submit while offline). No offline write queue — mutations are blocked, not queued. See `docs/adr/0003-offline-read-cache.md`. |
 
 All of the above have unit/widget tests for their happy path, and an
 `integration_test/auth_flow_test.dart` E2E entrypoint exists.
@@ -68,6 +69,12 @@ Even where a slice already exists end-to-end, this work stays open-ended:
 - Run `dart run build_runner build --delete-conflicting-outputs` before
   committing after deleting/renaming an `@riverpod`-annotated source file, so
   no orphaned `*.g.dart` build artifacts linger locally.
+- Offline cache follow-ups (see `docs/adr/0003-offline-read-cache.md`):
+  Stocks, Assistant, OCR, Imports, and Notifications are deliberately
+  **not** cached (live data, job-based, or high-churn/low-value) — don't
+  "complete" these as an oversight. An offline write queue (queued
+  mutations, conflict resolution) was considered and explicitly deferred,
+  not committed to; needs a new ADR if picked up.
 
 ## Store readiness
 
@@ -75,7 +82,10 @@ Non-code items still needed before a store submission:
 
 - [ ] Privacy policy & data disclosure — map what's actually collected
   (email, transaction data, secure tokens) to Apple's App Privacy labels and
-  Play's Data Safety form.
+  Play's Data Safety form. Note: financial data (accounts/transactions/
+  budgets/etc.) now also persists on-device in an encrypted offline cache
+  (`docs/adr/0003-offline-read-cache.md`) — confirm whether on-device-only
+  encrypted storage needs its own disclosure line under either label set.
 - [ ] Store screenshots captured against the current dashboard and nav shell.
 - [ ] Verify `flutter_launcher_icons` / `flutter_native_splash` output against
   final brand assets (config already active in `pubspec.yaml`).
