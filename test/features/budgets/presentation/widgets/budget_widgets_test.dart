@@ -6,6 +6,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/budgets/data/budgets_repository.dart';
 import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/domain/budget_status.dart';
@@ -232,7 +233,7 @@ void main() {
         child: const BudgetFormSheet(),
       );
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+      await tester.tap(find.byType(AppDropdownField<String>).first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Groceries').last);
       await tester.pumpAndSettle();

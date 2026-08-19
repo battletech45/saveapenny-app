@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/insights/data/insights_repository.dart';
 import 'package:saveapenny/features/insights/domain/insight.dart';
 import 'package:saveapenny/features/insights/domain/insights_repository.dart';
@@ -248,16 +249,12 @@ void main() {
 
     await _pumpInsightsApp(tester, container);
 
-    final dropdowns = find.byWidgetPredicate(
-      (widget) => widget is DropdownButtonFormField,
-    );
-
-    await tester.tap(dropdowns.at(0));
+    await tester.tap(find.byType(AppDropdownField<InsightType?>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Trend').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(dropdowns.at(1));
+    await tester.tap(find.byType(AppDropdownField<InsightSeverity?>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Warning').last);
     await tester.pumpAndSettle();

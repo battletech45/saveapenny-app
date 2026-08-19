@@ -6,6 +6,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/data/accounts_repository.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/domain/accounts_repository.dart';
@@ -259,6 +260,17 @@ Future<void> _pumpSheet(
   await tester.pumpAndSettle();
 }
 
+Future<void> _selectDropdown<T>(
+  WidgetTester tester,
+  int index,
+  String optionText,
+) async {
+  await tester.tap(find.byType(AppDropdownField<T>).at(index));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(optionText).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('transaction form filters categories when type changes', (
     WidgetTester tester,
@@ -302,10 +314,7 @@ void main() {
     await tester.tap(find.widgetWithText(ChoiceChip, 'Groceries'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(DropdownButtonFormField<TransactionType>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Income').last);
-    await tester.pumpAndSettle();
+    await _selectDropdown<TransactionType>(tester, 0, 'Income');
 
     expect(find.widgetWithText(ChoiceChip, 'Salary'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Groceries'), findsNothing);
@@ -364,10 +373,7 @@ void main() {
         child: const TransactionFormSheet(),
       );
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Main bank').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 0, 'Main bank');
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Groceries'));
       await tester.pumpAndSettle();
@@ -430,7 +436,7 @@ void main() {
       child: const TransferFormSheet(),
     );
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(2));
+    await tester.tap(find.byType(AppDropdownField<String>).at(2));
     await tester.pumpAndSettle();
 
     expect(find.text('Transfers').last, findsOneWidget);
@@ -489,20 +495,11 @@ void main() {
         child: const TransferFormSheet(),
       );
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Main bank').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 0, 'Main bank');
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('USD wallet').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 1, 'USD wallet');
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).at(2));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Transfers').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 2, 'Transfers');
 
       await tester.enterText(find.byType(TextFormField).first, '50');
       final submitButton = find.widgetWithText(
@@ -576,20 +573,11 @@ void main() {
         child: const TransferFormSheet(),
       );
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Main bank').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 0, 'Main bank');
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Savings').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 1, 'Savings');
 
-      await tester.tap(find.byType(DropdownButtonFormField<String>).at(2));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Transfers').last);
-      await tester.pumpAndSettle();
+      await _selectDropdown<String>(tester, 2, 'Transfers');
 
       await tester.enterText(find.byType(TextFormField).first, '50');
       final submitButton = find.widgetWithText(

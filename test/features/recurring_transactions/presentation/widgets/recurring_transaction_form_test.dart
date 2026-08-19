@@ -6,6 +6,7 @@ import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_envelope.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/data/accounts_repository.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/domain/accounts_repository.dart';
@@ -273,6 +274,17 @@ Future<void> _pumpSheet(
   await tester.pumpAndSettle();
 }
 
+Future<void> _selectDropdown<T>(
+  WidgetTester tester,
+  int index,
+  String optionText,
+) async {
+  await tester.tap(find.byType(AppDropdownField<T>).at(index));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(optionText).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('form renders existing income configuration when editing', (
     tester,
@@ -356,15 +368,9 @@ void main() {
 
     await _pumpSheet(tester, container);
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Main bank').last);
-    await tester.pumpAndSettle();
+    await _selectDropdown<String>(tester, 0, 'Main bank');
 
-    await tester.tap(find.byType(DropdownButtonFormField<String>).at(1));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Groceries').last);
-    await tester.pumpAndSettle();
+    await _selectDropdown<String>(tester, 1, 'Groceries');
 
     await tester.enterText(find.byType(TextFormField).first, '49.99');
     final submitButton = find.widgetWithText(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:saveapenny/core/theme/app_theme.dart';
+import 'package:saveapenny/core/ui/app_dropdown_field.dart';
 import 'package:saveapenny/features/accounts/data/accounts_repository.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 import 'package:saveapenny/features/accounts/domain/accounts_repository.dart';
@@ -126,7 +127,7 @@ void main() {
       goal: _goal(linkedAccountId: 'account-1'),
     );
 
-    await tester.tap(find.byIcon(Icons.arrow_drop_down).last);
+    await tester.tap(find.byType(AppDropdownField<String?>).first);
     await tester.pumpAndSettle();
 
     expect(find.text('Main bank'), findsWidgets);
@@ -158,7 +159,7 @@ void main() {
 
       expect(find.text('missing-account'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.arrow_drop_down).last);
+      await tester.tap(find.byType(AppDropdownField<String?>).first);
       await tester.pumpAndSettle();
 
       expect(find.text('missing-account'), findsWidgets);
