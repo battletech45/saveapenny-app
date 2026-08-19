@@ -61,6 +61,7 @@ class NetWorthHero extends StatelessWidget {
                       context: context,
                       amount: netWorth.totalLiabilities,
                       currencyCode: 'TRY',
+                      isDebt: true,
                     ).text,
                     icon: Icons.arrow_downward_rounded,
                     tone: StatPillTone.expense,

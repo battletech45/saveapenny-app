@@ -62,7 +62,15 @@ class StatPill extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            Text(value, style: context.textTheme.money.copyWith(color: fg)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: context.textTheme.money.copyWith(color: fg),
+              ),
+            ),
           ],
         ),
       ),
