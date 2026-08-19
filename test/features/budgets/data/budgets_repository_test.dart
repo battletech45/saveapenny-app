@@ -10,6 +10,42 @@ import 'package:saveapenny/features/budgets/domain/budget.dart';
 import 'package:saveapenny/features/budgets/domain/budget_status.dart';
 
 import '../../../support/test_http_client_adapter.dart';
+import '../../../support/test_response_cache_store.dart';
+
+Map<String, dynamic> _budgetsPageJson() {
+  return <String, dynamic>{
+    'items': <Map<String, dynamic>>[
+      <String, dynamic>{
+        'id': 'b-1',
+        'userId': 'u-1',
+        'categoryId': 'c-1',
+        'amount': 500,
+        'period': 'MONTHLY',
+        'startDate': '2026-06-01T00:00:00.000',
+        'endDate': '2026-06-30T00:00:00.000',
+        'createdAt': '2026-06-09T12:00:00Z',
+        'updatedAt': '2026-06-09T12:00:00Z',
+      },
+    ],
+    'page': 0,
+    'size': 20,
+    'totalItems': 1,
+    'totalPages': 1,
+    'hasNext': false,
+    'hasPrevious': false,
+  };
+}
+
+Map<String, dynamic> _statusJson() {
+  return <String, dynamic>{
+    'category': 'Groceries',
+    'budgetAmount': 500,
+    'spentAmount': 420,
+    'remainingAmount': 80,
+    'usagePercentage': 84,
+    'status': 'WARNING',
+  };
+}
 
 void main() {
   late TestHttpClientAdapter adapter;
@@ -19,7 +55,10 @@ void main() {
     adapter = TestHttpClientAdapter();
     final dio = Dio(BaseOptions(baseUrl: 'https://api.saveapenny.app/api/v1'))
       ..httpClientAdapter = adapter;
-    repository = BudgetsRepositoryImpl(BudgetsApi(ApiClient(dio)));
+    repository = BudgetsRepositoryImpl(
+      BudgetsApi(ApiClient(dio)),
+      createTestResponseCacheStore(),
+    );
   });
 
   test('lists budgets and maps period values', () async {
@@ -182,5 +221,78 @@ void main() {
         ),
       ),
     );
+  });
+
+  test(
+    'list falls back to the cached first page on a network failure',
+    () async {
+      adapter.enqueueJson(
+        path: '/budgets',
+        statusCode: 200,
+        body: <String, dynamic>{
+          'success': true,
+          'data': _budgetsPageJson(),
+          'error': null,
+          'timestamp': '2026-06-09T12:00:00Z',
+        },
+      );
+      await repository.list();
+
+      adapter.enqueueError(
+        path: '/budgets',
+        type: DioExceptionType.connectionError,
+      );
+      final fallback = await repository.list();
+
+      expect(fallback.items, hasLength(1));
+      expect(fallback.items.single.amount, 500);
+    },
+  );
+
+  test('list does not cache/fall back for page > 0', () async {
+    adapter.enqueueJson(
+      path: '/budgets',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _budgetsPageJson(),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.list(page: 1);
+
+    adapter.enqueueError(
+      path: '/budgets',
+      type: DioExceptionType.connectionError,
+    );
+
+    await expectLater(
+      () => repository.list(page: 1),
+      throwsA(isA<NetworkFailure>()),
+    );
+  });
+
+  test('status falls back to the cached value on a network failure', () async {
+    adapter.enqueueJson(
+      path: '/budgets/b-1/status',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _statusJson(),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.status('b-1');
+
+    adapter.enqueueError(
+      path: '/budgets/b-1/status',
+      type: DioExceptionType.connectionError,
+    );
+    final fallback = await repository.status('b-1');
+
+    expect(fallback.category, 'Groceries');
+    expect(fallback.status, BudgetHealth.warning);
   });
 }

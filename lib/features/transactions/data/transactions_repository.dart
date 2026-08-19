@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/network/api_envelope.dart';
+import 'package:saveapenny/core/storage/cached_fetch.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/features/transactions/data/dto/create_transaction_request.dart';
 import 'package:saveapenny/features/transactions/data/dto/create_transfer_request.dart';
 import 'package:saveapenny/features/transactions/data/dto/transaction_response.dart';
@@ -11,10 +13,13 @@ import 'package:saveapenny/features/transactions/domain/transactions_repository.
 
 part 'transactions_repository.g.dart';
 
+const String _recentListCachePrefix = 'transactions:list:recent:';
+
 class TransactionsRepositoryImpl implements TransactionsRepository {
-  const TransactionsRepositoryImpl(this._transactionsApi);
+  const TransactionsRepositoryImpl(this._transactionsApi, this._cache);
 
   final TransactionsApi _transactionsApi;
+  final ResponseCacheStore _cache;
 
   @override
   Future<PaginatedData<Transaction>> list({
@@ -30,20 +35,63 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
     int size = 20,
     String sort = 'transactionDate,desc',
   }) async {
-    final response = await _transactionsApi.list(
-      from: from,
-      to: to,
-      type: type == null ? null : _transactionTypeToWire(type),
-      accountId: accountId,
-      categoryId: categoryId,
-      minAmount: minAmount,
-      maxAmount: maxAmount,
-      keyword: keyword,
-      page: page,
-      size: size,
-      sort: sort,
-    );
+    // Only the default, unfiltered "recent activity" view (no filters, first
+    // page) is cached — see docs/adr/0003-offline-read-cache.md Phase 3.
+    // Filtered/searched lists and load-more pages call straight through
+    // with no fallback, so a stale filtered result is never shown as if
+    // it matched the current filters.
+    final isDefaultView =
+        page == 0 &&
+        from == null &&
+        to == null &&
+        type == null &&
+        accountId == null &&
+        categoryId == null &&
+        minAmount == null &&
+        maxAmount == null &&
+        (keyword == null || keyword.isEmpty);
 
+    if (!isDefaultView) {
+      final response = await _transactionsApi.list(
+        from: from,
+        to: to,
+        type: type == null ? null : _transactionTypeToWire(type),
+        accountId: accountId,
+        categoryId: categoryId,
+        minAmount: minAmount,
+        maxAmount: maxAmount,
+        keyword: keyword,
+        page: page,
+        size: size,
+        sort: sort,
+      );
+      return _toDomainPage(response);
+    }
+
+    final response = await cachedFetch<PaginatedData<TransactionResponse>>(
+      cache: _cache,
+      key: '$_recentListCachePrefix$size:$sort',
+      call: () => _transactionsApi.list(page: page, size: size, sort: sort),
+      toJson: (page) => <String, dynamic>{
+        'items': page.items.map((item) => item.toJson()).toList(),
+        'page': page.page,
+        'size': page.size,
+        'totalItems': page.totalItems,
+        'totalPages': page.totalPages,
+        'hasNext': page.hasNext,
+        'hasPrevious': page.hasPrevious,
+      },
+      fromJson: (json) => PaginatedData<TransactionResponse>.fromJson(
+        json,
+        (item) => TransactionResponse.fromJson(item! as Map<String, dynamic>),
+      ),
+    );
+    return _toDomainPage(response);
+  }
+
+  PaginatedData<Transaction> _toDomainPage(
+    PaginatedData<TransactionResponse> response,
+  ) {
     return PaginatedData<Transaction>(
       items: response.items
           .map((TransactionResponse item) => item.toDomain())
@@ -78,6 +126,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         transactionDate: _toWireDate(transactionDate),
       ),
     );
+    await _cache.invalidatePrefix(_recentListCachePrefix);
 
     return response.toDomain();
   }
@@ -105,6 +154,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         transactionDate: _toWireDate(transactionDate),
       ),
     );
+    await _cache.invalidatePrefix(_recentListCachePrefix);
 
     return response.toDomain();
   }
@@ -130,11 +180,13 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         transactionDate: _toWireDate(transactionDate),
       ),
     );
+    await _cache.invalidatePrefix(_recentListCachePrefix);
   }
 
   @override
-  Future<void> delete(String transactionId) {
-    return _transactionsApi.delete(transactionId);
+  Future<void> delete(String transactionId) async {
+    await _transactionsApi.delete(transactionId);
+    await _cache.invalidatePrefix(_recentListCachePrefix);
   }
 }
 
@@ -160,5 +212,8 @@ String? _normalizeDescription(String? value) {
 
 @Riverpod(keepAlive: true)
 TransactionsRepository transactionsRepository(Ref ref) {
-  return TransactionsRepositoryImpl(ref.watch(transactionsApiProvider));
+  return TransactionsRepositoryImpl(
+    ref.watch(transactionsApiProvider),
+    ref.watch(responseCacheStoreProvider),
+  );
 }

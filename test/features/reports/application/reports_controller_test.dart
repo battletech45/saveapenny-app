@@ -61,6 +61,9 @@ class _FakeReportsRepository implements ReportsRepository {
   Future<NetWorthSnapshot> netWorthSnapshot({required DateTime snapshotDate}) {
     return onNetWorthSnapshot!(snapshotDate);
   }
+
+  @override
+  Future<DateTime?> lastSyncedAt() async => null;
 }
 
 class _FakeBillingRepository implements BillingRepository {

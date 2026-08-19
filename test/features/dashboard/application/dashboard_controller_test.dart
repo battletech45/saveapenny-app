@@ -32,6 +32,9 @@ class _FakeAccountsRepository implements AccountsRepository {
   Future<List<Account>> list() => onList!();
 
   @override
+  Future<DateTime?> lastSyncedAt() async => null;
+
+  @override
   Future<Account> create({
     required String name,
     required AccountType type,
@@ -201,6 +204,9 @@ class _FakeReportsRepository implements ReportsRepository {
     required DateTime from,
     required DateTime to,
   }) => throw UnimplementedError();
+
+  @override
+  Future<DateTime?> lastSyncedAt() async => null;
 }
 
 Account _account() {

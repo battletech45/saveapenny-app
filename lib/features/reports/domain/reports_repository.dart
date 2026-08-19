@@ -20,4 +20,11 @@ abstract interface class ReportsRepository {
   });
 
   Future<NetWorthSnapshot> netWorthSnapshot({required DateTime snapshotDate});
+
+  /// When the last successful [netWorthSnapshot] call was written to the
+  /// offline cache — `null` if nothing has ever been cached. Only the
+  /// net worth/monthly summary pair is cached (the Dashboard's hero data);
+  /// [categorySpending]/[cashFlow] are not yet — see
+  /// docs/adr/0003-offline-read-cache.md Phase 3.
+  Future<DateTime?> lastSyncedAt();
 }

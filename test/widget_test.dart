@@ -105,6 +105,9 @@ class _EmptyReportsRepository implements ReportsRepository {
     required DateTime from,
     required DateTime to,
   }) async => <CashFlowPoint>[];
+
+  @override
+  Future<DateTime?> lastSyncedAt() async => null;
 }
 
 class _EmptyAccountsRepository implements AccountsRepository {
@@ -112,6 +115,9 @@ class _EmptyAccountsRepository implements AccountsRepository {
 
   @override
   Future<List<Account>> list() async => <Account>[];
+
+  @override
+  Future<DateTime?> lastSyncedAt() async => null;
 
   @override
   Future<Account> create({

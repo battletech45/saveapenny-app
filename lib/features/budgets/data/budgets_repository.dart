@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:saveapenny/core/network/api_envelope.dart';
+import 'package:saveapenny/core/storage/cached_fetch.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/features/budgets/data/budgets_api.dart';
 import 'package:saveapenny/features/budgets/data/dto/budget_response.dart';
 import 'package:saveapenny/features/budgets/data/dto/budget_status_response.dart';
@@ -12,10 +14,13 @@ import 'package:saveapenny/features/budgets/domain/budgets_repository.dart';
 
 part 'budgets_repository.g.dart';
 
+const String _listCachePrefix = 'budgets:list:';
+
 class BudgetsRepositoryImpl implements BudgetsRepository {
-  const BudgetsRepositoryImpl(this._budgetsApi);
+  const BudgetsRepositoryImpl(this._budgetsApi, this._cache);
 
   final BudgetsApi _budgetsApi;
+  final ResponseCacheStore _cache;
 
   @override
   Future<PaginatedData<Budget>> list({
@@ -24,13 +29,46 @@ class BudgetsRepositoryImpl implements BudgetsRepository {
     int size = 20,
     String sort = 'startDate,desc',
   }) async {
-    final response = await _budgetsApi.list(
-      period: period == null ? null : _budgetPeriodToWire(period),
-      page: page,
-      size: size,
-      sort: sort,
-    );
+    // Only the first page is cached (docs/adr/0003-offline-read-cache.md
+    // Phase 3 scope: "most recent page", not deep pagination history) —
+    // load-more pages call straight through with no fallback.
+    if (page != 0) {
+      final response = await _budgetsApi.list(
+        period: period == null ? null : _budgetPeriodToWire(period),
+        page: page,
+        size: size,
+        sort: sort,
+      );
+      return _toDomainPage(response);
+    }
 
+    final response = await cachedFetch<PaginatedData<BudgetResponse>>(
+      cache: _cache,
+      key: '$_listCachePrefix${period?.name ?? 'all'}:$size:$sort',
+      call: () => _budgetsApi.list(
+        period: period == null ? null : _budgetPeriodToWire(period),
+        page: page,
+        size: size,
+        sort: sort,
+      ),
+      toJson: (page) => <String, dynamic>{
+        'items': page.items.map((item) => item.toJson()).toList(),
+        'page': page.page,
+        'size': page.size,
+        'totalItems': page.totalItems,
+        'totalPages': page.totalPages,
+        'hasNext': page.hasNext,
+        'hasPrevious': page.hasPrevious,
+      },
+      fromJson: (json) => PaginatedData<BudgetResponse>.fromJson(
+        json,
+        (item) => BudgetResponse.fromJson(item! as Map<String, dynamic>),
+      ),
+    );
+    return _toDomainPage(response);
+  }
+
+  PaginatedData<Budget> _toDomainPage(PaginatedData<BudgetResponse> response) {
     return PaginatedData<Budget>(
       items: response.items
           .map((BudgetResponse item) => item.toDomain())
@@ -46,7 +84,13 @@ class BudgetsRepositoryImpl implements BudgetsRepository {
 
   @override
   Future<BudgetStatus> status(String budgetId) async {
-    final response = await _budgetsApi.status(budgetId);
+    final response = await cachedFetch<BudgetStatusResponse>(
+      cache: _cache,
+      key: 'budgets:status:$budgetId',
+      call: () => _budgetsApi.status(budgetId),
+      toJson: (value) => value.toJson(),
+      fromJson: BudgetStatusResponse.fromJson,
+    );
     return response.toDomain();
   }
 
@@ -67,6 +111,7 @@ class BudgetsRepositoryImpl implements BudgetsRepository {
         endDate: _toWireDate(endDate),
       ),
     );
+    await _cache.invalidatePrefix(_listCachePrefix);
 
     return response.toDomain();
   }
@@ -90,13 +135,17 @@ class BudgetsRepositoryImpl implements BudgetsRepository {
         endDate: _toWireDate(endDate),
       ),
     );
+    await _cache.invalidatePrefix(_listCachePrefix);
+    await _cache.invalidate('budgets:status:$budgetId');
 
     return response.toDomain();
   }
 
   @override
-  Future<void> delete(String budgetId) {
-    return _budgetsApi.delete(budgetId);
+  Future<void> delete(String budgetId) async {
+    await _budgetsApi.delete(budgetId);
+    await _cache.invalidatePrefix(_listCachePrefix);
+    await _cache.invalidate('budgets:status:$budgetId');
   }
 }
 
@@ -116,5 +165,8 @@ String _toWireDate(DateTime value) {
 
 @Riverpod(keepAlive: true)
 BudgetsRepository budgetsRepository(Ref ref) {
-  return BudgetsRepositoryImpl(ref.watch(budgetsApiProvider));
+  return BudgetsRepositoryImpl(
+    ref.watch(budgetsApiProvider),
+    ref.watch(responseCacheStoreProvider),
+  );
 }

@@ -4,21 +4,54 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/network/api_error_code.dart';
 import 'package:saveapenny/core/network/dio_client.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/features/accounts/data/accounts_api.dart';
 import 'package:saveapenny/features/accounts/data/accounts_repository.dart';
 import 'package:saveapenny/features/accounts/domain/account.dart';
 
 import '../../../support/test_http_client_adapter.dart';
+import '../../../support/test_response_cache_store.dart';
+
+Map<String, dynamic> _accountJson({
+  String id = 'a-1',
+  String name = 'Main bank',
+}) {
+  return <String, dynamic>{
+    'id': id,
+    'name': name,
+    'type': 'BANK',
+    'currency': 'TRY',
+    'balance': 1250,
+    'initialBalance': 1000,
+    'active': true,
+    'createdAt': '2026-06-09T12:00:00Z',
+    'updatedAt': '2026-06-09T12:00:00Z',
+  };
+}
+
+Map<String, dynamic> _accountsPage(List<Map<String, dynamic>> items) {
+  return <String, dynamic>{
+    'items': items,
+    'page': 0,
+    'size': 20,
+    'totalItems': items.length,
+    'totalPages': 1,
+    'hasNext': false,
+    'hasPrevious': false,
+  };
+}
 
 void main() {
   late TestHttpClientAdapter adapter;
+  late ResponseCacheStore cache;
   late AccountsRepositoryImpl repository;
 
   setUp(() {
     adapter = TestHttpClientAdapter();
+    cache = createTestResponseCacheStore();
     final dio = Dio(BaseOptions(baseUrl: 'https://api.saveapenny.app/api/v1'))
       ..httpClientAdapter = adapter;
-    repository = AccountsRepositoryImpl(AccountsApi(ApiClient(dio)));
+    repository = AccountsRepositoryImpl(AccountsApi(ApiClient(dio)), cache);
   });
 
   test('lists accounts from the paginated payload', () async {
@@ -146,6 +179,126 @@ void main() {
           ApiErrorCode.validationFailed,
         ),
       ),
+    );
+  });
+
+  test('list falls back to the cached accounts on a network failure', () async {
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _accountsPage(<Map<String, dynamic>>[_accountJson()]),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    final first = await repository.list();
+    expect(first, hasLength(1));
+
+    adapter.enqueueError(
+      path: '/accounts',
+      type: DioExceptionType.connectionError,
+    );
+    final fallback = await repository.list();
+
+    expect(fallback, hasLength(1));
+    expect(fallback.single.name, 'Main bank');
+  });
+
+  test('list rethrows a network failure when nothing is cached yet', () async {
+    adapter.enqueueError(
+      path: '/accounts',
+      type: DioExceptionType.connectionError,
+    );
+
+    await expectLater(() => repository.list(), throwsA(isA<NetworkFailure>()));
+  });
+
+  test('list does not fall back to cache for a non-network failure', () async {
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _accountsPage(<Map<String, dynamic>>[_accountJson()]),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.list();
+
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': false,
+        'data': null,
+        'error': <String, dynamic>{
+          'code': 'INTERNAL_ERROR',
+          'message': 'boom',
+          'details': <String>[],
+        },
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+
+    await expectLater(() => repository.list(), throwsA(isA<ApiFailure>()));
+  });
+
+  test('create invalidates the cached account list', () async {
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _accountsPage(<Map<String, dynamic>>[_accountJson()]),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.list();
+
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _accountJson(id: 'a-2', name: 'New savings'),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.create(
+      name: 'New savings',
+      type: AccountType.savings,
+      currency: 'TRY',
+      initialBalance: 0,
+    );
+
+    expect(await cache.read('accounts:list'), isNull);
+  });
+
+  test('lastSyncedAt reflects the most recent successful list call', () async {
+    expect(await repository.lastSyncedAt(), isNull);
+
+    adapter.enqueueJson(
+      path: '/accounts',
+      statusCode: 200,
+      body: <String, dynamic>{
+        'success': true,
+        'data': _accountsPage(<Map<String, dynamic>>[_accountJson()]),
+        'error': null,
+        'timestamp': '2026-06-09T12:00:00Z',
+      },
+    );
+    await repository.list();
+
+    final syncedAt = await repository.lastSyncedAt();
+    expect(syncedAt, isNotNull);
+    expect(
+      syncedAt!.difference(DateTime.now()).abs(),
+      lessThan(const Duration(seconds: 5)),
     );
   });
 }

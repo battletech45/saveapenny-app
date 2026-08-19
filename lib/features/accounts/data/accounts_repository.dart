@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:saveapenny/core/storage/cached_fetch.dart';
+import 'package:saveapenny/core/storage/response_cache_store.dart';
 import 'package:saveapenny/features/accounts/data/accounts_api.dart';
 import 'package:saveapenny/features/accounts/data/dto/account_response.dart';
 import 'package:saveapenny/features/accounts/data/dto/create_account_request.dart';
@@ -9,18 +11,34 @@ import 'package:saveapenny/features/accounts/domain/accounts_repository.dart';
 
 part 'accounts_repository.g.dart';
 
+const String _listCacheKey = 'accounts:list';
+
 class AccountsRepositoryImpl implements AccountsRepository {
-  const AccountsRepositoryImpl(this._accountsApi);
+  const AccountsRepositoryImpl(this._accountsApi, this._cache);
 
   final AccountsApi _accountsApi;
+  final ResponseCacheStore _cache;
 
   @override
   Future<List<Account>> list() async {
-    final page = await _accountsApi.list();
-    return page.items
+    final items = await cachedFetch<List<AccountResponse>>(
+      cache: _cache,
+      key: _listCacheKey,
+      call: () async => (await _accountsApi.list()).items,
+      toJson: (items) => <String, dynamic>{
+        'items': items.map((item) => item.toJson()).toList(),
+      },
+      fromJson: (json) => (json['items']! as List<dynamic>)
+          .map((item) => AccountResponse.fromJson(item as Map<String, dynamic>))
+          .toList(growable: false),
+    );
+    return items
         .map((AccountResponse item) => item.toDomain())
         .toList(growable: false);
   }
+
+  @override
+  Future<DateTime?> lastSyncedAt() => _cache.writtenAt(_listCacheKey);
 
   @override
   Future<Account> create({
@@ -43,6 +61,10 @@ class AccountsRepositoryImpl implements AccountsRepository {
         statementDay: statementDay,
       ),
     );
+    // The cached list page is now stale relative to the backend; drop it
+    // rather than patch it in place, so the next list() re-fetches (or, if
+    // offline, honestly reports a miss instead of showing pre-mutation data).
+    await _cache.invalidate(_listCacheKey);
 
     return response.toDomain();
   }
@@ -62,13 +84,15 @@ class AccountsRepositoryImpl implements AccountsRepository {
         currency: currency,
       ),
     );
+    await _cache.invalidate(_listCacheKey);
 
     return response.toDomain();
   }
 
   @override
-  Future<void> delete(String accountId) {
-    return _accountsApi.delete(accountId);
+  Future<void> delete(String accountId) async {
+    await _accountsApi.delete(accountId);
+    await _cache.invalidate(_listCacheKey);
   }
 }
 
@@ -84,5 +108,8 @@ String _accountTypeToWire(AccountType type) {
 
 @Riverpod(keepAlive: true)
 AccountsRepository accountsRepository(Ref ref) {
-  return AccountsRepositoryImpl(ref.watch(accountsApiProvider));
+  return AccountsRepositoryImpl(
+    ref.watch(accountsApiProvider),
+    ref.watch(responseCacheStoreProvider),
+  );
 }

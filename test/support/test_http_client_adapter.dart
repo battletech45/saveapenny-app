@@ -27,6 +27,17 @@ class TestHttpClientAdapter implements HttpClientAdapter {
     );
   }
 
+  /// Simulates a transport-level failure (no response reaches the app),
+  /// e.g. [DioExceptionType.connectionError] for "device is offline" —
+  /// [ApiClient.send] maps this to [Failure.network].
+  void enqueueError({required String path, required DioExceptionType type}) {
+    final queue = _responses.putIfAbsent(
+      path,
+      () => <_QueuedAdapterResponse>[],
+    );
+    queue.add(_QueuedAdapterResponse(statusCode: 0, body: null, type: type));
+  }
+
   List<RequestOptions> requestsForPath(String path) {
     return requests.where((request) => request.path == path).toList();
   }
@@ -47,6 +58,10 @@ class TestHttpClientAdapter implements HttpClientAdapter {
     }
 
     final response = queue.removeAt(0);
+    if (response.type != null) {
+      throw DioException(requestOptions: options, type: response.type!);
+    }
+
     final headers = <String, List<String>>{
       Headers.contentTypeHeader: <String>[Headers.jsonContentType],
       ...response.headers,
@@ -64,10 +79,12 @@ class _QueuedAdapterResponse {
   const _QueuedAdapterResponse({
     required this.statusCode,
     required this.body,
-    required this.headers,
+    this.headers = const <String, List<String>>{},
+    this.type,
   });
 
   final int statusCode;
   final Object? body;
   final Map<String, List<String>> headers;
+  final DioExceptionType? type;
 }

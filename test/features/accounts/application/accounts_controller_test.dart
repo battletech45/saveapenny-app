@@ -23,6 +23,9 @@ class _FakeAccountsRepository implements AccountsRepository {
   onCreate;
 
   @override
+  Future<DateTime?> lastSyncedAt() async => null;
+
+  @override
   Future<Account> create({
     required String name,
     required AccountType type,
