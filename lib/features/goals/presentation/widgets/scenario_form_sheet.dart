@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/features/goals/application/goal_detail_controller.dart';
 import 'package:saveapenny/features/goals/domain/goal.dart';
 import 'package:saveapenny/features/goals/presentation/widgets/goal_form_shared.dart';
@@ -49,88 +50,67 @@ class _ScenarioFormSheetState extends ConsumerState<ScenarioFormSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: l10n.goalsScenarioCreateTitle,
+      subtitle: l10n.goalsScenarioCreateSubtitle,
+      failure: _submissionFailure == null
+          ? null
+          : GoalSheetFailureNotice(failure: _submissionFailure!),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : l10n.goalsScenarioCreateCta,
+        onPrimaryPressed: _isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                l10n.goalsScenarioCreateTitle,
-                style: context.textTheme.title,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              controller: _nameController,
+              enabled: !_isSubmitting,
+              decoration: InputDecoration(
+                labelText: l10n.goalsScenarioNameLabel,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.goalsScenarioCreateSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
+              validator: (value) {
+                if (value == null ||
+                    value.trim().isEmpty ||
+                    value.trim().length > 80) {
+                  return l10n.goalsScenarioNameError;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SwitchListTile.adaptive(
+              value: _isBaseline,
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _isBaseline = value;
+                      });
+                    },
+              title: Text(l10n.goalsScenarioBaselineLabel),
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              l10n.goalsScenarioInputsLabel,
+              style: context.textTheme.label.copyWith(
+                color: context.colors.textSecondary,
               ),
-              if (_submissionFailure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                GoalSheetFailureNotice(failure: _submissionFailure!),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              TextFormField(
-                controller: _nameController,
-                enabled: !_isSubmitting,
-                decoration: InputDecoration(
-                  labelText: l10n.goalsScenarioNameLabel,
-                ),
-                validator: (value) {
-                  if (value == null ||
-                      value.trim().isEmpty ||
-                      value.trim().length > 80) {
-                    return l10n.goalsScenarioNameError;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              SwitchListTile.adaptive(
-                value: _isBaseline,
-                onChanged: _isSubmitting
-                    ? null
-                    : (value) {
-                        setState(() {
-                          _isBaseline = value;
-                        });
-                      },
-                title: Text(l10n.goalsScenarioBaselineLabel),
-                contentPadding: EdgeInsets.zero,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                l10n.goalsScenarioInputsLabel,
-                style: context.textTheme.label.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              GoalInputsFields(
-                type: widget.goalType,
-                data: _inputsData,
-                enabled: !_isSubmitting,
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : l10n.goalsScenarioCreateCta,
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            GoalInputsFields(
+              type: widget.goalType,
+              data: _inputsData,
+              enabled: !_isSubmitting,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

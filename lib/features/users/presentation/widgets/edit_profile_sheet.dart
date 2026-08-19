@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:saveapenny/core/error/failure.dart';
-import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/features/users/application/users_controller.dart';
 import 'package:saveapenny/features/users/domain/user_profile.dart';
 import 'package:saveapenny/features/users/presentation/widgets/profile_shared.dart';
@@ -43,57 +43,37 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
         ? profileState.error as Failure
         : null;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: l10n.profileEditTitle,
+      subtitle: l10n.profileEditSubtitle,
+      failure: failure == null
+          ? null
+          : ProfileSheetFailureNotice(failure: failure),
+      actionBar: AppSheetActionBar(
+        primaryLabel: isSubmitting ? l10n.commonLoading : l10n.profileSaveCta,
+        onPrimaryPressed: isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(l10n.profileEditTitle, style: context.textTheme.title),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.profileEditSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              ),
-              if (failure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                ProfileSheetFailureNotice(failure: failure),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              TextFormField(
-                initialValue: widget.profile.email,
-                enabled: false,
-                decoration: InputDecoration(labelText: l10n.profileEmailLabel),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _fullNameController,
-                enabled: !isSubmitting,
-                textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  labelText: l10n.profileFullNameLabel,
-                ),
-                validator: (value) => _validateFullName(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: isSubmitting ? null : _submit,
-                child: Text(
-                  isSubmitting ? l10n.commonLoading : l10n.profileSaveCta,
-                ),
-              ),
-            ],
-          ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              initialValue: widget.profile.email,
+              enabled: false,
+              decoration: InputDecoration(labelText: l10n.profileEmailLabel),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _fullNameController,
+              enabled: !isSubmitting,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(labelText: l10n.profileFullNameLabel),
+              validator: (value) => _validateFullName(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

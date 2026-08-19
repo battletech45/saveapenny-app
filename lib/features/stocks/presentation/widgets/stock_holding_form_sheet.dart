@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:saveapenny/core/error/failure.dart';
 import 'package:saveapenny/core/theme/app_theme.dart';
 import 'package:saveapenny/core/theme/tokens.dart';
+import 'package:saveapenny/core/ui/app_bottom_sheet.dart';
 import 'package:saveapenny/core/ui/app_date_picker.dart';
 import 'package:saveapenny/features/stocks/application/stock_holdings_controller.dart';
 import 'package:saveapenny/features/stocks/domain/stock_holding.dart';
@@ -73,107 +74,82 @@ class _StockHoldingFormSheetState extends ConsumerState<StockHoldingFormSheet> {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(_purchaseDate);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        top: AppSpacing.lg,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.lg,
+    return AppSheetScaffold(
+      title: _isEditing ? l10n.stocksEditTitle : l10n.stocksCreateTitle,
+      subtitle: _isEditing
+          ? l10n.stocksEditSubtitle
+          : l10n.stocksCreateSubtitle,
+      failure: _submissionFailure == null
+          ? null
+          : _FailureNotice(failure: _submissionFailure!),
+      actionBar: AppSheetActionBar(
+        primaryLabel: _isSubmitting
+            ? l10n.commonLoading
+            : _isEditing
+            ? l10n.stocksSaveCta
+            : l10n.stocksAddCta,
+        onPrimaryPressed: _isSubmitting ? null : _submit,
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                _isEditing ? l10n.stocksEditTitle : l10n.stocksCreateTitle,
-                style: context.textTheme.title,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              controller: _symbolController,
+              enabled: !_isSubmitting && !_isEditing,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(labelText: l10n.stocksSymbolLabel),
+              validator: (value) => _validateSymbol(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _quantityController,
+              enabled: !_isSubmitting,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                _isEditing
-                    ? l10n.stocksEditSubtitle
-                    : l10n.stocksCreateSubtitle,
-                style: context.textTheme.body.copyWith(
-                  color: context.colors.textSecondary,
-                ),
+              decoration: InputDecoration(labelText: l10n.stocksQuantityLabel),
+              validator: (value) => _validateQuantity(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _purchasePriceController,
+              enabled: !_isSubmitting,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              if (_submissionFailure != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.lg),
-                _FailureNotice(failure: _submissionFailure!),
-              ],
-              const SizedBox(height: AppSpacing.xxl),
-              TextFormField(
-                controller: _symbolController,
-                enabled: !_isSubmitting && !_isEditing,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(labelText: l10n.stocksSymbolLabel),
-                validator: (value) => _validateSymbol(l10n, value),
+              decoration: InputDecoration(
+                labelText: l10n.stocksPurchasePriceLabel,
               ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _quantityController,
-                enabled: !_isSubmitting,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.stocksQuantityLabel,
-                ),
-                validator: (value) => _validateQuantity(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _purchasePriceController,
-                enabled: !_isSubmitting,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.stocksPurchasePriceLabel,
-                ),
-                validator: (value) => _validatePurchasePrice(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _currencyController,
-                enabled: !_isSubmitting,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  labelText: l10n.stocksCurrencyLabel,
-                ),
-                validator: (value) => _validateCurrency(l10n, value),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              _ReadOnlyActionField(
-                label: l10n.stocksPurchaseDateLabel,
-                value: dateLabel,
-                actionLabel: l10n.commonContinue,
-                onPressed: _isSubmitting ? null : _pickPurchaseDate,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextFormField(
-                controller: _notesController,
-                enabled: !_isSubmitting,
-                minLines: 3,
-                maxLines: 5,
-                decoration: InputDecoration(labelText: l10n.stocksNotesLabel),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: Text(
-                  _isSubmitting
-                      ? l10n.commonLoading
-                      : _isEditing
-                      ? l10n.stocksSaveCta
-                      : l10n.stocksAddCta,
-                ),
-              ),
-            ],
-          ),
+              validator: (value) => _validatePurchasePrice(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _currencyController,
+              enabled: !_isSubmitting,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(labelText: l10n.stocksCurrencyLabel),
+              validator: (value) => _validateCurrency(l10n, value),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _ReadOnlyActionField(
+              label: l10n.stocksPurchaseDateLabel,
+              value: dateLabel,
+              actionLabel: l10n.commonContinue,
+              onPressed: _isSubmitting ? null : _pickPurchaseDate,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextFormField(
+              controller: _notesController,
+              enabled: !_isSubmitting,
+              minLines: 3,
+              maxLines: 5,
+              decoration: InputDecoration(labelText: l10n.stocksNotesLabel),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );

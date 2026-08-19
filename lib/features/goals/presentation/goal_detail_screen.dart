@@ -304,29 +304,20 @@ class GoalDetailScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final selectedStatus = await showAppModalBottomSheet<GoalStatus>(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: GoalStatus.values
-                  .where((status) => status != currentStatus)
-                  .map(
-                    (status) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(status),
-                        child: Text(goalStatusLabel(l10n, status)),
-                      ),
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
-          ),
-        );
-      },
+      builder: (context) => AppSelectionSheet<GoalStatus>(
+        title: l10n.goalsChangeStatusCta,
+        options: GoalStatus.values
+            .where((status) => status != currentStatus)
+            .map(
+              (status) => AppSelectionOption<GoalStatus>(
+                value: status,
+                label: goalStatusLabel(l10n, status),
+              ),
+            )
+            .toList(growable: false),
+        selectedValue: currentStatus,
+        onSelected: (_) async {},
+      ),
     );
 
     if (selectedStatus == null || selectedStatus == currentStatus) {

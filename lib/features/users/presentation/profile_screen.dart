@@ -301,18 +301,18 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return showAppModalBottomSheet<void>(
       context: context,
-      builder: (context) => _ProfileSelectionSheet<AppLocaleSetting>(
+      builder: (context) => AppSelectionSheet<AppLocaleSetting>(
         title: l10n.profileLanguageLabel,
-        options: <_ProfileSelectionOption<AppLocaleSetting>>[
-          _ProfileSelectionOption(
+        options: <AppSelectionOption<AppLocaleSetting>>[
+          AppSelectionOption(
             value: AppLocaleSetting.system,
             label: l10n.profileLanguageSystem,
           ),
-          _ProfileSelectionOption(
+          AppSelectionOption(
             value: AppLocaleSetting.english,
             label: l10n.profileLanguageEnglish,
           ),
-          _ProfileSelectionOption(
+          AppSelectionOption(
             value: AppLocaleSetting.turkish,
             label: l10n.profileLanguageTurkish,
           ),
@@ -335,18 +335,18 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return showAppModalBottomSheet<void>(
       context: context,
-      builder: (context) => _ProfileSelectionSheet<AppThemeSetting>(
+      builder: (context) => AppSelectionSheet<AppThemeSetting>(
         title: l10n.profileThemeLabel,
-        options: <_ProfileSelectionOption<AppThemeSetting>>[
-          _ProfileSelectionOption(
+        options: <AppSelectionOption<AppThemeSetting>>[
+          AppSelectionOption(
             value: AppThemeSetting.system,
             label: l10n.profileThemeSystem,
           ),
-          _ProfileSelectionOption(
+          AppSelectionOption(
             value: AppThemeSetting.light,
             label: l10n.profileThemeLight,
           ),
-          _ProfileSelectionOption(
+          AppSelectionOption(
             value: AppThemeSetting.dark,
             label: l10n.profileThemeDark,
           ),
@@ -443,67 +443,6 @@ class _ProfilePreferenceButton extends StatelessWidget {
             Icons.chevron_right_rounded,
             color: context.colors.textSecondary,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileSelectionOption<T> {
-  const _ProfileSelectionOption({required this.value, required this.label});
-
-  final T value;
-  final String label;
-}
-
-class _ProfileSelectionSheet<T> extends StatelessWidget {
-  const _ProfileSelectionSheet({
-    required this.title,
-    required this.options,
-    required this.selectedValue,
-    required this.onSelected,
-  });
-
-  final String title;
-  final List<_ProfileSelectionOption<T>> options;
-  final T selectedValue;
-  final Future<void> Function(T value) onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.lg,
-        AppSpacing.xl,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(title, style: context.textTheme.title),
-          const SizedBox(height: AppSpacing.lg),
-          for (final option in options) ...<Widget>[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(option.label),
-              trailing: option.value == selectedValue
-                  ? Icon(
-                      Icons.check_circle_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : const Icon(Icons.circle_outlined),
-              onTap: () async {
-                await onSelected(option.value);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            if (option != options.last)
-              Divider(color: context.colors.border, height: 1),
-          ],
         ],
       ),
     );
